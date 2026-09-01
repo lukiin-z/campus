@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-labelledby="campus-simbolo-titulo">
+  <title id="campus-simbolo-titulo">Campus — símbolo</title>
+  <!--
+    Símbolo Campus: cartão-ingresso picotado com a inicial "C" em recorte.
+    Um único path com fill-rule="evenodd": o subpath externo é o ingresso
+    (retângulo arredondado com dois recortes circulares laterais, r=2.2, na
+    metade da altura) e o subpath interno é o "C", que fica vazado.
+    Sem dependência de fonte, sem gradiente, sem filtro: legível a 16px.
+  -->
+  <path fill="#C83A16" fill-rule="evenodd" d="
+    M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+    A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+    H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+    A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+    M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+    A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 152 40" width="152" height="40"
+     role="img" aria-labelledby="campus-logo-titulo">
+  <title id="campus-logo-titulo">Campus</title>
+  <!--
+    Lockup primário: símbolo + wordmark.
+    O wordmark declara Space Grotesk com pilha de fallback segura (Segoe UI,
+    Helvetica Neue, Arial, sans-serif), como manda o guia de marca. A versão
+    com o wordmark em curvas vive no arquivo do Figma, para uso em impressão.
+    Área de proteção: 8 unidades deste viewBox em todos os lados.
+  -->
+  <g transform="translate(8 8)">
+    <path fill="#C83A16" fill-rule="evenodd" d="
+      M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+      A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+      H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+      A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+      M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+      A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+  </g>
+  <text x="40" y="26" fill="#14181C"
+        font-family="'Space Grotesk','Segoe UI','Helvetica Neue',Arial,sans-serif"
+        font-size="21" font-weight="700" letter-spacing="-0.5"
+        text-rendering="geometricPrecision">Campus</text>
+</svg>

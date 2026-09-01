@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 40" width="340" height="40"
+     role="img" aria-labelledby="campus-logo-h-titulo">
+  <title id="campus-logo-h-titulo">Campus — eventos universitários</title>
+  <!--
+    Assinatura horizontal estendida: símbolo + wordmark + divisória + descritor.
+    Uso: cabeçalho de documento, rodapé de slide, faixa larga. Tamanho mínimo
+    de 200px de largura — abaixo disso o descritor fica ilegível e deve-se
+    usar logo.svg.
+  -->
+  <g transform="translate(8 8)">
+    <path fill="#C83A16" fill-rule="evenodd" d="
+      M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+      A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+      H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+      A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+      M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+      A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+  </g>
+  <text x="40" y="26" fill="#14181C"
+        font-family="'Space Grotesk','Segoe UI','Helvetica Neue',Arial,sans-serif"
+        font-size="21" font-weight="700" letter-spacing="-0.5"
+        text-rendering="geometricPrecision">Campus</text>
+  <line x1="128" y1="12" x2="128" y2="28" stroke="#D6D3CC" stroke-width="1" />
+  <text x="140" y="25" fill="#5C6269"
+        font-family="'JetBrains Mono','Cascadia Mono',Consolas,'Courier New',monospace"
+        font-size="12" letter-spacing="0.6"
+        text-rendering="geometricPrecision">eventos universitários</text>
+</svg>
