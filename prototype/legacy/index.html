@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus — App de eventos universitários</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBFBFA;
+    --surface:#FFFFFF;
+    --surface-2:#F2F1EE;
+    --accent:#E8542E;
+    --accent-2:#0F7A6E;
+    --text:#14181C;
+    --text-muted:#767D85;
+    --border:#E7E5E0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+  }
+
+  /* topbar */
+  .topbar{
+    position:sticky; top:0; z-index:40; background:rgba(251,251,250,.9); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px;
+  }
+  .logo{ display:flex; align-items:center; gap:8px; }
+  .logo-dot{ width:10px; height:10px; border-radius:3px; background:var(--accent); }
+  .logo-word{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; letter-spacing:-.01em; }
+
+  .toplinks{ display:flex; gap:6px; }
+  .navlink{
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:500; color:var(--text-muted);
+    background:none; border:none; padding:8px 14px; border-radius:20px; cursor:pointer;
+  }
+  .navlink.active{ background:var(--surface-2); color:var(--text); }
+
+  .topright{ display:flex; align-items:center; gap:12px; }
+  .btn-create{
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:#fff; background:var(--accent);
+    border:none; border-radius:20px; padding:9px 18px; cursor:pointer;
+  }
+  .avatar-btn{ width:34px; height:34px; border-radius:50%; cursor:pointer; border:2px solid var(--border); }
+
+  /* layout */
+  .container{ max-width:640px; margin:0 auto; padding:28px 20px 100px; }
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  .page-head{ margin-bottom:22px; }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+    color:var(--accent); text-transform:uppercase; margin-bottom:4px;
+  }
+  .h-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:28px; line-height:1.1; }
+  .h-sub{ color:var(--text-muted); font-size:13px; margin-top:4px; }
+
+  /* feed post */
+  .post{
+    margin-bottom:18px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden;
+  }
+  .post-top{ display:flex; align-items:center; gap:10px; padding:14px 16px; }
+  .avatar{ width:36px; height:36px; border-radius:50%; flex-shrink:0; }
+  .post-name{ font-size:13px; font-weight:600; }
+  .post-meta{ font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
+  .post-img{ width:100%; max-height:360px; object-fit:cover; display:block; }
+  .post-caption{ padding:14px 16px 16px; font-size:14px; line-height:1.5; }
+  .post-caption b{ color:var(--accent); }
+
+  .section-label{ display:flex; align-items:center; justify-content:space-between; margin:28px 0 14px; }
+  .section-label span:first-child{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; }
+  .section-label span:last-child{ font-size:12px; color:var(--accent); font-family:'JetBrains Mono',monospace; cursor:pointer; }
+
+  .hscroll{ display:flex; gap:14px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; }
+  .hscroll::-webkit-scrollbar{ display:none; }
+
+  /* ticket card — signature element */
+  .ticket{
+    position:relative; background:var(--surface); border-radius:16px; flex-shrink:0;
+    width:250px; padding:16px; cursor:pointer; border:1px solid var(--border);
+  }
+  .ticket-tag{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:10px;
+    color:#fff; background:var(--accent); padding:3px 9px; border-radius:20px;
+    letter-spacing:.04em; margin-bottom:10px;
+  }
+  .ticket-tag.alt{ background:var(--accent-2); }
+  .ticket-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; line-height:1.25; margin-bottom:8px; }
+  .ticket-meta{ font-size:11px; color:var(--text-muted); margin-bottom:2px; }
+  .ticket-divider{ border-top:2px dashed var(--border); margin:12px 0; position:relative; }
+  .ticket-divider::before, .ticket-divider::after{
+    content:''; position:absolute; top:-9px; width:18px; height:18px; background:var(--bg); border-radius:50%;
+  }
+  .ticket-divider::before{ left:-25px; }
+  .ticket-divider::after{ right:-25px; }
+  .ticket-foot{ display:flex; justify-content:space-between; align-items:center; }
+  .ticket-price{ font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:500; color:var(--accent); }
+  .ticket-spots{ font-size:11px; color:var(--text-muted); }
+
+  /* eventos list */
+  .filters{ display:flex; gap:8px; overflow-x:auto; margin-bottom:18px; scrollbar-width:none; }
+  .filters::-webkit-scrollbar{ display:none; }
+  .chip{
+    font-family:'JetBrains Mono',monospace; font-size:11px; padding:7px 14px; border-radius:20px;
+    background:var(--surface); color:var(--text-muted); white-space:nowrap; border:1px solid var(--border); cursor:pointer;
+  }
+  .chip.active{ background:var(--text); color:#fff; border-color:var(--text); font-weight:600; }
+
+  .list-ticket{
+    display:flex; margin-bottom:12px; background:var(--surface); border-radius:16px; overflow:hidden; cursor:pointer;
+    border:1px solid var(--border);
+  }
+  .list-date{
+    width:64px; flex-shrink:0; background:var(--surface-2); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace;
+  }
+  .list-date .day{ font-size:20px; font-weight:700; color:var(--accent); line-height:1; }
+  .list-date .mon{ font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-top:2px; }
+  .list-body{ padding:13px 16px; flex:1; }
+  .list-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; margin-bottom:4px; }
+  .list-meta{ font-size:11px; color:var(--text-muted); }
+  .list-scope{
+    display:inline-block; margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:10px;
+    padding:2px 8px; border-radius:10px; border:1px solid var(--border); color:var(--text-muted);
+  }
+
+  /* event detail */
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted);
+    background:none; border:none; cursor:pointer; margin-bottom:16px; font-family:'Inter',sans-serif;
+  }
+  .detail-cover{ width:100%; height:280px; object-fit:cover; display:block; border-radius:18px; }
+  .detail-body{ padding-top:20px; }
+  .detail-tag{
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:#fff; background:var(--accent);
+    padding:3px 9px; border-radius:20px; display:inline-block; margin-bottom:10px;
+  }
+  .detail-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px; margin-bottom:6px; }
+  .detail-org{ font-size:12px; color:var(--text-muted); margin-bottom:20px; }
+  .detail-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  .detail-stat{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; }
+  .detail-stat .label{ font-size:10px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; text-transform:uppercase; }
+  .detail-stat .value{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; margin-top:4px; }
+  .detail-desc{ font-size:14px; line-height:1.65; margin-bottom:20px; }
+  .detail-desc b{ color:var(--accent); }
+  .progress-wrap{ margin-bottom:24px; }
+  .progress-labels{ display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:6px; font-family:'JetBrains Mono',monospace; }
+  .progress-bar{ height:8px; background:var(--surface-2); border-radius:20px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:20px; }
+  .cta-btn{
+    width:100%; padding:16px; border:none; border-radius:14px; background:var(--accent); color:#fff;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; cursor:pointer;
+  }
+
+  /* criar evento */
+  .form-group{ margin-bottom:16px; }
+  .form-label{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); text-transform:uppercase;
+    letter-spacing:.06em; margin-bottom:8px; display:block;
+  }
+  .form-input, .form-textarea{
+    width:100%; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:13px 14px;
+    color:var(--text); font-family:'Inter',sans-serif; font-size:14px;
+  }
+  .form-textarea{ resize:none; height:90px; }
+  .scope-options{ display:flex; gap:8px; }
+  .scope-opt{
+    flex:1; text-align:center; padding:12px 6px; border-radius:12px; background:var(--surface);
+    border:1px solid var(--border); font-size:12px; cursor:pointer; color:var(--text-muted);
+  }
+  .scope-opt.active{ background:var(--text); color:#fff; border-color:var(--text); font-weight:600; }
+  .row2{ display:flex; gap:10px; }
+  .row2 > div{ flex:1; }
+
+  /* perfil */
+  .profile-head{ padding:10px 0 24px; display:flex; align-items:center; gap:18px; }
+  .profile-avatar{ width:76px; height:76px; border-radius:50%; border:3px solid var(--accent); }
+  .profile-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px; }
+  .profile-sub{ font-size:12px; color:var(--text-muted); margin-top:4px; font-family:'JetBrains Mono',monospace; }
+  .profile-stats{ display:flex; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:20px; }
+  .profile-stat{ flex:1; text-align:center; padding:16px 4px; border-right:1px dashed var(--border); }
+  .profile-stat:last-child{ border-right:none; }
+  .profile-stat .num{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; color:var(--accent); }
+  .profile-stat .lab{ font-size:10px; color:var(--text-muted); margin-top:2px; }
+  .profile-tabs{ display:flex; gap:8px; margin-bottom:16px; }
+  .ptab{ font-size:12px; padding:8px 14px; border-radius:20px; background:var(--surface); border:1px solid var(--border); color:var(--text-muted); cursor:pointer; }
+  .ptab.active{ background:var(--accent-2); border-color:var(--accent-2); color:#fff; font-weight:600; }
+
+  .toast{
+    position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--text); color:#fff; padding:13px 22px; border-radius:12px; font-size:13px;
+    font-weight:500; opacity:0; transition:all .3s ease; z-index:50; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:560px){
+    .topbar{ padding:12px 16px; }
+    .toplinks{ display:none; }
+    .logo-word{ font-size:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><span class="logo-dot"></span><span class="logo-word">Campus</span></div>
+  <div class="toplinks">
+    <button class="navlink active" data-tab="inicio" onclick="go('inicio')">Início</button>
+    <button class="navlink" data-tab="eventos" onclick="go('eventos')">Eventos</button>
+    <button class="navlink" data-tab="criar" onclick="go('criar')">Criar</button>
+    <button class="navlink" data-tab="calendario" onclick="showToast('Calendário — em breve')">Calendário</button>
+    <button class="navlink" data-tab="perfil" onclick="go('perfil')">Perfil</button>
+  </div>
+  <div class="topright">
+    <button class="btn-create" onclick="go('criar')">+ Criar evento</button>
+    <img class="avatar-btn" src="https://i.pravatar.cc/80?img=47" onclick="go('perfil')">
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- INÍCIO -->
+  <div class="screen active" id="screen-inicio">
+    <div class="page-head">
+      <div class="eyebrow">Eng. de Software · 4º período</div>
+      <div class="h-title">Bom dia, Marina</div>
+    </div>
+
+    <div class="post">
+      <div class="post-top">
+        <img class="avatar" src="https://i.pravatar.cc/60?img=32">
+        <div><div class="post-name">Rafael Souza</div><div class="post-meta">turma 2026.1 · há 2h</div></div>
+      </div>
+      <img class="post-img" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900&q=60">
+      <div class="post-caption"><b>Semana de recepção</b> foi incrível esse ano 🎉 quem tira a próxima foto no mural?</div>
+    </div>
+
+    <div class="post">
+      <div class="post-top">
+        <img class="avatar" src="https://i.pravatar.cc/60?img=48">
+        <div><div class="post-name">Centro Acadêmico</div><div class="post-meta">faculdade · há 5h</div></div>
+      </div>
+      <img class="post-img" src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=900&q=60">
+      <div class="post-caption">Inscrições abertas para a <b>Feira de Carreiras</b> — vagas limitadas, corre lá em Eventos.</div>
+    </div>
+
+    <div class="section-label"><span>Em destaque</span><span onclick="go('eventos')">ver tudo</span></div>
+    <div class="hscroll">
+      <div class="ticket" onclick="openDetail()">
+        <span class="ticket-tag">MINHA TURMA</span>
+        <div class="ticket-title">Churrasco de encerramento do semestre</div>
+        <div class="ticket-meta">Sáb, 30 Ago · 13h</div>
+        <div class="ticket-meta">Quadra do campus 2</div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-foot"><span class="ticket-price">R$ 25</span><span class="ticket-spots">18/40 vagas</span></div>
+      </div>
+      <div class="ticket" onclick="openDetail()">
+        <span class="ticket-tag alt">FACULDADE</span>
+        <div class="ticket-title">Hackathon Campus 48h</div>
+        <div class="ticket-meta">Sex, 5 Set · 18h</div>
+        <div class="ticket-meta">Bloco de Tecnologia</div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-foot"><span class="ticket-price">Gratuito</span><span class="ticket-spots">lista de espera</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVENTOS -->
+  <div class="screen" id="screen-eventos">
+    <div class="page-head">
+      <div class="eyebrow">Encontrar</div>
+      <div class="h-title">Eventos</div>
+    </div>
+    <div class="filters">
+      <div class="chip active">Todos</div>
+      <div class="chip">Minha turma</div>
+      <div class="chip">Meu curso</div>
+      <div class="chip">Faculdade</div>
+      <div class="chip">Gratuitos</div>
+      <div class="chip">Este mês</div>
+    </div>
+
+    <div class="list-ticket" onclick="openDetail()">
+      <div class="list-date"><div class="day">30</div><div class="mon">ago</div></div>
+      <div class="list-body">
+        <div class="list-title">Churrasco de encerramento</div>
+        <div class="list-meta">13h · Quadra 2 · R$ 25</div>
+        <span class="list-scope">minha turma</span>
+      </div>
+    </div>
+    <div class="list-ticket" onclick="openDetail()">
+      <div class="list-date"><div class="day">05</div><div class="mon">set</div></div>
+      <div class="list-body">
+        <div class="list-title">Hackathon Campus 48h</div>
+        <div class="list-meta">18h · Bloco de Tecnologia · Gratuito</div>
+        <span class="list-scope">faculdade</span>
+      </div>
+    </div>
+    <div class="list-ticket" onclick="openDetail()">
+      <div class="list-date"><div class="day">10</div><div class="mon">set</div></div>
+      <div class="list-body">
+        <div class="list-title">Roda de conversa: mercado de dados</div>
+        <div class="list-meta">19h · Auditório B · Gratuito</div>
+        <span class="list-scope">meu curso</span>
+      </div>
+    </div>
+    <div class="list-ticket" onclick="openDetail()">
+      <div class="list-date"><div class="day">14</div><div class="mon">set</div></div>
+      <div class="list-body">
+        <div class="list-title">Feira de carreiras</div>
+        <div class="list-meta">14h · Ginásio central · Gratuito</div>
+        <span class="list-scope">faculdade</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRIAR -->
+  <div class="screen" id="screen-criar">
+    <div class="page-head">
+      <div class="eyebrow">Novo evento</div>
+      <div class="h-title">Criar evento</div>
+    </div>
+
+    <div class="form-group">
+      <span class="form-label">Nome do evento</span>
+      <input class="form-input" placeholder="Ex: Churrasco de encerramento">
+    </div>
+    <div class="form-group">
+      <span class="form-label">Descrição</span>
+      <textarea class="form-textarea" placeholder="Conte do que se trata o evento..."></textarea>
+    </div>
+    <div class="form-group">
+      <span class="form-label">Alcance</span>
+      <div class="scope-options">
+        <div class="scope-opt active" onclick="selectScope(this)">Minha turma</div>
+        <div class="scope-opt" onclick="selectScope(this)">Meu curso</div>
+        <div class="scope-opt" onclick="selectScope(this)">Faculdade</div>
+      </div>
+    </div>
+    <div class="form-group row2">
+      <div>
+        <span class="form-label">Data</span>
+        <input class="form-input" type="date">
+      </div>
+      <div>
+        <span class="form-label">Horário</span>
+        <input class="form-input" type="time">
+      </div>
+    </div>
+    <div class="form-group row2">
+      <div>
+        <span class="form-label">Vagas máx.</span>
+        <input class="form-input" placeholder="40">
+      </div>
+      <div>
+        <span class="form-label">Valor</span>
+        <input class="form-input" placeholder="Gratuito ou R$">
+      </div>
+    </div>
+    <div class="form-group">
+      <span class="form-label">Local</span>
+      <input class="form-input" placeholder="Ex: Quadra do campus 2">
+    </div>
+    <div class="form-group">
+      <button class="cta-btn" onclick="showToast('Evento criado (protótipo)')">Publicar evento</button>
+    </div>
+  </div>
+
+  <!-- DETALHE -->
+  <div class="screen" id="screen-detalhe">
+    <button class="back-link" onclick="goBack()">← Voltar</button>
+    <img class="detail-cover" src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=900&q=60">
+    <div class="detail-body">
+      <span class="detail-tag">FACULDADE</span>
+      <div class="detail-title">Hackathon Campus 48h</div>
+      <div class="detail-org">Organizado por Centro Acadêmico de Computação</div>
+
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="label">Data</div><div class="value">Sex, 5 Set</div></div>
+        <div class="detail-stat"><div class="label">Horário</div><div class="value">18h – domingo 20h</div></div>
+        <div class="detail-stat"><div class="label">Local</div><div class="value">Bloco de Tecnologia</div></div>
+        <div class="detail-stat"><div class="label">Valor</div><div class="value">Gratuito</div></div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-labels"><span>72/80 vagas preenchidas</span><span>lista de espera ativa</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>
+      </div>
+
+      <div class="detail-desc">
+        48 horas de imersão em desenvolvimento, mentoria com empresas parceiras e premiação para as
+        três melhores equipes. <b>Prazo de inscrição:</b> 2 de setembro. Traga notebook e disposição.
+      </div>
+
+      <button class="cta-btn" onclick="showToast('Entrou na lista de espera')">Entrar na lista de espera</button>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="screen" id="screen-perfil">
+    <div class="profile-head">
+      <img class="profile-avatar" src="https://i.pravatar.cc/160?img=47">
+      <div>
+        <div class="profile-name">Marina Alves</div>
+        <div class="profile-sub">ENG. DE SOFTWARE · TURMA 2026.1</div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="num">12</div><div class="lab">publicações</div></div>
+      <div class="profile-stat"><div class="num">3</div><div class="lab">criados</div></div>
+      <div class="profile-stat"><div class="num">9</div><div class="lab">participando</div></div>
+    </div>
+    <div class="profile-tabs">
+      <div class="ptab active">Participando</div>
+      <div class="ptab">Criados</div>
+      <div class="ptab">Anteriores</div>
+    </div>
+    <div class="list-ticket" onclick="openDetail()">
+      <div class="list-date"><div class="day">30</div><div class="mon">ago</div></div>
+      <div class="list-body">
+        <div class="list-title">Churrasco de encerramento</div>
+        <div class="list-meta">confirmado · pago</div>
+      </div>
+    </div>
+    <div class="list-ticket" onclick="openDetail()">
+      <div class="list-date"><div class="day">05</div><div class="mon">set</div></div>
+      <div class="list-body">
+        <div class="list-title">Hackathon Campus 48h</div>
+        <div class="list-meta">lista de espera</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let lastTab = 'inicio';
+
+function go(tab){
+  const current = document.querySelector('.screen.active');
+  if(current && current.id !== 'screen-detalhe'){ lastTab = current.id.replace('screen-',''); }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+tab).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector('.navlink[data-tab="'+tab+'"]');
+  if(btn) btn.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function openDetail(){
+  const current = document.querySelector('.screen.active');
+  if(current && current.id !== 'screen-detalhe'){ lastTab = current.id.replace('screen-',''); }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-detalhe').classList.add('active');
+  document.querySelectorAll('.navlink').forEach(b => b.classList.remove('active'));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function goBack(){ go(lastTab); }
+function selectScope(el){
+  document.querySelectorAll('.scope-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+}
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+}));
+document.querySelectorAll('.ptab').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.ptab').forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+}));
+</script>
+
+</body>
+</html>
