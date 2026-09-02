@@ -65,8 +65,16 @@ Detalhamento, personas e jornada: [`docs/01-problema-e-personas.md`](docs/01-pro
 | **[App](https://lukiin-z.github.io/campus/)** | O app React rodando, com dados mockados |
 | **[Styleguide](https://lukiin-z.github.io/campus/styleguide/)** | A marca inteira em uma página: logo, paleta com contraste medido, tipografia, todos os componentes em todos os estados |
 | **[Protótipo original](https://lukiin-z.github.io/campus/prototipo/)** | O protótipo estático que originou a identidade visual, preservado |
-| **[Slides do vídeo](https://lukiin-z.github.io/campus/slides/)** | Deck de apoio da apresentação, navegável por setas |
+| **[Slides do vídeo (CP4)](https://lukiin-z.github.io/campus/slides/)** | Deck de apoio da apresentação, navegável por setas |
+| **[Slides do vídeo (CP5)](https://lukiin-z.github.io/campus/slides-cp5/)** | Deck de apoio da apresentação do CP5 |
 | **[Arquivo do Figma](https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp)** | Design system com 64 tokens, 11 estilos de texto e 9 componentes com 34 variants |
+
+> **Os cinco primeiros links dependem de uma ativação pendente.** O workflow de publicação
+> está pronto e validado, mas o GitHub Pages ainda não foi ligado no repositório — isso
+> exige permissão de administrador (Settings → Pages → Source: **GitHub Actions**).
+> Enquanto não for ligado, esses endereços retornam 404; use a execução local abaixo, que
+> roda o mesmo código com os mesmos dados. Passo a passo, usuários de teste e roteiro de
+> 5 minutos: [`docs/18-ambiente-de-teste.md`](docs/18-ambiente-de-teste.md).
 
 <div align="center">
 
@@ -107,7 +115,7 @@ Os 43 requisitos funcionais e 22 não funcionais estão em
 | Estado | **Zustand** (sessão/UI) + **TanStack Query** (dados) | Dado de servidor tem cache, invalidação e estado de carregamento; estado de UI não. Misturar os dois é a via rápida para cache desatualizado |
 | Formulário | **Zod + React Hook Form** | O schema **chama** as funções de domínio em vez de reimplementar a regra: validação de tela e regra de servidor não podem divergir |
 | Domínio | **12 módulos de funções puras** em `app/src/domain/` | Sem React, sem rede, sem mock. É o que permite as mesmas regras rodarem no cliente e no servidor, e testarem em milissegundos |
-| Teste | **Vitest + Testing Library + Playwright** | 156 testes: 30 de domínio, 20 de componente, 14 de integração pela camada HTTP real e 4 E2E |
+| Teste | **Vitest + Testing Library + Playwright** | 293 testes de unidade e integração em 17 arquivos, mais 6 casos E2E executados contra o build de produção |
 | CI/CD | **GitHub Actions + GitHub Pages** | Lint, escala de espaçamento, formatação, cobertura, build e orçamento de pacote em todo push e PR |
 
 Arquitetura completa, com C4 e o contrato da API planejada:
@@ -131,10 +139,29 @@ MSW sobe com o app e responde do mock em memória, com um seed rico (1 faculdade
 4 turmas, 12 usuários e 11 eventos em estados variados — lotado com fila, pago, gratuito,
 cancelado, realizado e rascunho).
 
+A tela de login tem quatro **cartões de demonstração**: um toque entra como aluno,
+organizador, admin de curso ou admin de faculdade. A senha de todos é `campus123`.
+
+Para demonstrar com o pacote de produção — o mesmo que o Pages publica, com o manifest e
+os ícones nos caminhos definitivos:
+
+```bash
+npm run demo           # build + preview em http://localhost:4173
+```
+
+É nesse modo que o app pode ser **instalado como aplicativo** (Chrome e Edge, desktop e
+Android): instalação de PWA exige origem segura, e `localhost` conta. Recarregar a página
+devolve os dados ao seed — o mock vive em memória.
+
+Guia completo para quem vai avaliar (links, usuários de teste, roteiro de 5 minutos por
+fluxo, como instalar em cada plataforma, como resetar o estado e as limitações reais):
+[`docs/18-ambiente-de-teste.md`](docs/18-ambiente-de-teste.md).
+
 ### Todos os comandos
 
 ```bash
 npm run dev            # servidor de desenvolvimento
+npm run demo           # build + preview, para demonstrar e instalar como PWA
 npm run build          # build de produção (tsc -b + vite build)
 npm run preview        # serve o build
 npm run lint           # ESLint, zero aviso tolerado
@@ -175,7 +202,7 @@ campus/
 │  │  └─ types/domain.ts         Espelha o diagrama de classes, entidade por entidade
 │  └─ e2e/                       Playwright
 ├─ docs/                         Toda a documentação — comece pelo docs/README.md
-│  ├─ 05-modelagem/              12 diagramas Mermaid + dicionário de dados
+│  ├─ 05-modelagem/              20 diagramas Mermaid + dicionário de dados
 │  ├─ 06-marca/                  Identidade visual, design system, styleguide, SVGs
 │  ├─ 09-trello/                 Quadro pronto para importar (JSON, CSV, manual, API)
 │  └─ adr/                       6 decisões arquiteturais registradas
@@ -199,7 +226,8 @@ campus/
 | **10%** Trello | [Quadro](docs/09-trello/quadro.md) · [Criar o quadro](docs/09-trello/criar-quadro.md) |
 | **10%** GitHub | este README · [CONTRIBUTING](CONTRIBUTING.md) · [CI](.github/workflows/ci.yml) |
 | Engenharia | [Arquitetura](docs/08-arquitetura.md) · [ADRs](docs/adr/README.md) · [Plano de testes](docs/11-plano-de-testes.md) · [Riscos](docs/12-riscos.md) · [Roadmap CP5–CP6](docs/13-roadmap-cp5-cp6.md) |
-| Entrega | [Equipe e papéis](docs/10-equipe-e-papeis.md) · [Checklist do CP4](docs/16-checklist-entrega-cp4.md) |
+| Entrega | [Equipe e papéis](docs/10-equipe-e-papeis.md) · [Checklist do CP4](docs/16-checklist-entrega-cp4.md) · [Checklist do CP5](docs/19-checklist-entrega-cp5.md) |
+| CP5 | [Ambiente de teste](docs/18-ambiente-de-teste.md) · [Registro da jornada](docs/17-jornada.md) · [Roteiro do vídeo](docs/20-video-cp5-roteiro.md) · [Slides](docs/20-video-cp5-slides.html) |
 
 ---
 
@@ -237,11 +265,23 @@ Responsabilidades detalhadas e matriz RACI dos artefatos:
 | Repositório organizado, CI verde, Pages publicado | ✅ |
 | Base do app React com domínio testado e camada de dados trocável | ✅ |
 
-### CP5 — protótipo funcional com dados mockados 🔜
+### CP5 — protótipo funcional com dados mockados ✅
 
-21 RFs funcionando, ambiente de teste acessível por link, diagramas de sequência e
-atividade atualizados, validação com 5 alunos e demo ao vivo.
+| Entrega | Estado |
+|---|---|
+| 12 rotas navegáveis, com login, onboarding, pagamento simulado, ingresso, check-in, feed e notificações | ✅ |
+| Estados de carregamento, vazio, erro e sucesso em toda tela | ✅ |
+| 293 testes automatizados em 17 arquivos, mais 6 casos E2E executados | ✅ |
+| Ambiente de teste documentado, com usuários do seed e roteiro de 5 minutos | ✅ [`docs/18`](docs/18-ambiente-de-teste.md) |
+| App instalável pelo manifest (PWA), verificado no CI | ⚠️ sem cache offline — [motivo](docs/18-ambiente-de-teste.md#não-há-cache-offline-e-a-razão-é-o-mock) |
+| Diagramas de sequência e atividade refeitos contra o código real | ✅ |
+| Documentação viva: status real dos 43 RF, regras rastreadas até o arquivo | ✅ |
+| Roteiro do vídeo de 2 min e deck do CP5 | ✅ |
+| Registro da jornada CP4 → CP5, com os defeitos que a verificação encontrou | ✅ [`docs/17`](docs/17-jornada.md) |
+| Site publicado no GitHub Pages | ⚠️ depende de ativar o Pages — [instruções](docs/18-ambiente-de-teste.md#o-que-depende-de-uma-ação-do-dono-do-repositório) |
+
 Tarefa por tarefa: [`docs/13-roadmap-cp5-cp6.md`](docs/13-roadmap-cp5-cp6.md).
+Critério por critério, com evidência: [`docs/19-checklist-entrega-cp5.md`](docs/19-checklist-entrega-cp5.md).
 
 ### CP6 — persistência, integração e entrega final 🔜
 

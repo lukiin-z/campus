@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus — slides de apoio do vídeo do CP5</title>
+<meta name="description" content="Deck estático de 9 slides para acompanhar a gravação do vídeo de 2 minutos do Checkpoint 5 do projeto Campus: os fluxos demonstrados, os números medidos e o que fica para o CP6.">
+<!-- Favicon embutido: o deploy copia SÓ este arquivo para /slides-cp5/, sem a
+     pasta de assets. Caminho relativo para 06-marca/assets/ quebraria em HTTP. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%23C83A16'%20fill-rule='evenodd'%20d='M%205.5%204%20H%2018.5%20A%203.5%203.5%200%200%201%2022%207.5%20V%209.8%20A%202.2%202.2%200%200%200%2022%2014.2%20V%2016.5%20A%203.5%203.5%200%200%201%2018.5%2020%20H%205.5%20A%203.5%203.5%200%200%201%202%2016.5%20V%2014.2%20A%202.2%202.2%200%200%200%202%209.8%20V%207.5%20A%203.5%203.5%200%200%201%205.5%204%20Z%20M%2015.21%2015.83%20A%205%205%200%201%201%2015.21%208.17%20L%2013.54%2010.16%20A%202.4%202.4%200%201%200%2013.54%2013.84%20Z'/%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* ==========================================================================
+   Campus — deck de apoio do vídeo do CP5
+   Arquivo único e autossuficiente. Único recurso externo: Google Fonts.
+   Mesmos tokens de docs/06-marca/identidade-visual.md §3 e mesmo mecanismo de
+   navegação de docs/15-video-slides.html. Todo par de cor usado em texto está
+   na auditoria de contraste da §4 daquele documento.
+   ========================================================================== */
+
+:root {
+  /* --- escala coral ---------------------------------------------------- */
+  --coral-50:  #FAF4F2;
+  --coral-100: #F7E6E1;
+  --coral-200: #F3CBC1;
+  --coral-300: #F0A693;
+  --coral-400: #EE7D60;
+  --coral-500: #E8542E;
+  --coral-600: #C83A16;
+  --coral-700: #9B2E13;
+  --coral-800: #6F2411;
+  --coral-900: #491A0E;
+
+  /* --- escala teal ----------------------------------------------------- */
+  --teal-50:  #F2F8F7;
+  --teal-100: #DEEFED;
+  --teal-200: #BDE5E0;
+  --teal-300: #82D9CF;
+  --teal-400: #27BFAE;
+  --teal-500: #0F7A6E;
+  --teal-600: #0C6258;
+  --teal-700: #094D46;
+  --teal-800: #093A34;
+  --teal-900: #072723;
+
+  /* --- escala neutral -------------------------------------------------- */
+  --neutral-50:  #FBFBFA;
+  --neutral-100: #F2F1EE;
+  --neutral-200: #E7E5E0;
+  --neutral-300: #D6D3CC;
+  --neutral-400: #A9A5A0;
+  --neutral-500: #767D85;
+  --neutral-600: #5C6269;
+  --neutral-700: #43484E;
+  --neutral-800: #2A2E33;
+  --neutral-900: #14181C;
+  --white: #FFFFFF;
+
+  /* --- tokens semânticos ----------------------------------------------- */
+  --bg:             var(--neutral-50);
+  --surface:        var(--white);
+  --surface-2:      var(--neutral-100);
+  --border:         var(--neutral-200);
+  --border-strong:  var(--neutral-500);
+  --text:           var(--neutral-900);
+  --text-muted:     var(--neutral-600);
+  --text-disabled:  var(--neutral-400);
+  --accent:         var(--coral-500);
+  --accent-strong:  var(--coral-600);
+  --accent-hover:   var(--coral-700);
+  --accent-soft:    var(--coral-100);
+  --accent-2:       var(--teal-500);
+  --accent-2-soft:  var(--teal-100);
+  --danger:         var(--coral-800);
+  --on-accent:      var(--white);
+
+  /* --- tipografia ------------------------------------------------------ */
+  --font-display: 'Space Grotesk', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body:    'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Mono', 'Consolas', ui-monospace, 'Courier New', monospace;
+
+  --mono-xs:      0.6875rem; /* 11 */
+  --mono-sm:      0.75rem;   /* 12 */
+  --body-xs:      0.75rem;   /* 12 */
+  --body-sm:      0.8125rem; /* 13 */
+  --body-md:      0.875rem;  /* 14 */
+  --display-sm:   1rem;      /* 16 */
+  --display-md:   1.25rem;   /* 20 */
+  --display-lg:   1.5rem;    /* 24 */
+  --display-xl:   1.75rem;   /* 28 */
+  --display-2xl:  2.25rem;   /* 36 */
+  /* passos exclusivos de projeção, derivados da escala */
+  --deck-title:   3rem;
+  --deck-hero:    4.5rem;
+  --deck-lead:    1.125rem;
+
+  /* --- espaçamento (base 4px) ------------------------------------------ */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- raios ------------------------------------------------------------ */
+  --radius-sm:   0.5rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.25rem;
+  --radius-full: 999px;
+
+  /* --- sombras ---------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(20, 24, 28, .05);
+  --shadow-md: 0 4px 12px rgba(20, 24, 28, .08);
+  --shadow-lg: 0 12px 32px rgba(20, 24, 28, .12);
+
+  /* --- deck ------------------------------------------------------------- */
+  --hairline: 1.5px;
+  --notch: 1.5rem;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Tipografia proporcional ao menor eixo útil: enche 1920×1080 e encolhe junto
+   quando a janela é menor ou mais baixa, sem gerar rolagem. */
+html {
+  font-size: clamp(10px, min(0.95vw, 1.68vh), 20px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--body-md);
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.08; }
+p, dl, dd, dt, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+b, strong { font-weight: 600; }
+
+.mono { font-family: var(--font-mono); font-variant-ligatures: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================ estrutura do deck ========================== */
+
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.deck__progress {
+  position: absolute; inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--border);
+  z-index: 40;
+}
+.deck__progress b {
+  display: block; height: 100%;
+  width: var(--progress, 11.1%);
+  background: var(--accent-strong);
+  transition: width .32s var(--ease);
+}
+
+.deck__stage { position: absolute; inset: 0; }
+
+/* lâminas de clique nas laterais — decorativas, o teclado usa o HUD */
+.deck__edge {
+  position: absolute; top: 0; bottom: 0;
+  width: 12%;
+  border: 0; padding: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 30;
+}
+.deck__edge--prev { left: 0; }
+.deck__edge--next { right: 0; }
+
+.deck__hud {
+  position: absolute;
+  right: var(--space-10); bottom: var(--space-8);
+  display: flex; align-items: center; gap: var(--space-3);
+  z-index: 50;
+}
+.deck__counter {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  min-width: 4.5em; text-align: center;
+}
+.deck__btn {
+  width: 2.4rem; height: 2.4rem;
+  display: grid; place-items: center;
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-family: var(--font-body);
+  font-size: var(--display-sm);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background .16s var(--ease), border-color .16s var(--ease);
+}
+.deck__btn:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent-strong); }
+.deck__btn:disabled { color: var(--text-disabled); cursor: default; box-shadow: none; }
+
+/* ============================== slide =================================== */
+
+.slide {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-6);
+  padding: var(--space-10) var(--space-16) var(--space-6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition: opacity .3s var(--ease), transform .3s var(--ease), visibility .3s step-end;
+}
+.slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s;
+}
+
+.slide__head { display: flex; flex-direction: column; gap: var(--space-2); }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+.slide__title { font-size: var(--deck-title); font-weight: 700; letter-spacing: -.02em; max-width: 26ch; }
+.slide__lead { font-size: var(--deck-lead); color: var(--text-muted); max-width: 76ch; }
+
+.slide__body { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+
+.slide__foot {
+  display: flex; align-items: baseline; gap: var(--space-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+  padding-right: 14rem; /* deixa o canto livre para o HUD */
+}
+.cue-time {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  color: var(--accent-strong);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--radius-sm);
+  background: var(--coral-50);
+  white-space: nowrap;
+}
+.cue-time--apoio { color: var(--teal-700); border-color: var(--accent-2-soft); background: var(--teal-50); }
+.cue-who { font-size: var(--body-sm); color: var(--text-muted); }
+.cue-who b { color: var(--text); }
+
+.mark { position: absolute; top: var(--space-8); right: var(--space-16); width: 2.2rem; height: 2.2rem; }
+.mark svg { display: block; width: 100%; height: 100%; }
+
+/* ============================== slide 1 ================================= */
+
+.cover { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--space-16); align-items: center; height: 100%; }
+.cover__logo { display: flex; align-items: center; gap: var(--space-5); }
+.cover__logo svg { width: 5.5rem; height: 5.5rem; display: block; }
+.cover__word { font-family: var(--font-display); font-size: var(--deck-hero); font-weight: 700; letter-spacing: -.035em; }
+.cover__one { font-size: var(--display-md); color: var(--text-muted); max-width: 34ch; margin-top: var(--space-5); }
+.cover__course { font-size: var(--body-md); color: var(--text-muted); margin-top: var(--space-6); max-width: 46ch; }
+.cover__cp {
+  display: inline-block; margin-top: var(--space-5);
+  font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--accent-strong);
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-full);
+}
+.cover__hint { margin-top: var(--space-5); font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--text-muted); }
+
+.team { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.team li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+.team__name { font-family: var(--font-display); font-size: var(--display-sm); font-weight: 500; }
+.team__rm { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--accent-strong); display: block; margin-top: var(--space-1); }
+.team__role { font-size: var(--body-xs); color: var(--text-muted); display: block; }
+
+/* ============================== slide 2 ================================= */
+
+.swap { display: grid; gap: var(--space-4); }
+.swap__head {
+  display: grid; grid-template-columns: 12rem 1fr auto 1fr; gap: var(--space-5);
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+}
+.swap__row {
+  display: grid; grid-template-columns: 12rem 1fr auto 1fr; gap: var(--space-5);
+  align-items: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+.swap__what { font-family: var(--font-display); font-size: var(--display-md); font-weight: 500; }
+.swap__before { font-size: var(--body-md); color: var(--text-muted); }
+.swap__arrow { font-family: var(--font-mono); font-size: var(--display-md); color: var(--accent-strong); }
+.swap__after { font-size: var(--body-md); color: var(--text); font-weight: 600; }
+.swap__after span { display: block; font-weight: 400; color: var(--text-muted); font-size: var(--body-sm); margin-top: var(--space-1); }
+
+/* ============================== slide 3 ================================= */
+
+.flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-4); }
+.step {
+  display: flex; flex-direction: column; gap: var(--space-3);
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-strong);
+  border-radius: var(--radius-lg); padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.step__n {
+  font-family: var(--font-mono); font-weight: 500; font-size: var(--display-2xl);
+  color: var(--accent-strong); line-height: 1;
+}
+.step__t { font-size: var(--display-md); font-weight: 500; }
+.step__d { font-size: var(--body-sm); color: var(--text-muted); }
+.step__r {
+  margin-top: auto;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  color: var(--accent-hover); background: var(--accent-soft);
+  padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+  align-self: flex-start; word-break: break-all;
+}
+
+/* ============================== slide 4 ================================= */
+
+.two { display: grid; grid-template-columns: .95fr 1.05fr; gap: var(--space-12); align-items: center; }
+
+/* cartão-ingresso picotado — elemento de assinatura da marca */
+.ticket {
+  position: relative; margin: 0;
+  background: var(--surface);
+  border: var(--hairline) dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 27rem;
+}
+.ticket__main { padding: var(--space-6) var(--space-6) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.ticket__scope { display: flex; align-items: center; gap: var(--space-2); }
+.ticket__scope .mono { font-size: var(--mono-sm); color: var(--text-muted); }
+.ticket__title { font-size: var(--display-lg); font-weight: 500; }
+.ticket__meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.ticket__meta dt {
+  font-family: var(--font-mono); font-size: var(--mono-xs);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+}
+.ticket__meta dd { font-size: var(--body-md); margin-top: var(--space-1); }
+.ticket__stub {
+  position: relative;
+  border-top: var(--hairline) dashed var(--border-strong);
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.ticket__stub::before,
+.ticket__stub::after {
+  content: "";
+  position: absolute; top: 0;
+  width: var(--notch); height: var(--notch);
+  border-radius: var(--radius-full);
+  background: var(--bg);
+}
+.ticket__stub::before { left: 0; transform: translate(-50%, -50%); }
+.ticket__stub::after  { right: 0; transform: translate(50%, -50%); }
+.ticket__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.ticket__full { font-family: var(--font-display); font-weight: 700; font-size: var(--display-md); color: var(--accent-strong); }
+.ticket__seats { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--text-muted); }
+.ticket__seats b { color: var(--text); }
+.bar { height: 6px; border-radius: var(--radius-full); background: var(--surface-2); overflow: hidden; }
+.bar > span { display: block; height: 100%; width: var(--fill, 0%); background: var(--accent-strong); border-radius: var(--radius-full); }
+.ticket__code { font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500; letter-spacing: .14em; color: var(--text-muted); }
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft); color: var(--accent-hover);
+}
+.tag--fac { background: var(--neutral-200); color: var(--neutral-700); }
+
+/* botão da tela, reproduzido para mostrar o rótulo real */
+.uibtn {
+  display: block; width: 100%;
+  border: var(--hairline) solid var(--accent-2);
+  border-radius: var(--radius-md);
+  background: var(--accent-2-soft);
+  color: var(--teal-700);
+  font-family: var(--font-display); font-weight: 700; font-size: var(--display-sm);
+  text-align: center; padding: var(--space-3);
+}
+.uihint { margin-top: var(--space-2); text-align: center; font-size: var(--body-xs); color: var(--text-muted); }
+
+.rules { display: grid; gap: var(--space-4); }
+.rule {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); align-items: baseline;
+  border-bottom: 1px solid var(--border); padding-bottom: var(--space-4);
+}
+.rules .rule:last-child { border-bottom: 0; padding-bottom: 0; }
+.rule__k { font-family: var(--font-mono); font-size: var(--display-md); font-weight: 500; color: var(--accent-2); }
+.rule__t { font-family: var(--font-display); font-size: var(--display-md); font-weight: 500; }
+.rule__d { font-size: var(--body-md); color: var(--text-muted); margin-top: var(--space-1); }
+
+/* ============================== slide 5 ================================= */
+
+.rail { display: grid; gap: var(--space-3); }
+.rail li {
+  display: grid; grid-template-columns: 5.5rem 1fr; gap: var(--space-4); align-items: baseline;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-strong);
+  border-radius: var(--radius-md); padding: var(--space-4) var(--space-5);
+}
+.rail__k { font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500; color: var(--accent-strong); }
+.rail__t { font-size: var(--body-md); font-weight: 600; }
+.rail__t span { display: block; font-weight: 400; color: var(--text-muted); font-size: var(--body-sm); margin-top: var(--space-1); }
+
+.verdicts { display: grid; gap: var(--space-4); }
+.verdict {
+  border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--border); background: var(--surface);
+}
+.verdict--ok { border-color: var(--accent-2); background: var(--accent-2-soft); }
+.verdict--no { border-color: var(--danger); background: var(--accent-soft); }
+.verdict__k {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.verdict--ok .verdict__k { color: var(--teal-700); }
+.verdict--no .verdict__k { color: var(--danger); }
+.verdict__m { font-family: var(--font-display); font-size: var(--display-md); font-weight: 700; margin-top: var(--space-2); }
+.verdict__d { font-size: var(--body-sm); color: var(--text-muted); margin-top: var(--space-2); }
+
+/* ============================== slide 6 ================================= */
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: var(--space-2);
+}
+.stat__n {
+  font-family: var(--font-display); font-weight: 700; font-size: var(--display-2xl);
+  color: var(--accent-strong); line-height: 1; letter-spacing: -.03em;
+}
+.stat__n small { font-family: var(--font-mono); font-size: var(--display-sm); font-weight: 500; letter-spacing: 0; }
+.stat__t { font-size: var(--display-sm); font-weight: 600; }
+.stat__d { font-size: var(--body-sm); color: var(--text-muted); }
+.stat__cmd {
+  margin-top: auto; align-self: flex-start;
+  font-family: var(--font-mono); font-size: var(--mono-xs);
+  color: var(--text-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+}
+
+/* ============================== slide 7 ================================= */
+
+.layers { display: grid; gap: var(--space-2); }
+.layer {
+  display: grid; grid-template-columns: 3.2rem 1fr auto; align-items: center; gap: var(--space-4);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.layer__k { font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500; color: var(--accent-strong); }
+.layer__t { font-size: var(--display-sm); font-weight: 600; }
+.layer__p { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--text-muted); }
+.layer--mock { background: var(--surface-2); }
+.frontier {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin: var(--space-2) 0;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--accent-hover);
+}
+.frontier::before, .frontier::after { content: ""; flex: 1; height: 0; border-top: var(--hairline) dashed var(--accent); }
+
+.claim { font-family: var(--font-display); font-size: var(--display-xl); font-weight: 500; line-height: 1.25; }
+.claim b { color: var(--accent-strong); font-weight: 700; }
+.gates { display: grid; gap: var(--space-2); margin-top: var(--space-6); }
+.gates li {
+  display: grid; grid-template-columns: 12rem 1fr; gap: var(--space-4); align-items: baseline;
+  border-bottom: 1px solid var(--border); padding: var(--space-2) 0;
+  font-size: var(--body-md);
+}
+.gates li:last-child { border-bottom: 0; }
+.gates code { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--accent-strong); }
+.gates span { color: var(--text-muted); }
+
+/* ============================== slide 8 ================================= */
+
+.next { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+.nx {
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-2);
+  border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+.nx__k { font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--teal-700); }
+.nx__t { font-size: var(--display-md); font-weight: 500; margin-top: var(--space-2); }
+.nx__d { font-size: var(--body-md); color: var(--text-muted); margin-top: var(--space-2); }
+.keep {
+  margin-top: var(--space-6);
+  border-top: var(--hairline) solid var(--accent);
+  padding-top: var(--space-5);
+  font-family: var(--font-display); font-size: var(--display-md); font-weight: 500;
+}
+.keep b { color: var(--accent-strong); font-weight: 700; }
+
+/* ============================== slide 9 ================================= */
+
+.close { display: grid; grid-template-rows: 1fr auto; gap: var(--space-8); height: 100%; }
+.pitch { align-self: center; }
+.pitch p {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: var(--deck-title); line-height: 1.1; letter-spacing: -.02em;
+  max-width: 44ch;
+}
+.pitch b { color: var(--accent-strong); }
+.links { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: baseline; }
+.links div { display: grid; gap: var(--space-1); }
+.links dt, .links__k {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+}
+.links__v { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--accent-strong); font-weight: 500; word-break: break-all; }
+.names { margin-top: var(--space-5); font-size: var(--body-md); color: var(--text-muted); }
+
+/* ============================ degradação ================================= */
+
+@media (max-width: 1180px) {
+  .slide { padding: var(--space-8) var(--space-8) var(--space-5); }
+  .mark { right: var(--space-8); }
+  .deck__hud { right: var(--space-6); }
+  .flow { grid-template-columns: repeat(3, 1fr); }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .swap__head, .swap__row { grid-template-columns: 9rem 1fr auto 1fr; }
+  .gates li { grid-template-columns: 9rem 1fr; }
+}
+
+@media (max-width: 860px) {
+  html { font-size: clamp(12px, 2.6vw, 16px); }
+  /* Em tela estreita as colunas viram uma só e o slide fica mais alto que a
+     janela. Aqui o slide sai do grid e volta ao fluxo normal: com três linhas
+     `auto` numa caixa de altura definida, a linha do corpo encolhe abaixo do
+     conteúdo e o conteúdo pinta sobre o rodapé. No fluxo normal a caixa cresce
+     e quem rola é o slide inteiro — rolagem aninhada esconderia o rodapé com a
+     deixa de tempo. `overflow-x` explícito porque só declarar `overflow-y`
+     faria o eixo x virar `auto` e abrir rolagem lateral (RNF-018). */
+  .slide {
+    display: block;
+    padding: var(--space-6) var(--space-5) var(--space-3);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  /* em tela estreita o título ocupa a largura toda e passaria SOB a marca */
+  .mark { display: none; }
+  /* a margem substitui o `gap` do grid, que aqui não vale mais */
+  .slide__body { display: block; margin: var(--space-6) 0; }
+  /* `height: 100%` só serve com o corpo esticado pela linha `1fr` do desktop */
+  .cover, .close { height: auto; }
+  /* reserva a faixa do HUD, que aqui fica centralizado no rodapé */
+  .slide__foot { padding-right: 0; padding-bottom: 3.4rem; flex-wrap: wrap; }
+  .deck__hud { right: 50%; transform: translateX(50%); bottom: var(--space-3); }
+  .deck__edge { width: 8%; }
+  .cover, .two, .team, .flow, .stats, .next { grid-template-columns: 1fr; }
+  .swap__head { display: none; }
+  .swap__row { grid-template-columns: 1fr; gap: var(--space-2); }
+  .swap__arrow { display: none; }
+  .rail li { grid-template-columns: 1fr; }
+  .gates li { grid-template-columns: 1fr; }
+  .layer { grid-template-columns: 2.6rem 1fr; }
+  .layer__p { grid-column: 2; }
+  .slide__title { font-size: var(--display-2xl); }
+  .cover__word { font-size: var(--display-2xl); }
+  .pitch p { font-size: var(--display-2xl); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide, .deck__progress b, .deck__btn { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="deck__progress" aria-hidden="true"><b id="deck-bar"></b></div>
+
+  <main class="deck__stage" id="deck-stage">
+
+    <!-- ================================ 1 ================================ -->
+    <section class="slide is-active" id="slide-capa" role="group"
+             aria-roledescription="slide" aria-label="Slide 1 de 9: capa">
+      <div class="slide__head">
+        <p class="eyebrow">Checkpoint 5 · vídeo de demonstração</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="cover">
+          <div>
+            <div class="cover__logo">
+              <!-- símbolo Campus: cópia fiel de docs/06-marca/assets/logo-simbolo.svg -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-labelledby="campus-simbolo-titulo">
+                <title id="campus-simbolo-titulo">Campus — símbolo</title>
+                <path fill="var(--accent-strong)" fill-rule="evenodd" d="
+                  M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+                  A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+                  H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+                  A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+                  M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+                  A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+              </svg>
+              <h1 class="cover__word">Campus</h1>
+            </div>
+            <p class="cover__one">O aplicativo rodando: entrar, ver o que é da sua turma, entrar na fila, pagar, receber o ingresso e passar na porta.</p>
+            <p class="cover__course">Engenharia de Software · FIAP · Engenharia de Computação · 3º ano · Prof. Hercules Ramos</p>
+            <p><span class="cover__cp">Checkpoint 5 · demonstração</span></p>
+            <p class="cover__hint">← → navega · espaço avança · Home volta ao início</p>
+          </div>
+
+          <ul class="team">
+            <li><span class="team__name">Ana Luiza Dourado</span><span class="team__rm">RM558793</span><span class="team__role">UX/UI Designer</span></li>
+            <li><span class="team__name">João Viviani Baldini</span><span class="team__rm">RM558596</span><span class="team__role">Product Owner</span></li>
+            <li><span class="team__name">Lucas Baraldi</span><span class="team__rm">RM555407</span><span class="team__role">Tech Lead / Arquiteto</span></li>
+            <li><span class="team__name">Lucas Zolla</span><span class="team__rm">RM557952</span><span class="team__role">Analista de Requisitos</span></li>
+            <li><span class="team__name">Ronaldo Veloso Filho</span><span class="team__rm">RM556445</span><span class="team__role">Modelagem / Analista UML</span></li>
+            <li><span class="team__name">Vitor Pantarotto</span><span class="team__rm">RM554961</span><span class="team__role">Scrum Master / QA</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:00–0:03</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 2 ================================ -->
+    <section class="slide" id="slide-problema" role="group"
+             aria-roledescription="slide" aria-label="Slide 2 de 9: o problema" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">O problema, em uma frase</p>
+        <h2 class="slide__title">A divulgação some, a vaga é chute e a porta é papel</h2>
+        <p class="slide__lead">O que era protótipo no CP4 virou software no CP5: as três trocas abaixo acontecem na tela, com regra verificada, e não em texto de slide.</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="swap">
+          <div class="swap__head" aria-hidden="true">
+            <span></span><span>Hoje, sem o Campus</span><span></span><span>No app, rodando</span>
+          </div>
+
+          <div class="swap__row">
+            <span class="swap__what">Divulgação</span>
+            <span class="swap__before">Story que expira em 24 h e grupo silenciado.</span>
+            <span class="swap__arrow" aria-hidden="true">→</span>
+            <span class="swap__after">Alcance é regra de visibilidade<span>Turma, curso ou faculdade — o feed abre já filtrado pelo vínculo do aluno.</span></span>
+          </div>
+
+          <div class="swap__row">
+            <span class="swap__what">Vagas</span>
+            <span class="swap__before">Planilha, contagem à mão e "cabe mais um?" no privado.</span>
+            <span class="swap__arrow" aria-hidden="true">→</span>
+            <span class="swap__after">Capacidade e fila com posição<span>Lotado não é erro: é lista de espera com posição visível e prazo para confirmar.</span></span>
+          </div>
+
+          <div class="swap__row">
+            <span class="swap__what">Porta</span>
+            <span class="swap__before">Lista impressa, fila e Pix na conta pessoal de um aluno.</span>
+            <span class="swap__arrow" aria-hidden="true">→</span>
+            <span class="swap__after">Cobrança no fluxo e ingresso de uso único<span>Pagamento confirma a vaga; o mesmo ingresso não entra duas vezes.</span></span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">não entra no vídeo · material para a defesa</span>
+      </footer>
+    </section>
+
+    <!-- ================================ 3 ================================ -->
+    <section class="slide" id="slide-fluxos" role="group"
+             aria-roledescription="slide" aria-label="Slide 3 de 9: os fluxos demonstrados" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">O que o vídeo demonstra</p>
+        <h2 class="slide__title">Cinco fluxos, uma sessão, sem corte de conveniência</h2>
+        <p class="slide__lead">Tudo como Marina Alves, turma 3ESPX — só a validação na porta é feita pelo organizador, porque só ele tem essa permissão. Cada passo abre a rota indicada, com os dados do seed do projeto.</p>
+      </div>
+
+      <div class="slide__body">
+        <ol class="flow">
+          <li class="step">
+            <span class="step__n">01</span>
+            <h3 class="step__t">Entrar</h3>
+            <p class="step__d">E-mail institucional. Sem domínio da faculdade, não existe conta.</p>
+            <span class="step__r">/login</span>
+          </li>
+          <li class="step">
+            <span class="step__n">02</span>
+            <h3 class="step__t">Feed segmentado</h3>
+            <p class="step__d">Só o que alcança a turma, o curso e a faculdade dela.</p>
+            <span class="step__r">/</span>
+          </li>
+          <li class="step">
+            <span class="step__n">03</span>
+            <h3 class="step__t">Evento lotado</h3>
+            <p class="step__d">80 de 80 vagas, 7 na fila e a posição dela: sétima.</p>
+            <span class="step__r">/eventos/evt-002</span>
+          </li>
+          <li class="step">
+            <span class="step__n">04</span>
+            <h3 class="step__t">Vaga liberada e pagamento</h3>
+            <p class="step__d">Oferta com prazo, confirmação e cobrança simulada de R$ 45,00.</p>
+            <span class="step__r">/pagamento/par-052</span>
+          </li>
+          <li class="step">
+            <span class="step__n">05</span>
+            <h3 class="step__t">Ingresso e porta</h3>
+            <p class="step__d">QR e código legível; a segunda leitura do mesmo ingresso é recusada.</p>
+            <span class="step__r">/eventos/evt-013/checkin</span>
+          </li>
+        </ol>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">espelha os blocos 2 a 6 do roteiro · <b>Lucas Zolla</b>, <b>Ana Luiza Dourado</b>, <b>Ronaldo Veloso Filho</b>, <b>Lucas Baraldi</b>, <b>Vitor Pantarotto</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 4 ================================ -->
+    <section class="slide" id="slide-fila" role="group"
+             aria-roledescription="slide" aria-label="Slide 4 de 9: vaga, fila e prazo" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Fluxo 03 · evento lotado</p>
+        <h2 class="slide__title">Lotado não é erro: é fila com posição e prazo</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="two">
+          <div>
+            <figure class="ticket">
+              <div class="ticket__main">
+                <p class="ticket__scope"><span class="tag tag--fac">Faculdade</span><span class="mono">FIAP</span></p>
+                <h3 class="ticket__title">Hackathon Campus 48h</h3>
+                <dl class="ticket__meta">
+                  <div><dt>Onde</dt><dd>Bloco de Tecnologia</dd></div>
+                  <div><dt>Valor</dt><dd>Gratuito</dd></div>
+                </dl>
+              </div>
+              <div class="ticket__stub">
+                <div class="ticket__row">
+                  <p class="ticket__full">Lotado</p>
+                  <p class="ticket__seats"><b>80/80</b> vagas · 7 na fila</p>
+                </div>
+                <div class="bar" style="--fill: 100%" role="img" aria-label="80 de 80 vagas ocupadas"><span></span></div>
+                <p class="ticket__code">evt-002 · dado do seed do projeto</p>
+              </div>
+            </figure>
+
+            <p style="margin-top: var(--space-5)">
+              <span class="uibtn">Você é o 7º da fila</span>
+            </p>
+            <p class="uihint">Se abrir vaga, você tem 24 h para confirmar.</p>
+          </div>
+
+          <div class="rules">
+            <div class="rule">
+              <span class="rule__k">1</span>
+              <div>
+                <h3 class="rule__t">O botão lê o estado</h3>
+                <p class="rule__d">Cada situação tem um rótulo próprio — inscrever, entrar na fila, pagar, confirmar vaga, ver ingresso. O aluno nunca toca num botão para descobrir que não podia.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <span class="rule__k">2</span>
+              <div>
+                <h3 class="rule__t">A fila não ocupa vaga</h3>
+                <p class="rule__d">Estar na lista de espera não conta na capacidade. Quem ocupa é participação pendente de pagamento, confirmada, com oferta aberta ou presente.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <span class="rule__k">3</span>
+              <div>
+                <h3 class="rule__t">A oferta tem prazo, e passa a vez</h3>
+                <p class="rule__d">Cancelamento libera a vaga na mesma transação e oferece ao primeiro da fila, com janela de 24 h. Sem resposta, a vez passa ao próximo, sem punição.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">detalha o bloco 3 do roteiro · fala: <b>Ana Luiza Dourado</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 5 ================================ -->
+    <section class="slide" id="slide-ingresso" role="group"
+             aria-roledescription="slide" aria-label="Slide 5 de 9: pagamento, ingresso e porta" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Fluxos 04 e 05 · pagamento, ingresso e porta</p>
+        <h2 class="slide__title">Uma vaga, um pagamento, uma entrada</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="two">
+          <ol class="rail">
+            <li><span class="rail__k">reserva</span><span class="rail__t">Pendente de pagamento<span>A inscrição em evento pago nasce pendente, e a janela da regra é de 60 minutos.</span></span></li>
+            <li><span class="rail__k">cobrança</span><span class="rail__t">Pix ou cartão, simulados<span>A cobrança é aberta uma vez por inscrição: dois toques no botão não geram dois pagamentos.</span></span></li>
+            <li><span class="rail__k">confirma</span><span class="rail__t">Participação confirmada<span>Só o aviso do provedor confirma, e aviso repetido é ignorado de propósito.</span></span></li>
+            <li><span class="rail__k">expira</span><span class="rail__t">Sem pagamento, a vaga volta<span>Passados os 60 min, a vaga é liberada e oferecida a quem está na fila.</span></span></li>
+            <li><span class="rail__k">ingresso</span><span class="rail__t">QR, código legível e numérico<span>O ingresso é emitido junto com a confirmação, com a janela de check-in impressa.</span></span></li>
+          </ol>
+
+          <div class="verdicts">
+            <div class="verdict verdict--ok">
+              <p class="verdict__k">Primeira leitura na porta</p>
+              <p class="verdict__m">Check-in confirmado.</p>
+              <p class="verdict__d">A tela do organizador mostra nome e turma de quem entrou, e a lista de presença cresce na hora.</p>
+            </div>
+            <div class="verdict verdict--no">
+              <p class="verdict__k">Mesmo ingresso, segunda leitura</p>
+              <p class="verdict__m">Ingresso já utilizado às 20h14.</p>
+              <p class="verdict__d">Uma presença por inscrição. Na porta, "erro ao validar" não é resposta: o operador precisa saber se chama o próximo ou o segurança.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">detalha os blocos 5 e 6 do roteiro · fala: <b>Lucas Baraldi</b> e <b>Vitor Pantarotto</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 6 ================================ -->
+    <section class="slide" id="slide-numeros" role="group"
+             aria-roledescription="slide" aria-label="Slide 6 de 9: o que está funcionando" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">O que está funcionando</p>
+        <h2 class="slide__title">Quatro números medidos, não estimados</h2>
+        <p class="slide__lead">Cada número tem um comando que o reproduz. Se o comando não roda, o número sai do slide.</p>
+      </div>
+
+      <div class="slide__body">
+        <ul class="stats">
+          <li class="stat">
+            <span class="stat__n">12</span>
+            <h3 class="stat__t">rotas no app</h3>
+            <p class="stat__d">Login, onboarding, feed, eventos, detalhe, criar, perfil, notificações, pagamento, ingresso, check-in e a rota de tela não encontrada.</p>
+            <span class="stat__cmd">app/src/App.tsx</span>
+          </li>
+          <li class="stat">
+            <span class="stat__n">240</span>
+            <h3 class="stat__t">testes automatizados</h3>
+            <p class="stat__d">14 arquivos, todos verdes: regra de domínio, camada de dados e telas. Toda regra do vídeo tem teste que falha se ela mudar.</p>
+            <span class="stat__cmd">npm test</span>
+          </li>
+          <li class="stat">
+            <span class="stat__n">233,07<small> / 250 KB</small></span>
+            <h3 class="stat__t">pacote gzip</h3>
+            <p class="stat__d">Orçamento de desempenho verificado a cada envio, não medido uma vez e esquecido.</p>
+            <span class="stat__cmd">npm run check:size</span>
+          </li>
+          <li class="stat">
+            <span class="stat__n">81,73<small>%</small></span>
+            <h3 class="stat__t">cobertura no domínio</h3>
+            <p class="stat__d">Instruções cobertas na camada de regra — a que mais importa: é onde vaga, fila, prazo e check-in são decididos.</p>
+            <span class="stat__cmd">npm run test:coverage</span>
+          </li>
+        </ul>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">1:42–1:48</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 7 ================================ -->
+    <section class="slide" id="slide-arquitetura" role="group"
+             aria-roledescription="slide" aria-label="Slide 7 de 9: como isso foi verificado" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Por que a demonstração vale</p>
+        <h2 class="slide__title">A regra não está na tela</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="two">
+          <div class="layers">
+            <div class="layer">
+              <span class="layer__k">L1</span>
+              <span class="layer__t">Apresentação</span>
+              <span class="layer__p">pages · components/ui</span>
+            </div>
+            <div class="layer">
+              <span class="layer__k">L2</span>
+              <span class="layer__t">Estado</span>
+              <span class="layer__p">store · hooks</span>
+            </div>
+            <div class="layer">
+              <span class="layer__k">L3</span>
+              <span class="layer__t">Domínio</span>
+              <span class="layer__p">domain · policy.ts</span>
+            </div>
+            <div class="layer">
+              <span class="layer__k">L4</span>
+              <span class="layer__t">Repositórios</span>
+              <span class="layer__p">services (interfaces)</span>
+            </div>
+            <p class="frontier">fronteira mock → servidor</p>
+            <div class="layer layer--mock">
+              <span class="layer__k">L5</span>
+              <span class="layer__t">Dados simulados</span>
+              <span class="layer__p">seed em memória, no navegador</span>
+            </div>
+          </div>
+
+          <div>
+            <p class="claim">Vaga, fila, prazo e check-in são decididos em <b>funções puras da camada de domínio</b> — as mesmas que os testes exercitam e que o servidor do CP6 vai aplicar.</p>
+            <ul class="gates">
+              <li><code>npm test</code><span>regra de domínio, dados e telas</span></li>
+              <li><code>npm run test:e2e</code><span>inscrição ponta a ponta no navegador</span></li>
+              <li><code>npm run lint</code><span>zero aviso tolerado</span></li>
+              <li><code>npm run check:size</code><span>orçamento do pacote</span></li>
+              <li><code>npm run check:scale</code><span>nenhum valor fora dos tokens da marca</span></li>
+              <li><code>validate-docs.mjs</code><span>links, âncoras e diagramas da documentação</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">não entra no vídeo · material para a defesa</span>
+      </footer>
+    </section>
+
+    <!-- ================================ 8 ================================ -->
+    <section class="slide" id="slide-cp6" role="group"
+             aria-roledescription="slide" aria-label="Slide 8 de 9: próximos passos do CP6" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Próximos passos · CP6</p>
+        <h2 class="slide__title">O que o vídeo não mostra, dito na cara</h2>
+        <p class="slide__lead">Quatro limites reconhecidos de saída. Nenhum deles é regra faltando: são a fronteira do que roda no navegador.</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="next">
+          <article class="nx">
+            <p class="nx__k">Persistência</p>
+            <h3 class="nx__t">Servidor e banco de dados</h3>
+            <p class="nx__d">Hoje os dados vivem em memória: recarregar a página devolve o seed. Entra API própria com banco relacional, e as restrições do modelo passam a ser do banco.</p>
+          </article>
+          <article class="nx">
+            <p class="nx__k">Pagamento</p>
+            <h3 class="nx__t">Provedor em ambiente de teste</h3>
+            <p class="nx__d">A cobrança do vídeo é simulada pelo próprio app. Entra provedor real em ambiente de teste, com aviso assinado e idempotente.</p>
+          </article>
+          <article class="nx">
+            <p class="nx__k">Check-in</p>
+            <h3 class="nx__t">Leitura por câmera</h3>
+            <p class="nx__d">No vídeo o código é colado. O QR já está na tela e o leitor aceita o token; falta a permissão de câmera e o modo sem conexão na porta.</p>
+          </article>
+          <article class="nx">
+            <p class="nx__k">Segurança</p>
+            <h3 class="nx__t">Assinatura no servidor</h3>
+            <p class="nx__d">A assinatura do ingresso é calculada no navegador — segredo dentro do pacote não é segredo. Vai para o servidor, com chave fora do código.</p>
+          </article>
+        </div>
+
+        <p class="keep">O que <b>não</b> muda no CP6: nenhuma tela. A troca acontece atrás da camada de repositórios.</p>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">1:48–1:54</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 9 ================================ -->
+    <section class="slide" id="slide-fecho" role="group"
+             aria-roledescription="slide" aria-label="Slide 9 de 9: encerramento" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Campus · Checkpoint 5</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="close">
+          <div class="pitch">
+            <p>Turma, curso e faculdade não são um campo de texto: são a <b>regra de visibilidade</b> do evento — e agora ela roda.</p>
+            <p class="names">Ana Luiza Dourado · João Viviani Baldini · Lucas Baraldi · Lucas Zolla · Ronaldo Veloso Filho · Vitor Pantarotto</p>
+          </div>
+
+          <dl class="links">
+            <div>
+              <dt>Repositório</dt>
+              <dd class="links__v">github.com/lukiin-z/campus</dd>
+            </div>
+            <div>
+              <dt>Publicado</dt>
+              <dd class="links__v">lukiin-z.github.io/campus/</dd>
+            </div>
+            <div>
+              <dt>Este deck</dt>
+              <dd class="links__v">lukiin-z.github.io/campus/slides-cp5/</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">1:54–2:00</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+  </main>
+
+  <button class="deck__edge deck__edge--prev" id="deck-edge-prev" tabindex="-1" aria-hidden="true"></button>
+  <button class="deck__edge deck__edge--next" id="deck-edge-next" tabindex="-1" aria-hidden="true"></button>
+
+  <div class="deck__hud">
+    <button class="deck__btn" id="deck-prev" type="button">
+      <span aria-hidden="true">‹</span><span class="sr-only">Slide anterior</span>
+    </button>
+    <p class="deck__counter" id="deck-counter" aria-live="polite" aria-atomic="true">1 / 9</p>
+    <button class="deck__btn" id="deck-next" type="button">
+      <span aria-hidden="true">›</span><span class="sr-only">Próximo slide</span>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var slides  = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total   = slides.length;
+  var bar     = document.getElementById('deck-bar');
+  var counter = document.getElementById('deck-counter');
+  var prevBtn = document.getElementById('deck-prev');
+  var nextBtn = document.getElementById('deck-next');
+  var index   = 0;
+
+  function render() {
+    for (var i = 0; i < total; i++) {
+      var on = (i === index);
+      slides[i].classList.toggle('is-active', on);
+      slides[i].setAttribute('aria-hidden', on ? 'false' : 'true');
+    }
+    counter.textContent = (index + 1) + ' / ' + total;
+    bar.style.setProperty('--progress', ((index + 1) / total * 100) + '%');
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === total - 1);
+    // `replaceState` falha em `file://` em alguns navegadores: o deep-link é
+    // conveniência, não pode derrubar a navegação do deck.
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(null, '', '#' + slides[index].id);
+      }
+    } catch (e) {
+      window.location.hash = slides[index].id;
+    }
+  }
+
+  function go(target) {
+    var next = Math.min(Math.max(target, 0), total - 1);
+    if (next !== index) { index = next; render(); }
+  }
+
+  prevBtn.addEventListener('click', function () { go(index - 1); });
+  nextBtn.addEventListener('click', function () { go(index + 1); });
+  document.getElementById('deck-edge-prev').addEventListener('click', function () { go(index - 1); });
+  document.getElementById('deck-edge-next').addEventListener('click', function () { go(index + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) { return; }
+    var k = e.key;
+    // Três formas de reconhecer a barra de espaço: `key` moderno, `key` legado
+    // e `code`/`keyCode`. Controle remoto de apresentação e evento sintético de
+    // teste emitem qualquer uma delas.
+    var espaco = (k === ' ' || k === 'Spacebar' || e.code === 'Space' || e.keyCode === 32);
+    // Espaço com foco num botão é o próprio botão: não duplicar o avanço.
+    if (espaco && e.target && e.target.closest && e.target.closest('button')) { return; }
+
+    if (k === 'ArrowRight' || k === 'PageDown' || espaco) { go(index + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { go(index - 1); }
+    else if (k === 'Home') { go(0); }
+    else if (k === 'End') { go(total - 1); }
+    else { return; }
+    e.preventDefault();
+  });
+
+  // Abrir direto num slide: 20-video-cp5-slides.html#slide-numeros
+  var hash = window.location.hash.replace('#', '');
+  if (hash) {
+    for (var j = 0; j < total; j++) {
+      if (slides[j].id === hash) { index = j; break; }
+    }
+  }
+
+  render();
+}());
+</script>
+
+</body>
+</html>

@@ -103,8 +103,9 @@ Convenções obrigatórias:
 | [0004](0004-participacao-como-entidade-propria.md) | `Participacao` como entidade própria | Aceita | 2026-08-26 | A relação aluno–evento é entidade com identidade e história, não tabela de junção com status |
 | [0005](0005-alcance-como-enum-com-ancora-condicional.md) | Alcance como enum com âncora condicional | Aceita | 2026-08-27 | `alcance` é enum de três valores + três FKs opcionais com `CHECK` de exclusividade |
 | [0006](0006-abstracao-de-gateway-de-pagamento.md) | Abstração de gateway de pagamento | Aceita | 2026-08-31 | Pagamento é consumido por uma interface de quatro métodos, com simulador no CP5 e provedor real no CP6 |
+| [0007](0007-token-assinado-no-cliente-no-cp5.md) | Token assinado no cliente no CP5 | Aceita | 2026-09-02 | Token de sessão e de ingresso já com a forma final do CP6; a assinatura no cliente detecta adulteração casual e **não** é controle de segurança |
 
-Nenhuma ADR foi substituída ou descontinuada até a entrega do CP4.
+Nenhuma ADR foi substituída ou descontinuada até a entrega do CP5.
 
 ### Onde cada ADR é citada
 
@@ -119,6 +120,7 @@ requisito aponta para a ADR:
 | 0004 | [`../04-regras-de-negocio.md`](../04-regras-de-negocio.md) (RN-015), [`../05-modelagem/02-diagrama-classes.md`](../05-modelagem/02-diagrama-classes.md), [`../05-modelagem/dicionario-de-dados.md`](../05-modelagem/dicionario-de-dados.md), [`../14-glossario.md`](../14-glossario.md) |
 | 0005 | [`../04-regras-de-negocio.md`](../04-regras-de-negocio.md) (RN-001), [`../05-modelagem/02-diagrama-classes.md`](../05-modelagem/02-diagrama-classes.md), [`../05-modelagem/03-modelo-dados-er.md`](../05-modelagem/03-modelo-dados-er.md) |
 | 0006 | [`../14-glossario.md`](../14-glossario.md), [`../03-escopo.md`](../03-escopo.md) (D-02), [`../11-plano-de-testes.md`](../11-plano-de-testes.md), [`../12-riscos.md`](../12-riscos.md) (R-04) |
+| 0007 | [`../17-jornada.md`](../17-jornada.md) (§4.3), [`../18-ambiente-de-teste.md`](../18-ambiente-de-teste.md) (senha de demonstração), [`../02-requisitos.md`](../02-requisitos.md) (RF-003, RF-033, RF-034, RNF-019 a RNF-021) |
 
 ## 5. Como propor uma ADR nova
 

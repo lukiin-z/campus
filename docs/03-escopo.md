@@ -1,5 +1,12 @@
 # Escopo
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | Versão inicial: objetivo da v1, 14 itens dentro e 8 recusas resumidas, MVP por MoSCoW (28 `Must` / 11 `Should` / 4 `Could`), 7 premissas, 7 restrições, 6 dependências, marcos CP4 → CP5 → CP6 e 10 critérios de saída |
+| 1.1 | 2026-09-02 | CP5 | Acrescentada a seção [8.1 O que o CP5 fechou e o que escorregou](#81-o-que-o-cp5-fechou-e-o-que-escorregou-para-o-cp6), com a troca de escopo que de fato aconteceu. Os marcos do CP5 foram reescritos com o entregue, não com o planejado. **A distribuição MoSCoW não mudou** — nenhum requisito trocou de faixa; o que mudou foi o checkpoint de 10 deles, e a tabela de distribuição foi recalculada por isso. A coluna CP5 dos 10 critérios de saída foi substituída pelo **estado medido**: 9 atendidos e 1 (o E2E) pendente pelo segundo checkpoint. O critério 9 (cobertura) chegou a reprovar em 54,54% no meio da sprint e voltou a passar — o registro dessa oscilação ficou, porque é o que prova que a métrica está sendo medida |
+
 Delimitação do que o **Campus** entrega no semestre. Este documento é o contrato entre o
 que foi levantado em [`02-requisitos.md`](02-requisitos.md) e o que o time de 6 pessoas
 consegue construir em 3 sprints sem orçamento.
@@ -92,12 +99,28 @@ Os 12 itens `RFX-01` a `RFX-12` de [`02-requisitos.md`](02-requisitos.md#4-requi
 
 ### Distribuição
 
-| Prioridade | Qtd. | % dos RFs | Onde é entregue |
-|---|---|---|---|
-| Must | 28 | 65% | CP5 (19) + CP6 (9) |
-| Should | 11 | 26% | CP5 (2) + CP6 (9) |
-| Could | 4 | 9% | CP6, se houver folga |
-| Won't | 12 itens `RFX` | — | não entregue |
+Recalculada em **2026-09-02**. As faixas MoSCoW **não mudaram** — nenhum requisito subiu
+ou desceu de prioridade. O que mudou é a coluna "onde é entregue", porque 10 requisitos
+trocaram de checkpoint (ver [8.1](#81-o-que-o-cp5-fechou-e-o-que-escorregou-para-o-cp6)).
+
+| Prioridade | Qtd. | % dos RFs | Planejado no CP4 | Recalculado no CP5 |
+|---|---|---|---|---|
+| Must | 28 | 65% | CP5 (19) + CP6 (9) | CP5 (21) + CP6 (7) |
+| Should | 11 | 26% | CP5 (2) + CP6 (9) | CP5 (3) + CP6 (8) |
+| Could | 4 | 9% | CP6, se houver folga | CP5 (1) + CP6 (3) |
+| Won't | 12 itens `RFX` | — | não entregue | não entregue |
+| **Total entregue** | **43** | 100% | CP5 (21) + CP6 (22) | **CP5 (25) + CP6 (18)** |
+
+O `Could` que entrou no CP5 é RF-038 (comentários no feed): a escrita no feed foi
+construída de uma vez, e comentar custou pouco depois de publicar já existir. É folga
+aproveitada, não escopo crescendo — nenhum `Must` saiu para ele entrar.
+
+Os três requisitos que escorregaram do CP5 para o CP6 são dois `Must` — **RF-001**
+(cadastro de conta) e a metade de escrita de **RF-006** (editar perfil) — e um `Should`, a
+metade de "publicar depois" de **RF-012**. Os três pelo mesmo motivo: falta endpoint de
+escrita. Ver
+[`02-requisitos.md` §1.1](02-requisitos.md#11-status-de-implementação-no-cp5) para o
+estado requisito por requisito, com a evidência de cada um.
 
 ## 5. Premissas
 
@@ -162,26 +185,75 @@ real, nenhuma notificação real.
 
 **Sprint 2 · 08/09/2026 a 03/10/2026 · entrega 06/10/2026**
 
-| Entrega | Detalhe |
-|---|---|
-| 21 RFs no CP5 — 19 `Must` e 2 `Should` — funcionando com dados mockados | Onboarding, feed, lista, detalhe, criação, inscrição, cancelamento, lista de espera, ingresso com QR |
-| Ambiente de teste acessível por link | GitHub Pages com o app buildado (`/campus/`) |
-| Diagramas de sequência e atividades atualizados conforme o implementado | Divergência entre diagrama e código é defeito, não detalhe |
-| Testes: ≥ 8 unitários e 1 E2E do fluxo de inscrição | RNF-015 com limite de cobertura no CI |
-| Validação com 5 alunos reais | RNF-005; resultado alimenta o backlog da Sprint 3 |
-| Demonstração ao vivo do fluxo completo | Roteiro de demo definido na planning da Sprint 2 |
+Coluna "estado" preenchida em **2026-09-02**, com o que foi verificado — não com o que foi
+planejado.
+
+| Entrega | Detalhe | Estado em 2026-09-02 |
+|---|---|---|
+| ~~21 RFs~~ **25 RFs** — 21 `Must`, 3 `Should` e 1 `Could` — funcionando com dados mockados | Autenticação, onboarding, feed, lista, detalhe, criação, inscrição, cancelamento, lista de espera, ingresso com QR, **pagamento simulado, check-in, escrita no feed e central de notificações** | ✅ 25 completos + 3 parciais, com evidência por requisito em [`02-requisitos.md` §1.1](02-requisitos.md#11-status-de-implementação-no-cp5) |
+| Ambiente de teste acessível por link | GitHub Pages com o app buildado (`/campus/`) | Ver [`18-ambiente-de-teste.md`](18-ambiente-de-teste.md) |
+| Diagramas de sequência e atividades atualizados conforme o implementado | Divergência entre diagrama e código é defeito, não detalhe | Responsabilidade da lane de UML |
+| Testes: ≥ 8 unitários e 1 E2E do fluxo de inscrição | RNF-015 com limite de cobertura no CI | ✅ **293 testes unitários e de integração** em 17 arquivos (muito acima dos 8) **e 6 casos E2E executados** — o Chromium foi instalado e a suíte roda contra o build de produção. A pendência herdada do CP4 está fechada, e o E2E entrou no `ci.yml` como job próprio para não voltar a depender de máquina |
+| Cobertura de domínio ≥ 60% (RNF-015) | Limite configurado em `vite.config.ts`, falha o build | ✅ **Linhas 79,03%, funções 63,38%, branches 88,80% — passa nos quatro limites.** Reprovou de verdade no meio da sprint (54,54%) e voltou a passar com os testes de `auth`, `pix`, `ticketToken` e `checkin`. Onde ainda falta prova: `permissions.ts` (0% de funções) e `eventSchema.ts` (0%) |
+| Validação com 5 alunos reais | RNF-005; resultado alimenta o backlog da Sprint 3 | ⬜ Não realizada — depende de ação humana |
+| Demonstração ao vivo do fluxo completo | Roteiro de demo definido na planning da Sprint 2 | Ver [`20-video-cp5-roteiro.md`](20-video-cp5-roteiro.md) |
+
+#### 8.1 O que o CP5 fechou e o que escorregou para o CP6
+
+O CP5 **não** entregou o plano mais um extra: ele **trocou** parte do plano. Sete
+requisitos que estavam no CP6 entraram, três que estavam no CP5 saíram. O resultado é 25
+requisitos completos em vez de 21 — mas com uma composição diferente da planejada, e a
+diferença tem uma explicação só.
+
+**Entraram no CP5 (estavam no CP6) — 7 requisitos**
+
+| RF | O que é | Por que entrou |
+|---|---|---|
+| RF-028, RF-029 | Iniciar pagamento e confirmar por notificação do gateway | A demonstração ao vivo perde o sentido sem dinheiro: "separa o dinheiro do evento da conta pessoal do organizador" é a proposta de valor, e um protótipo que não cobra não a mostra. O gateway simulado ([ADR-0007](adr/0007-token-assinado-no-cliente-no-cp5.md)) tornou isso possível sem sandbox externo — a dependência D-02 deixou de bloquear |
+| RF-034, RF-035 | Validar check-in e painel de presença | O ingresso com QR (RF-033) já estava no CP5, e ingresso que ninguém valida é figura decorativa. Entregar a leitura junto custou pouco depois de o token existir |
+| RF-037, RF-038 | Publicar foto e comentar no feed | O feed de leitura (RF-036) já estava no CP5. Sem escrita, o feed exibe só o que o seed plantou — e "memória do evento" não é demonstrável com dado de fábrica |
+| RF-040 | Central de notificações | A promoção da lista de espera (RF-025) já emitia notificação no CP5. Emitir sem ter onde ler é notificação que não existe |
+
+**Saíram do CP5 (foram para o CP6) — 3 requisitos, todos pelo mesmo motivo**
+
+| RF | O que ficou de fora | Por quê |
+|---|---|---|
+| RF-001 | Cadastro de conta, inteiro | Não existe endpoint de criação de conta. A demonstração entra com os usuários do seed, o que basta para exercitar todos os outros fluxos — mas não é cadastro, e chamar de cadastro seria mentir no documento |
+| RF-006 | A metade de **escrita** (editar o perfil) | Não existe endpoint de escrita de perfil. A leitura está entregue e verificável |
+| RF-012 | A metade de **publicar depois** o rascunho | Salvar como rascunho funciona e o isolamento do rascunho é testado; não existe endpoint que mude o status para `PUBLICADO` |
+
+**A explicação é uma só, e vale registrar como aprendizado de escopo.** Os três casos que
+saíram são operações de **escrita sobre entidade que já existe** — criar conta, alterar
+perfil, alterar status de evento. Os sete que entraram são fluxos **de ponta a ponta**, com
+tela, regra e endpoint próprios. A lane que construiu a API simulada priorizou o que a
+banca vê funcionando ao vivo, e o que ficou para trás foi justamente o que **não aparece na
+demonstração**: ninguém demonstra "editar o próprio nome". A consequência para a Sprint 3 é
+concreta — os endpoints de escrita adiados são pequenos e parecidos entre si, e convém
+fazê-los em um bloco só, em vez de espalhados por três frentes.
+
+**O que não escorregou e merece nota:** as quatro garantias que sustentam o produto ficaram
+prontas **e cobertas por teste** — alcance verificado no servidor (RNF-012), reserva de
+vaga atômica sob 50 requisições concorrentes (RNF-013), idempotência da notificação de
+pagamento (RNF-014) e a fronteira de camadas que permite trocar o mock pela API real
+(RNF-016). São as quatro que, se falhassem, não teriam correção barata no CP6.
 
 ### CP6 — Persistência, integração e entrega final
 
 **Sprint 3 · 06/10/2026 a 07/11/2026 · entrega 10/11/2026**
 
+Reescrito em 2026-09-02 para refletir o que o CP5 deixou de fato para trás — e não a
+divisão planejada no CP4, que o CP5 mudou.
+
 | Entrega | Detalhe |
 |---|---|
-| API real com persistência substituindo o mock | Só troca a implementação dos repositórios (RNF-016) |
-| Pagamento em sandbox: Pix e cartão, com notificação idempotente | RF-028 a RF-031, RNF-014 |
-| Check-in por leitura de QR com token assinado e uso único | RF-034, RNF-011 |
-| Notificações e central de notificações | RF-039, RF-040 |
-| Moderação e aprovação de evento de faculdade | RF-041, RF-042 |
+| API real com persistência substituindo o mock | Só troca a implementação dos repositórios (RNF-016), verificada por regra de lint |
+| **Endpoints de escrita adiados, em um bloco** | Cadastro de conta (RF-001), recuperação de acesso (RF-004), edição de perfil (RF-006), publicação de rascunho e edição de evento (RF-012, RF-013), troca de turma (RF-008), privacidade (RF-009) |
+| **Rotinas de tempo** — o que o CP5 não pôde ter sem servidor | Expirar oferta da lista de espera (RF-026), expirar reserva não paga (RF-030) e marcar `AUSENTE` (RN-018). Nenhum código do CP5 escreve os estados `EXPIRADA` ou `AUSENTE`: eles exigem relógio no servidor |
+| Pagamento em sandbox de verdade, substituindo o simulador | RF-031 (reembolso) e RF-032 (recebimentos) são novos; RF-028 e RF-029 já funcionam simulados no CP5 e passam a falar com o gateway real (RNF-014 já coberto por teste) |
+| Cancelamento de evento com a cascata de participações | RF-014, RN-021 e RN-022 — hoje sem nenhuma implementação |
+| Testes do que o CP5 entregou sem cobrir | `domain/checkin.ts`, `domain/ticketToken.ts` e `domain/permissions.ts` estão implementados e sem teste, o que mantém RNF-011 e RNF-015 em dívida. É pré-requisito, não melhoria |
+| Moderação e aprovação de evento de faculdade | RF-041, RF-042 — as funções `canApproveCollegeEvent` e `canRemovePost` já existem, sem endpoint que as chame |
+| Perguntas customizadas, duplicar evento e gestão de turmas | RF-017, RF-018, RF-043 — os três `Could` restantes |
 | Build instalável (PWA) e manual de uso | Substitui a publicação em loja (RFX-05) |
 | Registro da jornada do projeto | Retrospectivas, decisões (ADRs) e métricas das 3 sprints |
 
@@ -190,19 +262,40 @@ Detalhamento tarefa por tarefa em [`13-roadmap-cp5-cp6.md`](13-roadmap-cp5-cp6.m
 ## 9. Critérios de saída de cada checkpoint
 
 Um checkpoint só é considerado entregue quando **todos** os itens abaixo são verdadeiros.
+As colunas CP4 e CP6 dizem se o critério **se aplica** àquele checkpoint. A coluna CP5 foi
+substituída pelo **estado medido em 2026-09-02** — critério de saída que não é verificado
+não é critério.
 
-| # | Critério | CP4 | CP5 | CP6 |
+| # | Critério | CP4 | CP5 — estado em 2026-09-02 | CP6 |
 |---|---|---|---|---|
-| 1 | `npm run lint`, `npm run test` e `npm run build` verdes no CI | ✅ | ✅ | ✅ |
-| 2 | Todo link relativo da documentação aponta para arquivo existente (`node scripts/validate-docs.mjs`) | ✅ | ✅ | ✅ |
-| 3 | Todo bloco Mermaid renderiza sem erro | ✅ | ✅ | ✅ |
-| 4 | Diagramas coerentes com o código entregue | ✅ | ✅ | ✅ |
-| 5 | Quadro do Trello refletindo o estado real dos cards | ✅ | ✅ | ✅ |
-| 6 | Link público acessível (Pages) | ✅ | ✅ | ✅ |
-| 7 | Fluxo principal demonstrável ao vivo | — | ✅ | ✅ |
-| 8 | Testes E2E cobrindo o fluxo de inscrição | — | ✅ | ✅ |
-| 9 | Cobertura de domínio ≥ 60% | — | ✅ | ✅ |
+| 1 | `npm run lint`, `npm run test` e `npm run build` verdes no CI | ✅ | ✅ **Atendido — o pipeline inteiro passa.** `lint` 0 erro/0 aviso, `format:check` limpo, `test` 240/240, `test:coverage` nos quatro limites, `build` sem erro, `check:scale` 478 utilitários, `check:size` 232,97/250 KB | ✅ |
+| 2 | Todo link relativo da documentação aponta para arquivo existente (`node scripts/validate-docs.mjs`) | ✅ | ✅ **885 links resolvidos, sem falha** — ver [`19-checklist-entrega-cp5.md`](19-checklist-entrega-cp5.md#3-estado-real-das-verificações) | ✅ |
+| 3 | Todo bloco Mermaid renderiza sem erro | ✅ | ✅ **24 blocos, todos fechados** pelo validador; sintaxe por `render-diagrams.mjs --check` | ✅ |
+| 4 | Diagramas coerentes com o código entregue | ✅ | Responsabilidade da lane de UML | ✅ |
+| 5 | Quadro do Trello refletindo o estado real dos cards | ✅ | ⬜ Depende de ação humana | ✅ |
+| 6 | Link público acessível (Pages) | ✅ | `npm run build` gera o `dist` sem erro; publicação por `deploy-pages.yml` | ✅ |
+| 7 | Fluxo principal demonstrável ao vivo | — | Roteiro em `20-video-cp5-roteiro.md` | ✅ |
+| 8 | Testes E2E cobrindo o fluxo de inscrição | — | ✅ **Executado: 6 casos, 6 verdes.** A primeira execução real reprovou 6 de 6 e expôs três divergências — um servidor de preview reusado servindo a base errada, a navegação direta para a cobrança depois de reservar vaga paga, e o reset do mock a cada recarga. As três foram corrigidas no teste; nenhuma era do app | ✅ |
+| 9 | Cobertura de domínio ≥ 60% | — | ✅ **Atendido — 79,03% de linhas e 63,38% de funções.** Ver RNF-015 em [`02-requisitos.md`](02-requisitos.md#quadro-resumo-dos-22-rnf) | ✅ |
 | 10 | Manual de uso publicado | — | — | ✅ |
+
+**Nove dos dez critérios aplicáveis ao CP5 estão atendidos.** Sobra um:
+
+- **Critério 8** continua `⚠️` pelo mesmo motivo do CP4: o teste E2E está escrito e
+  configurado, e o navegador do Playwright nunca foi instalado. É a **única pendência que
+  atravessou dois checkpoints sem andar**, e por isso merece ser a primeira tarefa da
+  Sprint 3 — ou os dez minutos antes da entrega do CP5. Um comando resolve:
+  `npx playwright install chromium && npm run test:e2e`.
+
+E vale registrar o que aconteceu com os critérios 1 e 9 **durante** esta sprint, porque é a
+parte que prova que eles estão sendo medidos e não apenas declarados. No meio do CP5 a
+cobertura caiu para **54,54%** e a formatação reprovava **26 arquivos**: as telas e os
+módulos de domínio novos entraram antes dos testes e antes do Prettier. Os dois passos
+obrigatórios do `ci.yml` derrubaram o build, a falha foi vista, e vieram
+`auth.test.ts`, `pix.test.ts`, `ticketToken.test.ts` e `checkin.test.ts` — que subiram a
+cobertura para 79,03% e, no caminho, expuseram um defeito de ordem no check-in (ver
+[`04-regras-de-negocio.md`](04-regras-de-negocio.md#rn-017--o-qr-code-é-assinado-tem-janela-de-validade-e-vale-uma-vez)).
+Critério de saída que nunca reprova não está sendo medido.
 
 ## 10. Como pedidos de mudança são tratados
 

@@ -18,7 +18,10 @@ não pela ordem dos arquivos.
 | testar | [`11-plano-de-testes.md`](11-plano-de-testes.md) |
 | saber o que pode dar errado | [`12-riscos.md`](12-riscos.md) |
 | saber o que vem no CP5 e CP6 | [`13-roadmap-cp5-cp6.md`](13-roadmap-cp5-cp6.md) |
+| rodar ou acessar o app para avaliar | [`18-ambiente-de-teste.md`](18-ambiente-de-teste.md) |
+| entender como o projeto evoluiu entre os checkpoints | [`17-jornada.md`](17-jornada.md) |
 | conferir a entrega do CP4 | [`16-checklist-entrega-cp4.md`](16-checklist-entrega-cp4.md) |
+| conferir a entrega do CP5 | [`19-checklist-entrega-cp5.md`](19-checklist-entrega-cp5.md) |
 
 ---
 
@@ -40,13 +43,13 @@ não pela ordem dos arquivos.
 | # | Diagrama | Tipo | Arquivo |
 |---|---|---|---|
 | 1 | Casos de uso — 23 UCs, 7 atores, `include`/`extend` e especificação textual de UC-001 a UC-005 | `flowchart` | [`01-casos-de-uso.md`](05-modelagem/01-casos-de-uso.md) |
-| 2 | Classes — 14 classes, 9 enumerações, multiplicidades e 7 decisões de modelagem explicadas | `classDiagram` | [`02-diagrama-classes.md`](05-modelagem/02-diagrama-classes.md) |
+| 2 | Classes — 13 entidades persistidas + as projeções de leitura em diagrama próprio, 15 enumerações, multiplicidades e 9 decisões de modelagem | `classDiagram` ×2 | [`02-diagrama-classes.md`](05-modelagem/02-diagrama-classes.md) |
 | 3 | Modelo ER — restrições, índices e a transação que sustenta RN-004 | `erDiagram` | [`03-modelo-dados-er.md`](05-modelagem/03-modelo-dados-er.md) |
-| 4 | Sequência — Pix assíncrono, promoção da lista de espera, check-in por QR | `sequenceDiagram` ×3 | [`04-diagrama-sequencia.md`](05-modelagem/04-diagrama-sequencia.md) |
-| 5 | Atividades — criação e publicação de evento, decisão do botão principal | `flowchart` ×2 | [`05-diagrama-atividades.md`](05-modelagem/05-diagrama-atividades.md) |
+| 4 | Sequência — login, onboarding, inscrição, lista de espera e oferta, pagamento simulado, check-in nas três leituras, publicar no feed | `sequenceDiagram` ×7 | [`04-diagrama-sequencia.md`](05-modelagem/04-diagrama-sequencia.md) |
+| 5 | Atividades — criar evento, ação principal com os 11 estados do botão, pagamento com a expiração, check-in na porta, onboarding | `flowchart` ×5 | [`05-diagrama-atividades.md`](05-modelagem/05-diagrama-atividades.md) |
 | 6 | Estados — ciclo de vida de `Participacao` e de `Evento`, com as transições **proibidas** | `stateDiagram-v2` ×2 | [`06-diagrama-estados.md`](05-modelagem/06-diagrama-estados.md) |
 | 7 | Componentes — camadas do app, fronteira mock→API, dependências proibidas | `flowchart` | [`07-diagrama-componentes.md`](05-modelagem/07-diagrama-componentes.md) |
-| — | Dicionário de dados — 14 entidades campo a campo + inventário LGPD | tabelas | [`dicionario-de-dados.md`](05-modelagem/dicionario-de-dados.md) |
+| — | Dicionário de dados — 13 entidades campo a campo, os 20 tipos que não são tabela e o inventário LGPD | tabelas | [`dicionario-de-dados.md`](05-modelagem/dicionario-de-dados.md) |
 
 Exports em SVG: [`05-modelagem/exports/`](05-modelagem/exports/README.md) ·
 Regenerar: `node scripts/render-diagrams.mjs`
@@ -68,6 +71,8 @@ Regenerar: `node scripts/render-diagrams.mjs`
 | [Pitch](07-pitch.md) | One-liner, elevator pitch de 30s, **pitch de 1 minuto palavra por palavra**, canvas de proposta de valor, comparativo honesto com Instagram / WhatsApp / Sympla / Google Forms, modelo de negócio e métricas de sucesso |
 | [Roteiro do vídeo](15-video-roteiro.md) | Roteiro de 2 minutos cronometrado, escalação dos 6 integrantes, storyboard, checklist de gravação |
 | [Slides de apoio](15-video-slides.html) | Deck estático navegável por setas, na identidade do Campus, para compartilhar a tela na gravação |
+| [Roteiro do vídeo do CP5](20-video-cp5-roteiro.md) | Roteiro de 2 minutos do **protótipo rodando**: storyboard cronometrado, usuário de teste por cena e plano B de gravação |
+| [Slides do CP5](20-video-cp5-slides.html) | Deck de apoio da gravação do CP5 |
 
 ## 5. Organização no Trello — peso 10%
 
@@ -84,12 +89,15 @@ Regenerar: `node scripts/render-diagrams.mjs`
 | Documento | O que tem dentro |
 |---|---|
 | [Arquitetura](08-arquitetura.md) | C4 nível 1 e 2, decisões de stack com trade-offs, camadas do front, **contrato da API planejada endpoint por endpoint**, autenticação, token de check-in e como o mock é substituído |
-| [ADRs](adr/README.md) | 6 decisões arquiteturais registradas com contexto, alternativas recusadas, consequências negativas e como reverter |
-| [Plano de testes](11-plano-de-testes.md) | Estratégia, pirâmide, **CT-001 a CT-031 em Gherkin**, teste E2E, roteiros manuais de acessibilidade e critérios de aceite do CP5 |
+| [ADRs](adr/README.md) | 7 decisões arquiteturais registradas com contexto, alternativas recusadas, consequências negativas e como reverter |
+| [Plano de testes](11-plano-de-testes.md) | Estratégia, pirâmide, **CT-001 a CT-037 em Gherkin**, teste E2E, roteiros manuais de acessibilidade e critérios de aceite do CP5 |
 | [Riscos](12-riscos.md) | Escalas definidas, matriz 5×5, **16 riscos** com gatilho, contingência e responsável, e os riscos já materializados |
 | [Roadmap CP5–CP6](13-roadmap-cp5-cp6.md) | O que falta para cada checkpoint, em tarefas com responsável e estimativa, e as pendências técnicas conhecidas |
 | [Equipe e papéis](10-equipe-e-papeis.md) | Os 6 integrantes com RM, responsabilidades detalhadas, matriz RACI dos artefatos e cerimônias |
+| [Registro da jornada](17-jornada.md) | Linha do tempo por tag (`cp4`, `cp5`, `cp6`): decisões, mudanças de requisito que a implementação provocou e **os defeitos que a verificação encontrou** — é a evidência do critério de evolução do CP6 |
+| [Ambiente de teste](18-ambiente-de-teste.md) | Como acessar o app publicado, rodar local em 3 comandos, instalar como PWA, os usuários de teste do seed e um roteiro de 5 minutos por fluxo |
 | [Checklist de entrega](16-checklist-entrega-cp4.md) | Cada item do enunciado e cada critério de avaliação mapeado ao artefato que o cumpre, com evidência |
+| [Checklist do CP5](19-checklist-entrega-cp5.md) | Os 5 critérios do CP5 com peso, artefato e evidência verificável |
 
 ## 7. Como verificar esta documentação
 

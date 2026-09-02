@@ -1,5 +1,12 @@
 # Roadmap CP5 → CP6
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | Versão inicial: tarefas das Sprints 2 e 3, déficit de capacidade, cortes preparados, marcos e as 4 pendências técnicas do CP4 |
+| 1.1 | 2026-09-02 | CP5 | Fecha as pendências 6.1 e 6.3, atualiza 6.2, e acrescenta a §7 com o que o CP5 deixou para o CP6 |
+
 **Responsável técnico:** Lucas Baraldi (Tech Lead / Arquiteto)
 **Base de escopo:** [`03-escopo.md`](03-escopo.md) (marcos e critérios de saída) ·
 **Requisitos e checkpoint de cada RF:** [`02-requisitos.md`](02-requisitos.md) ·
@@ -47,7 +54,7 @@ a sprint começar — não na véspera da entrega.
 | RFs `Must` de checkpoint 5 funcionando com dados mockados | Base técnica pronta (tokens, 7 rotas, MSW com o seed, domínio, testes); nenhum fluxo de tela implementado | S2-01 a S2-07, S2-14, S2-15, S2-16 |
 | Ambiente de teste acessível por link (Pages, `/campus/`) | Pages publicado com a base do app; falta o app com os fluxos e o fallback de rota da SPA | S2-18 |
 | Diagramas de sequência e atividade atualizados conforme o implementado | Os diagramas do CP4 descrevem o **planejado**, não o implementado | S2-17 |
-| ≥ 8 testes unitários e 1 E2E do fluxo de inscrição | Suíte unitária do domínio iniciada; **o E2E do Playwright nunca foi executado** (seção 6.1) | S2-08, S2-09, S2-13 |
+| ≥ 8 testes unitários e 1 E2E do fluxo de inscrição | ✅ Fechado no CP5: **293 testes** de unidade e integração, e **6 casos E2E executados** contra o build de produção (seção 6.1) | S2-08, S2-09, S2-13 |
 | Cobertura de domínio ≥ 60% com limite que falha o CI | Sem limite configurado | S2-08 |
 | Validação com 5 alunos reais (RNF-005) | Não iniciada | S2-11 |
 | Demonstração ao vivo do fluxo completo | Sem roteiro e sem ensaio | S2-12 |
@@ -303,13 +310,35 @@ com o simulador, e ponto.
 
 Registradas para não serem descobertas na Sprint 2 como surpresa.
 
-### 6.1 O E2E do Playwright nunca foi executado
+### 6.1 O E2E do Playwright nunca foi executado — resolvido no CP5
 
-`@playwright/test` está nas dependências de desenvolvimento e o script `npm run test:e2e`
-existe em `app/package.json`, mas **os navegadores do Playwright não foram baixados nesta
-máquina** (`npx playwright install`). Consequência, sem eufemismo: **o teste E2E está escrito
-e configurado, e não foi executado nenhuma vez.** Ele pode estar quebrado, e não temos como
-afirmar o contrário.
+**Estado em 02/09/2026: fechada.** O Chromium foi instalado, a suíte foi executada e o
+E2E entrou no `ci.yml` como job próprio — a execução não depende mais da máquina de ninguém.
+
+A **primeira execução real reprovou 6 de 6**, e é o que essa pendência escondia por dois
+checkpoints. As três causas, nenhuma delas do app:
+
+| Sintoma | Causa | Correção |
+|---|---|---|
+| Toda tela vazia, 404 em todo asset | O `webServer` do Playwright tem `reuseExistingServer` local e reusou um `vite preview` de outra frente que servia o build com base `/campus/` na mesma porta | Encerrar o processo pela porta. Vale como aviso: `reuseExistingServer` transforma servidor esquecido em falso vermelho |
+| `acao-principal` não encontrada em toda rota | O CP5 acrescentou guarda de sessão; sem token toda rota protegida vai para `/login`, e o teste do CP4 não sabia disso | `addInitScript` semeando o token antes de qualquer script da página, mais dois casos novos que passam pela tela de login de verdade |
+| Contador em 96 depois de uma inscrição bem-sucedida | O passo usava `page.goto` para voltar ao detalhe, e recarregar reconstrói o mock em memória a partir do seed | `page.goBack()`: navegação de histórico, sem recarga. O teste passou a medir o incremento em vez do reset |
+
+Uma quarta divergência era **de comportamento**, não de teste: inscrição em evento pago
+navega direto para a cobrança em vez de voltar ao detalhe com um botão "Pagar agora". O
+teste esperava o segundo, o app faz o primeiro, e o app está certo — a janela de 60 minutos
+de RN-012 começa a correr no instante da reserva.
+
+Registro do que era, porque o histórico é entregável:
+
+Registro do que era, porque o histórico é entregável:
+
+> `@playwright/test` estava nas dependências de desenvolvimento e o script `npm run test:e2e`
+> existia em `app/package.json`, mas os navegadores não tinham sido baixados. O teste E2E
+> estava escrito, configurado e **nunca executado** — podia estar quebrado, e não havia como
+> afirmar o contrário.
+
+E estava quebrado. É a lição que fica: "escrito e configurado" não é evidência de nada.
 
 Isso importa porque o E2E do fluxo de inscrição é o **critério de saída 8** do CP5 — não é
 teste extra.
@@ -339,6 +368,12 @@ Consequências assumidas:
 - A **validação** de sintaxe (`--check`) é o que entra no CI; a **exportação** permanece
   manual, executada por quem altera diagrama. Está incluída no escopo de `S2-17` e `S3-19`.
 
+**Estado em 02/09/2026:** continua verdadeiro. O CP5 reexportou os SVGs ao alterar os
+diagramas de sequência e atividade, mas a garantia permanece humana — nenhuma verificação
+detecta SVG defasado em relação ao Markdown. Candidato a verificador próprio no CP6, no
+mesmo estilo de `scripts/check-tailwind-scale.mjs`: comparar o `hash` do bloco Mermaid com
+um comentário gravado no SVG.
+
 ### 6.3 O contrato de API e as rotas do mock divergem em três nomes
 
 O MSW já implementa 12 rotas, e três delas têm nome diferente do contrato da §5 de
@@ -347,9 +382,23 @@ O MSW já implementa 12 rotas, e três delas têm nome diferente do contrato da 
 `POST /notificacoes/:id/lida` (deveria ser `PATCH /notificacoes/{id}`). A tabela comparativa
 está na §5.11 daquele documento.
 
-A reconciliação é barata agora — uma linha por rota no handler e no repositório HTTP — e cara
-no CP6, quando a API real já estiver escrita contra um dos dois nomes. Entra no escopo de
-`S2-14`, que já mexe em autenticação e sessão.
+**Decisão tomada no CP5:** os nomes do mock prevalecem, e o documento de arquitetura é que
+se ajusta — não o contrário. Três razões, na ordem em que pesaram:
+
+1. `GET /api/sessao` é uma rota de leitura idempotente e é isso que ela faz. O contrato do
+   CP4 propunha `POST /auth/sessao` + `GET /me`, o que separa em duas chamadas o que a tela
+   consome sempre junto (usuário + faculdade + curso + turma resolvidos).
+2. `GET /api/participacoes` já é implicitamente "minhas": o usuário sai do token, e não do
+   caminho. `GET /me/participacoes` repetiria no caminho o que o cabeçalho já diz.
+3. `POST /api/notificacoes/:id/lida` descreve um **evento** ("foi lida"), não uma edição
+   parcial de recurso. O `PATCH` genérico convidaria a aceitar qualquer campo.
+
+O CP5 acrescentou 16 rotas ao mock (autenticação, onboarding, pagamento, check-in, escrita
+no feed) seguindo essa convenção. A reconciliação formal acontece no CP6, no
+`api/openapi.yaml` e em `docs/21-api-contrato.md`, que passam a ser a **fonte única** do
+contrato — e o `08-arquitetura.md` §5 é atualizado para apontar para eles em vez de
+descrever endpoints por conta própria. Enquanto isso não acontecer, a §5.11 daquele
+documento continua registrando a divergência de propósito.
 
 ### 6.4 O que o CP5 não vai conseguir provar
 
@@ -363,3 +412,43 @@ Registrado para que nenhuma afirmação otimista apareça na demo ou no relatór
 | Hash Argon2id (RNF-010) | Não há armazenamento de senha no CP5 | `S3-11` |
 | Autorização de alcance no servidor (RNF-012) | No CP5 quem "autoriza" é o MSW, que roda na máquina do usuário — **isto não é segurança** | `S3-06` |
 | Transporte cifrado ponta a ponta (RNF-009) | O Pages serve HTTPS, mas não há API para autenticar contra | `S3-16` |
+
+---
+
+## 7. O que o CP5 fechou e o que empurrou para o CP6
+
+Escrito ao fim do CP5, com o estado real verificado — não com a intenção do planejamento.
+
+### 7.1 Fechado no CP5
+
+| Frente | Evidência |
+|---|---|
+| Login institucional e onboarding por código de turma (RF-001 a RF-005) | `app/src/domain/auth.ts`, rotas `/login` e `/onboarding`, CT-032 e CT-033 |
+| Pagamento simulado com Pix e cartão (RF-026 a RF-030) | `app/src/domain/pix.ts`, `POST /api/participacoes/:id/pagamento`, webhook simulado, CT-034 e CT-035 |
+| Ingresso com token e check-in nas três formas de leitura (RF-031 a RF-035) | `app/src/domain/ticketToken.ts`, painel do organizador, CT-036 e CT-037 |
+| Escrita no feed com verificação dupla (RF-036 a RF-039) | `POST /api/publicacoes` e `POST /api/publicacoes/:id/comentarios` |
+| Central de notificações (RF-040) | Rota `/notificacoes` com destino por tipo |
+| App instalável | Manifest e ícones em `app/public/`, verificados no CI |
+| Ambiente de teste documentado para quem avalia | [`18-ambiente-de-teste.md`](18-ambiente-de-teste.md) |
+| Registro da jornada | [`17-jornada.md`](17-jornada.md) |
+
+### 7.2 Empurrado para o CP6, com o motivo
+
+| Item | Por que não no CP5 | Onde entra |
+|---|---|---|
+| Persistência real | Não há servidor no CP5 (P-02) | Lane de backend: Prisma + PostgreSQL |
+| Assinatura HMAC do token no servidor | Segredo no cliente não é segredo ([ADR-0007](adr/0007-token-assinado-no-cliente-no-cp5.md)) | Módulo de check-in da API |
+| Hash de senha (argon2, RNF-019) | O seed do CP5 usa senha única de demonstração | Módulo de autenticação da API |
+| Expiração do token de ingresso | `emitidoEm` é transportado, mas não verificado | Junto com o HMAC |
+| Execução do E2E contra a stack real | Não havia stack real para exercitar | Lane de testes do CP6 |
+| Corrida de verdade na última vaga (RNF-013) | O mock serializa escrita em uma *thread*; prova a regra, não a corrida | Teste de integração da API com `SELECT ... FOR UPDATE` |
+| Câmera de verdade no check-in | Leitor simulado no CP5 | Fora do plano comprometido do CP6 — ver §2.3 |
+| Moderação de conteúdo (RF-042) | Priorização MoSCoW | Sprint 3 |
+
+### 7.3 O que continua não provável
+
+| Não provável | Por quê |
+|---|---|
+| Instalação como app no iOS | Os ícones do manifest são SVG; o Safari prefere PNG. Documentado em [`18-ambiente-de-teste.md`](18-ambiente-de-teste.md) |
+| Pagamento real | Sem CNPJ e sem conta de gateway ([ADR-0006](adr/0006-abstracao-de-gateway-de-pagamento.md)) |
+| Carga com usuário real | Nenhum dos 22 RNF de desempenho foi medido com tráfego real; só com o pacote e a suíte local |

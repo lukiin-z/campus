@@ -1,5 +1,13 @@
 # Arquitetura
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | Versão inicial: C4 níveis 1 e 2, decisões de stack, camadas do front, contrato de 41 endpoints, autenticação, token de check-in, substituição do mock |
+| 1.1 | 2026-09-02 | CP5 | §5.11 reescrita com as 28 rotas implementadas e a **decisão** sobre as três divergências de nome; nota sobre o `openapi.yaml` do CP6 passar a ser a fonte única do contrato |
+
+
 **Responsável técnico:** Lucas Baraldi (Tech Lead / Arquiteto)
 **Complementa:** [`05-modelagem/07-diagrama-componentes.md`](05-modelagem/07-diagrama-componentes.md)
 (camadas e fronteira mock→API) · [`adr/README.md`](adr/README.md) (decisões e alternativas
@@ -404,27 +412,52 @@ opcional e diz ao cliente qual é o próximo passo possível.
 
 ### 5.11 O que já existe hoje, e o que ainda não
 
-Doze rotas já estão implementadas nos handlers do MSW
-([`app/src/mocks/handlers.ts`](../app/src/mocks/handlers.ts)) e exercitadas pelo app:
+**Estado em 02/09/2026 (CP5): 28 rotas implementadas** nos handlers do MSW e exercitadas
+pelo app. Doze vieram do CP4
+([`app/src/mocks/handlers.ts`](../app/src/mocks/handlers.ts)); dezesseis são do CP5
+([`app/src/mocks/handlersCp5.ts`](../app/src/mocks/handlersCp5.ts)).
 
-`GET /eventos` · `GET /eventos/destaque` · `GET /eventos/:id` ·
-`POST /eventos/:id/participacoes` · `POST /eventos/:id/lista-espera` ·
-`GET /participacoes` · `GET /participacoes/:id` · `DELETE /participacoes/:id` ·
-`POST /participacoes/:id/confirmar` · `GET /feed` · `GET /notificacoes` ·
-`POST /notificacoes/:id/lida`
+Do CP4:
 
-Três divergências de nome entre o que está implementado e o contrato acima, que precisam ser
-reconciliadas na Sprint 2 — o contrato acima é o alvo, e a mudança é de uma linha por rota:
+`GET /api/sessao` · `GET /api/eventos` · `GET /api/eventos/destaque` ·
+`GET /api/eventos/:id` · `POST /api/eventos` ·
+`POST /api/eventos/:id/participacoes` · `POST /api/eventos/:id/lista-espera` ·
+`GET /api/participacoes` · `GET /api/participacoes/:id` ·
+`DELETE /api/participacoes/:id` · `POST /api/participacoes/:id/confirmar` ·
+`GET /api/feed` · `GET /api/notificacoes` · `POST /api/notificacoes/:id/lida`
 
-| Implementado hoje | Contrato desta seção | Por que o contrato ganha |
+Do CP5, por módulo:
+
+| Módulo | Rotas |
+|---|---|
+| Autenticação | `GET /api/faculdade` · `GET /api/cursos` · `GET /api/cursos/:id/turmas` · `POST /api/auth/login` · `POST /api/auth/logout` · `POST /api/auth/onboarding` |
+| Pagamento | `POST /api/participacoes/:id/pagamento` · `GET /api/participacoes/:id/pagamento` · `POST /api/pagamentos/:id/simular` |
+| Check-in | `GET /api/participacoes/:id/token` · `GET /api/eventos/:id/checkin` · `POST /api/eventos/:id/checkin` |
+| Feed | `GET /api/feed/eventos-publicaveis` · `POST /api/publicacoes` · `POST /api/publicacoes/:id/comentarios` |
+| Notificações | `POST /api/notificacoes/lidas` |
+
+#### As três divergências de nome: decisão tomada no CP5
+
+O CP4 registrou três nomes implementados diferentes do contrato desta seção e disse que "o
+contrato ganha". **Ao implementar o CP5, a decisão se inverteu**: os nomes do mock
+prevalecem, e é esta seção que se ajusta. O motivo não é conveniência — é que os três
+argumentos originais não sobreviveram ao contato com o código:
+
+| Rota | O que o CP4 propunha | Por que o mock ganhou |
 |---|---|---|
-| `GET /sessao` | `POST /auth/sessao` (login) + `GET /me` (perfil) | São operações diferentes: uma cria sessão, a outra lê o titular. Juntas, impedem separar autenticação de perfil no CP6 |
-| `GET /participacoes` | `GET /me/participacoes` | Deixa explícito que o recurso é do titular autenticado, e libera `/participacoes/{id}` para acesso por identidade |
-| `POST /notificacoes/:id/lida` | `PATCH /notificacoes/{id}` com `{ "lida": true }` | Marcar como lida é atualização de estado do recurso, não um subrecurso |
+| `GET /api/sessao` | `POST /auth/sessao` + `GET /me` | O CP5 separou de fato as duas operações: `POST /api/auth/login` cria a sessão e `GET /api/sessao` lê o titular. O argumento do CP4 estava certo no diagnóstico e errado no nome: o que faltava era o `login`, não renomear a leitura. E `GET /api/sessao` devolve usuário + faculdade + curso + turma **resolvidos**, que é o que toda tela consome junto — `GET /me` devolveria o usuário e obrigaria o cliente a montar o resto |
+| `GET /api/participacoes` | `GET /me/participacoes` | O titular sai do token, não do caminho. Repetir `/me` no caminho não acrescenta garantia nenhuma e cria um segundo lugar para a autorização divergir |
+| `POST /api/notificacoes/:id/lida` | `PATCH /api/notificacoes/:id` com `{ "lida": true }` | "Foi lida" é um **evento**, não uma edição parcial de recurso. O `PATCH` genérico convida a aceitar qualquer campo do corpo, e o CP5 acrescentou `POST /api/notificacoes/lidas` (marcar todas) — que no modelo `PATCH` não teria forma natural |
 
-`GET /eventos/destaque` não está na tabela de contrato porque é conveniência da faixa do
-feed, servida pela mesma consulta de `GET /eventos` com filtro e limite — no CP6 ela vira
-parâmetro, não rota.
+**Consequência de processo:** a partir do CP6, o contrato deixa de ser descrito aqui. A fonte
+única passa a ser `docs/21-api-contrato.md` e `api/openapi.yaml` — os dois entregues no
+CP6 —, e esta seção passa a referenciá-los em vez de duplicá-los. Manter uma tabela de endpoints escrita à mão
+em paralelo a um OpenAPI é garantir que os dois divirjam — foi exatamente o que aconteceu
+entre o CP4 e o CP5, e o registro está em [`17-jornada.md`](17-jornada.md).
+
+`GET /api/eventos/destaque` continua fora da tabela de contrato porque é conveniência da
+faixa do feed, servida pela mesma consulta de `GET /api/eventos` com filtro e limite — no
+CP6 ela vira parâmetro, não rota.
 
 ### Notas de contrato que valem mais que a tabela
 

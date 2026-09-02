@@ -1,0 +1,254 @@
+# Registro da jornada do projeto
+
+**Disciplina:** Engenharia de Software · **Curso:** Engenharia de Computação (3º ano) ·
+**Instituição:** FIAP · **Professor:** Hercules Ramos
+**Projeto:** Campus — aplicativo de eventos universitários
+
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-02 | CP5 | Documento criado: linha do tempo do CP4 e do CP5, decisões, mudanças de escopo, requisitos revistos e defeitos encontrados por verificação |
+| 1.1 | 2026-09-02 | CP5 | Fecha a seção do CP5 depois da integração: 9 defeitos registrados (7 a 15), separados entre comissão e omissão; a pendência do E2E do CP4 fechada com o relato da primeira execução; quadro do que foi medido e do que não foi |
+
+---
+
+## 1. Para que serve este documento
+
+O enunciado do CP6 avalia **"evolução do projeto — coerência e evolução clara entre CP4 →
+CP5 → CP6"** com peso de 15%. Este documento é a evidência dessa evolução: não um resumo do
+que existe hoje, mas o **registro de como chegamos aqui** — o que decidimos, o que mudamos
+de ideia, o que caiu do escopo e por quê, e o que a verificação encontrou de errado.
+
+Três coisas que ele deliberadamente contém:
+
+| Contém | Por quê |
+|---|---|
+| **Decisão com data e commit** | "Evolução clara" só é verificável se der para apontar o momento e o artefato |
+| **Requisito que caiu ou mudou** | Escopo que só cresce é escopo que não foi pensado. O que saiu diz mais que o que entrou |
+| **Defeito encontrado por verificação** | Um projeto sem defeito registrado é um projeto sem verificação de verdade — ou com registro incompleto |
+
+E uma que ele **não** contém: narrativa de esforço. Quantas horas cada tarefa levou não é
+evidência de engenharia.
+
+O estado atual do produto está em outro lugar: requisitos em
+[`02-requisitos.md`](02-requisitos.md), arquitetura em
+[`08-arquitetura.md`](08-arquitetura.md), decisões em [`adr/`](adr/README.md).
+
+## 2. Linha do tempo por tag
+
+Cada checkpoint tem uma **tag anotada** no Git e uma *release* no GitHub. A tag é o que
+permite reconstruir o estado exato de cada entrega:
+
+```bash
+git tag -l                 # cp4, cp5, cp6
+git diff --stat cp4 cp5    # o que mudou entre as entregas
+git log --oneline cp4..cp5 # os commits do CP5
+```
+
+| Tag | Data | Commits acumulados | Entrega |
+|---|---|---|---|
+| `cp4` | 2026-09-01 | 8 | Idealização: documentação, UML, marca, pitch, Trello, base técnica |
+| `cp5` | 2026-09-02 | ver `git log cp4..cp5` | Protótipo funcional: 12 rotas navegáveis com dados simulados, ambiente de teste, PWA |
+| `cp6` | — | ver `git log cp5..cp6` | Entrega final: API, persistência, instalabilidade |
+
+---
+
+## 3. CP4 — Idealização
+
+**Tag:** `cp4` · **Commits:** 8 · **Foco:** decidir *o que* construir e provar que o time
+sabe descrever o problema antes de escrever código.
+
+### 3.1 Os commits
+
+| Commit | O que entrou |
+|---|---|
+| `2a4e992` | Estrutura do repositório e preservação do protótipo estático original em `prototype/legacy/` |
+| `4aafe4a` | `.gitattributes` normalizando fim de linha — o repositório é editado em Windows e verificado em Ubuntu no CI |
+| `ff62137` | Problema, 3 personas, 43 RF, 22 RNF, escopo MoSCoW, 25 regras de negócio, glossário |
+| `067dc48` | 12 diagramas UML em Mermaid, validados por renderização |
+| `c87fcc4` | Logo em SVG escrito à mão, paleta com contraste WCAG calculado, identidade visual |
+| `018fe65` | Base React: domínio puro testado e camada de dados trocável |
+| `63e0305` | Arquivo do Figma construído via MCP, com os limites do plano documentados |
+| `744be9a` | Styleguide, README e checklist de entrega |
+
+### 3.2 Decisões do CP4
+
+| # | Decisão | Por quê, em uma linha |
+|---|---|---|
+| [0001](adr/0001-react-vite-em-vez-de-react-native.md) | React + Vite, não React Native | Publicar em loja não cabe no semestre; PWA entrega "instalável" sem isso |
+| [0002](adr/0002-tailwind-com-design-tokens.md) | Tailwind com tema **substituído**, não estendido | Valor visual fora do token não gera CSS — o erro aparece, em vez de passar |
+| [0003](adr/0003-camada-de-repositorio-com-msw.md) | Camada de repositório com MSW falando HTTP de verdade | Um app que nunca falha na demo desmonta na primeira semana do CP6 |
+| [0004](adr/0004-participacao-como-entidade-propria.md) | `Participacao` é entidade, não tabela de junção | A relação aluno–evento tem identidade e história (fila, oferta, pagamento, presença) |
+| [0005](adr/0005-alcance-como-enum-com-ancora-condicional.md) | Alcance como enum + três FKs com `CHECK` | Uma coluna polimórfica sem tipo não é verificável pelo banco |
+| [0006](adr/0006-abstracao-de-gateway-de-pagamento.md) | Gateway de pagamento atrás de interface de 4 métodos | Simulador no CP5 e provedor real no CP6 sem tocar em quem consome |
+
+### 3.3 O que a verificação encontrou no CP4
+
+Seis defeitos reais, cada um encontrado por uma verificação executada — não por leitura:
+
+| # | Defeito | Encontrado por | Correção |
+|---|---|---|---|
+| 1 | **Dois pares de cor reprovavam WCAG AA.** O coral `#E8542E` sobre branco dá 3,66:1 e o cinza `#767D85` em texto pequeno dá 4,02:1 — ambos abaixo de 4,5:1 | Cálculo de razão de contraste sobre a paleta inteira (28 pares) | Corrigidos para `#C83A16` (5,16:1) e `#5C6269` (5,95:1). O coral da marca ficou restrito a texto grande e ao símbolo |
+| 2 | **RN-004 e RN-007 se contradiziam** sobre `OFERTA_PENDENTE` ocupar vaga | Leitura cruzada das 25 regras durante a revisão de consistência | Documentação alinhada ao comportamento correto: a vaga fica reservada durante a oferta |
+| 3 | **Handlers de escrita não verificavam alcance.** Dava para se inscrever em evento invisível por requisição direta | Teste de integração da camada de serviço (CT-012) | `canSee` aplicado em `POST /participacoes` e `POST /lista-espera` (RN-001, RNF-012) |
+| 4 | **`ToastViewport` violava a própria fronteira de camadas** — estava em `components/ui/` importando a store | `no-restricted-imports` do ESLint | Movido para `components/layout/` |
+| 5 | **Sete classes Tailwind fora da escala** (`w-64`, `h-56`, `h-40`, `h-48`, `h-64`) não geravam CSS: o cartão de evento e as capas ficavam **invisíveis** | Inspeção do app no navegador | Tokens nomeados em `tailwind.config.ts` **e** um verificador novo, `scripts/check-tailwind-scale.mjs`, que agora roda no CI |
+| 6 | **Contagens MoSCoW erradas** nos documentos 02 e 03 (26/12/5 em vez de 28/11/4) e distribuição CP5/CP6 invertida | Recontagem item a item | Números corrigidos nos dois documentos |
+
+O defeito 5 é o mais instrutivo: nasceu de uma decisão boa (escala fechada, ADR-0002) cujo
+modo de falha ninguém tinha previsto — classe fora da escala **não dá erro**, só não gera
+CSS. A correção que importa não foi trocar as sete classes: foi transformar o modo de falha
+em verificação automática.
+
+### 3.4 Limites aceitos no CP4
+
+| Limite | Natureza | Estado |
+|---|---|---|
+| Arquivo do Figma com 3 páginas em vez de 5 | Plano Starter limita a 3 páginas | Conteúdo consolidado sem perda; declarado em [`06-marca/guia-figma.md`](06-marca/guia-figma.md) |
+| 8 telas do Figma não construídas | Cota de chamadas do MCP esgotada | Substitutos: 4 telas de referência no styleguide + o app React funcionando |
+| E2E do Playwright escrito e **não executado** | Navegador não baixado, por decisão de tempo | **Resolvido no CP5** — e a primeira execução reprovou 6 de 6. Ver §4.5, defeito 12 |
+
+---
+
+## 4. CP5 — Protótipo funcional
+
+**Tag:** `cp5` · **Foco:** provar que o que foi descrito no CP4 **funciona**, ponta a ponta,
+com dados simulados.
+
+### 4.1 Como o CP5 foi construído: contrato primeiro, então paralelismo
+
+A decisão de processo mais consequente do CP5 não foi técnica: foi **escrever todo o
+contrato antes de dividir o trabalho**. Concretamente, nesta ordem:
+
+1. **Contrato** — tipos (`app/src/types/domain.ts`, +144 linhas), três módulos de domínio
+   novos (`auth.ts`, `pix.ts`, `ticketToken.ts`), as interfaces dos repositórios
+   (`app/src/services/index.ts`), a implementação HTTP, os endpoints do mock
+   (`app/src/mocks/handlersCp5.ts`), os hooks e as 12 rotas com a guarda de sessão.
+2. **Só então** as frentes paralelas, cada uma com **caminhos de escrita exclusivos**:
+   telas de autenticação; telas de pagamento, ingresso e check-in; telas de feed,
+   notificações e detalhe; ambiente de teste e PWA; documentação viva; diagramas; demo.
+
+A regra que fez isso funcionar: **arquivo disputado por duas frentes não pertence a nenhuma
+das duas** — pertence à integração. Foi por isso que `tailwind.config.ts`,
+`app/package.json`, `App.tsx`, os serviços e os mocks ficaram fora do alcance das frentes,
+que reportavam o que precisavam em vez de editar.
+
+### 4.2 O que o CP5 acrescentou ao código
+
+| Camada | O que entrou |
+|---|---|
+| Tipos | `Credenciais`, `ResultadoLogin`, `EntradaOnboarding`, `CobrancaPix`, `ResumoCartao`, `NovoPagamento`, `PagamentoView`, `TokenIngresso`, `ResultadoCheckin`, `PresencaView`, `PainelCheckin`, `NovaPublicacao`, `NovoComentario` + 4 enums de motivo de recusa |
+| Domínio | `auth.ts` (RN-002, RN-003), `pix.ts` (BR Code com CRC16, Luhn, resumo de cartão), `ticketToken.ts` (token com forma de JWS, três formas de leitura) |
+| Serviços | `AuthRepository` ganhou 6 métodos; `PaymentsRepository` e `CheckinRepository` são novos; `FeedRepository` ganhou escrita |
+| Mock | `handlersCp5.ts` com 16 endpoints novos; helpers extraídos para `support.ts`; resolução de usuário por `Bearer` |
+| Rotas | De 7 para 12, com guarda de sessão de três estados |
+| Testes | +49 casos nos módulos de domínio novos |
+
+### 4.3 Decisão do CP5
+
+| # | Decisão | Por quê |
+|---|---|---|
+| [0007](adr/0007-token-assinado-no-cliente-no-cp5.md) | Token de sessão e de ingresso **com a forma final do CP6**, assinados no cliente | O CP5 não tem servidor: qualquer chave viaja no bundle. Manter a **forma** do token evita reescrever `decideCheckIn` e seus testes na Sprint 3. A assinatura não é controle de segurança, e isso está declarado em três lugares no código |
+
+### 4.4 Mudanças de escopo e de requisito no CP5
+
+A implementação corrigiu o que a especificação supôs. Cada linha aqui é uma coisa que o CP4
+descreveu de um jeito e o CP5 provou ser de outro:
+
+| O que mudou | O que o CP4 supunha | O que a implementação mostrou |
+|---|---|---|
+| **Quando a janela de pagamento começa a contar** | Implícito: a partir da inscrição | A janela de RN-012 é recontada quando a **cobrança é aberta**. Contar da inscrição faria o aluno perder minutos escolhendo o método de pagamento |
+| **Cobrança é idempotente por participação** | Não especificado | Duplo toque no botão geraria dois Pix para a mesma vaga, e o aluno pagaria o errado. `POST /participacoes/:id/pagamento` devolve a cobrança existente |
+| **O payload Pix não é armazenado** | Implícito: campo na entidade `Pagamento` | `gerarCobrancaPix` é determinístico sobre (valor, referência, expiração). Guardar o QR é guardar dado derivado — e desalinhá-lo do valor na primeira alteração de preço |
+| **O leitor de check-in aceita três formas** | Só QR (RF-034), com código numérico como contingência solta | As três formas convergem para a **mesma decisão** em `classificarLeitura`. Na porta de um evento as três aparecem, e um caminho de decisão por forma seria três caminhos para divergir |
+| **Publicar exige participação *e* alcance** | RN-019 falava só de participação | Sem a verificação de alcance, um `POST` direto publicaria em evento invisível — o mesmo defeito nº 3 do CP4, em outra rota |
+| **A guarda de rota tem três estados** | Dois: autenticado ou não | Tratar "carregando" como "não autenticado" faz o F5 em rota profunda piscar o login e perder o destino |
+| **Sessão em `sessionStorage`** | Não especificado | Fechar a aba encerra a sessão. É o comportamento certo em computador de laboratório compartilhado, que é o cenário das personas |
+
+### 4.5 O que a verificação encontrou no CP5
+
+| # | Defeito | Encontrado por | Correção |
+|---|---|---|---|
+| 7 | **O teste do BR Code lia o campo EMV com casamento guloso** e capturava o CRC junto com o `txid`: 33 caracteres onde o limite é 25 | O próprio teste, ao falhar na primeira execução | O erro era do teste, não do código. Reescrito para ler o campo pelo **prefixo de tamanho**, que é como EMV define |
+| 8 | **Colisão de caixa em nome de arquivo** (`PerfisDemo.ts` e `perfisDemo.ts`) | `forceConsistentCasingInFileNames` do TypeScript | Nome único. O Windows não distingue as duas grafias, o Ubuntu do CI distingue — seria erro só no CI |
+| 9 | **`JA_UTILIZADO` era ramo morto.** O check-in aceito grava a presença **e** muda a participação para `PRESENTE` na mesma transação; como a verificação de status vinha antes da de unicidade, a segunda leitura do mesmo ingresso devolvia `NAO_CONFIRMADA`. A recusa que RN-018 existe para produzir — a única que traz o **horário do primeiro uso** — nunca chegava a quem consome a API | Percorrer a porta simulada no navegador. `decideCheckIn` **não tinha nenhum teste** | Ordem invertida em `domain/checkin.ts`, e o arquivo de teste que não existia foi escrito: 23 casos, dos quais 5 verificam **a ordem** entre condições violadas ao mesmo tempo |
+| 10 | **Tela branca se o mock não subir.** `main.tsx` fazia `await worker.start()` antes do `createRoot`: falha de registro de service worker — janela privada, armazenamento desligado, contexto não seguro — matava a página sem nenhuma mensagem, indistinguível de erro de build | Uma frente relatou tela branca ao verificar no navegador | `iniciarMock` passou a devolver o motivo em vez de rejeitar, e o app renderiza com faixa de aviso explicando a causa provável |
+| 11 | **Três regras existiam escritas e não valiam em lugar nenhum.** `paymentExpired`, `offerExpired` e `planPromotion` eram exercitadas por teste unitário e **nenhum handler as chamava**: o cronômetro da cobrança chegava a zero na tela e o pagamento continuava sendo aceito. `canPostToEvent`, que codifica RN-019, também não tinha consumidor — o handler usava `isActive`, então quem estava na **fila de espera** publicava no feed por requisição direta | Revisão dos diagramas contra o código, e recontagem de cobertura por função | `mocks/expiracao.ts` aplica os prazos na borda de toda requisição, e `canPostToEvent` passou a ser a autoridade única de RN-019 nos dois endpoints. 22 testes de integração novos cobrindo os dois |
+| 12 | **O E2E nunca executado estava quebrado.** A primeira execução real reprovou **6 de 6**: um `vite preview` esquecido em outra porta servindo a base errada, a guarda de sessão nova que o teste do CP4 não conhecia, e um passo que recarregava a página — o que reconstrói o mock em memória a partir do seed | Rodar `npx playwright test` pela primeira vez no projeto | Três correções no teste e uma constatação no app (inscrição paga navega direto para a cobrança, e está certa). O E2E entrou no `ci.yml` em job próprio |
+| 13 | **`permissions.ts`: 12 funções exportadas, 0% de cobertura de funções.** A regra com mais superfície do projeto (RN-024) era a com menos prova, e permissão errada não falha em teste de tela — falha em vazamento | Leitura do relatório de cobertura por arquivo | 31 casos focados no **negativo** (quem NÃO pode), levando `permissions.ts` a 100% de linhas e de funções |
+| 14 | **O código de turma que a tela sugeria não existia** — `ESPX-26` em vez de `3ESPX-26`. Quem seguisse a instrução do onboarding recebia "esse código de turma não existe" | Percorrer o onboarding de ponta a ponta pela API | O código virou campo (`codigoSugerido`) com teste que o confere contra o seed e contra `decideOnboarding` |
+| 15 | **Participação em evento fora de alcance.** A primeira tentativa de criar a oferta de vaga pôs a usuária da demonstração em um evento de outro curso — estado que o sistema não consegue produzir | Teste de integração CT-012, que existia e reprovou | Evento próprio (`evt-012`) dentro do alcance dela. As três participações herdadas do CP4 no mesmo formato entraram em lista de exceções documentada, com o motivo de cada uma |
+
+**Nenhum dos nove defeitos do CP5 foi encontrado relendo código.** Cada um veio de uma
+verificação executando: um teste que falhou, um relatório de cobertura, um diagrama
+conferido contra o fonte, uma tela percorrida no navegador, uma suíte rodada pela primeira
+vez. O padrão do CP4 se repetiu sem exceção.
+
+Vale separar dois tipos entre eles, porque exigem defesas diferentes:
+
+| Tipo | Quais | O que os expõe |
+|---|---|---|
+| **Comissão** — o código faz a coisa errada | 7, 8, 14, 15 | Teste que roda. Falham alto e rápido |
+| **Omissão** — o código não faz a coisa certa, e nada reclama | 9, 10, 11, 12, 13 | Só cobertura por função, diagrama conferido linha a linha, e execução real. Uma função escrita, testada em unidade e nunca chamada **parece** coberta |
+
+Os cinco de omissão são a lição do CP5. Foi por isso que a cobertura de **funções** entrou
+como limite ao lado da de linhas: `permissions.ts` tinha 18% de linhas e 0% de funções, e
+só o segundo número contava a verdade.
+
+### 4.6 Pendências do CP4 resolvidas no CP5
+
+| Pendência do CP4 | Estado no CP5 |
+|---|---|
+| Login e onboarding eram "Sprint 2" | Implementados (RF-001 a RF-005) |
+| Pagamento existia só como interface | Cobrança Pix e cartão simulados, com webhook e idempotência |
+| Check-in existia só como decisão de domínio | Ingresso com token, painel do organizador e leitor simulado |
+| Feed era somente leitura | Publicação e comentário com verificação dupla |
+| `GET /api/sessao` devolvia usuário fixo | Sessão vem do token; o usuário fixo permanece como fallback do mock para requisição direta, documentado |
+| **E2E escrito e nunca executado** | ✅ Fechado. Chromium instalado, 6 casos verdes contra o build de produção, e job próprio no `ci.yml` — a execução não depende mais da máquina de ninguém |
+
+### 4.7 O que o CP5 mediu, e o que ainda não mede
+
+| Medida | Valor | Limite | Como reconferir |
+|---|---|---|---|
+| Testes de unidade e integração | **293** em 17 arquivos | ≥ 8 (RNF-015) | `cd app && npm run test` |
+| Casos E2E | **6**, executados | ≥ 1 | `cd app && npm run test:e2e` |
+| Cobertura de linhas (domínio + serviços) | **83,59%** | 60% | `cd app && npm run test:coverage` |
+| Cobertura de funções | **77,46%** | 60% | idem |
+| Pacote JS | **234,00 KB** gzip | 250 KB (RNF-007) | `cd app && npm run check:size` |
+| Documentação | 48 arquivos, 892 links, 24 blocos Mermaid, 33 SVGs | sem link quebrado | `node scripts/validate-docs.mjs` |
+
+O pacote merece atenção: o CP5 consumiu **23 KB** dos 39 KB de folga que o CP4 tinha, e
+sobraram 16 KB. O maior chunk é o worker do MSW, com 106 KB gzip — que **desaparece** no
+CP6, quando o mock sai. A folga vai crescer, não encolher.
+
+Três coisas continuam **não medidas**, e é honesto listá-las: os 6 breakpoints de RNF-018
+(o E2E prova um, 390×844), o tempo de resposta com tráfego real, e a validação com 5 alunos
+de verdade (RNF-005), que depende de pessoas e não de código.
+
+---
+
+## 5. CP6 — Entrega final
+
+*Esta seção é preenchida no bloco do CP6.* O que ela precisará conter, para o critério de
+evolução ficar verificável: os commits da tag `cp6`, as decisões novas em ADR, o que o
+backend real provou estar errado no mock, os defeitos que os testes de integração
+encontraram, e o `git diff --stat cp5 cp6`.
+
+---
+
+## 6. O que este projeto aprendeu
+
+Três padrões se repetiram nas duas entregas, e vale registrar porque são transferíveis:
+
+1. **Defeito não aparece em releitura, aparece em execução.** Dos oito defeitos
+   registrados, zero foram encontrados relendo código com atenção. Todos vieram de uma
+   verificação: cálculo de contraste, teste de integração, regra de lint, inspeção no
+   navegador, recontagem, o próprio teste falhando.
+2. **O modo de falha de uma boa decisão precisa de guarda automática.** A escala fechada de
+   Tailwind (ADR-0002) é uma decisão certa cujo modo de falha é silencioso. A correção que
+   valeu foi o verificador, não o remendo nas sete classes.
+3. **Paralelismo exige contrato, não coordenação.** As frentes do CP5 não se coordenaram
+   entre si em nenhum momento: escreveram contra um contrato que já existia, em caminhos
+   exclusivos. O custo foi escrever o contrato inteiro primeiro — e foi o que tornou a
+   integração possível.

@@ -1,5 +1,12 @@
 # Plano de testes
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | Versão inicial: estratégia, 31 casos em Gherkin (CT-001 a CT-031), E2E único, testes manuais, matriz de rastreabilidade |
+| 1.1 | 2026-09-02 | CP5 | Acrescenta a seção 3.13 com CT-032 a CT-037 (autenticação, vínculo, cobrança simulada e token de ingresso), atualiza a matriz e move a numeração futura para CT-038 |
+
 Este documento define **o que é testado, em que nível, com qual comando e com qual dado**.
 Ele não descreve intenção: cada caso de teste aqui tem ID, regra de negócio coberta,
 arquivo de destino e dados do seed canônico. Um caso sem esses quatro itens não entra no
@@ -147,7 +154,7 @@ seção 7 deixa de ser verificável por `npm run test` e passa a depender de mem
 
 ## 3. Casos de teste
 
-31 casos, `CT-001` a `CT-031`, agrupados pelos mesmos módulos de
+37 casos, `CT-001` a `CT-037`, agrupados pelos mesmos módulos de
 [`04-regras-de-negocio.md`](04-regras-de-negocio.md). Todos usam o **seed canônico**: hoje é
 **01/09/2026 (terça)**, usuária logada **Marina Alves** (ECOMP · 3ESPX).
 
@@ -1265,6 +1272,217 @@ de negócio).
 
 ---
 
+### 3.13 Autenticação, cobrança simulada e ingresso (CP5)
+
+Seis casos acrescentados no CP5, junto com os módulos de domínio que entraram. Os três
+arquivos somam **49 casos executados** — a contagem por CT abaixo é o agrupamento lógico,
+não o número de `it()`.
+
+#### CT-032 — Só e-mail institucional entra, e o motivo da recusa é específico
+
+| Regra | Requisitos | Nível | Prioridade | Arquivo |
+|---|---|---|---|---|
+| RN-002 | RF-002, RF-003 | Unitário | P0 | `app/src/domain/auth.test.ts` |
+
+```gherkin
+Funcionalidade: Login com e-mail institucional
+
+  Cenário: domínio exato é aceito
+    Dado que a faculdade aceita o domínio "fiap.com.br"
+    Quando "marina@fiap.com.br" tenta entrar com a senha correta
+    Então o login é aceito
+
+  Cenário: subdomínio institucional é aceito
+    Quando "marina@aluno.fiap.com.br" tenta entrar
+    Então o login é aceito, porque é assim que instituição organiza e-mail de aluno
+
+  Cenário: sufixo parecido NÃO é subdomínio
+    Quando "invasor@naofiap.com.br" tenta entrar
+    Então o login é recusado
+    # Sem o ponto na comparação, "naofiap.com.br" passaria por terminar em
+    # "fiap.com.br" — e qualquer pessoa registraria um domínio assim.
+
+  Cenário: o domínio é verificado ANTES da senha
+    Dado que "marina@gmail.com" digitou uma senha correta de outra conta
+    Quando ela tenta entrar
+    Então a recusa é "DOMINIO_NAO_INSTITUCIONAL", não "CREDENCIAL_INVALIDA"
+    E a mensagem nomeia o domínio aceito
+    # Dizer "senha errada" a quem usou o Gmail manda a pessoa tentar de novo
+    # com a mesma conta, para sempre.
+
+  Cenário: recusa de credencial não revela se a conta existe
+    Quando um e-mail inexistente e uma senha errada de conta existente são tentados
+    Então as duas recusas têm o MESMO motivo e a MESMA mensagem
+    # Mensagem diferente enumeraria contas válidas (RNF-021).
+
+  Cenário: e-mail não verificado não entra
+    Dado um usuário com "emailVerificado" falso e senha correta
+    Quando ele tenta entrar
+    Então a recusa é "EMAIL_NAO_VERIFICADO"
+```
+
+#### CT-033 — Código de turma prova o vínculo, e o erro diz o que corrigir
+
+| Regra | Requisitos | Nível | Prioridade | Arquivo |
+|---|---|---|---|---|
+| RN-003 | RF-004, RF-005 | Unitário | P0 | `app/src/domain/auth.test.ts` |
+
+```gherkin
+Funcionalidade: Vínculo com a turma pelo código de convite
+
+  Cenário: curso e código coerentes vinculam
+    Dado o curso "Engenharia" e a turma "3ESPX" com código ativo "ESPX26"
+    Quando o aluno escolhe Engenharia e digita "ESPX26"
+    Então o vínculo é criado com a turma 3ESPX
+
+  Cenário: código digitado à mão tolera espaço, hífen e caixa
+    Quando o aluno digita " espx-26 "
+    Então o vínculo é criado
+
+  Cenário: código de outro curso tem recusa própria
+    Quando o aluno escolhe Engenharia e digita "DIRA26", da turma 2DIRA de Direito
+    Então a recusa é "CODIGO_DE_OUTRO_CURSO"
+    E a mensagem nomeia a turma 2DIRA
+    # É o erro de quem escolheu o curso errado na tela anterior. Mensagem
+    # genérica o deixaria preso.
+
+  Cenário: código inexistente e código inativo são recusas diferentes
+    Quando o aluno digita "NADA00"
+    Então a recusa é "CODIGO_INVALIDO"
+    Quando o aluno digita "ESPY25", da turma 3ESPY do período 2025.2
+    Então a recusa é "CODIGO_INATIVO"
+
+  Cenário: o onboarding só termina com curso E turma
+    Então "onboardingPendente" é verdadeiro enquanto qualquer um dos dois faltar
+```
+
+#### CT-034 — O BR Code da cobrança simulada é estruturalmente válido
+
+| Regra | Requisitos | Nível | Prioridade | Arquivo |
+|---|---|---|---|---|
+| RN-012, RN-014 | RF-027, RF-028 | Unitário | P1 | `app/src/domain/pix.test.ts` |
+
+```gherkin
+Funcionalidade: Payload EMV da cobrança Pix simulada
+
+  Cenário: CRC16 confere com a referência do padrão
+    Então o CRC16/CCITT-FALSE de "123456789" é "29B1"
+    # Referência externa: sem ela, o teste só confirmaria a própria implementação.
+
+  Cenário: estrutura do payload
+    Dada uma cobrança de R$ 45,50 para a participação "par-001"
+    Então o payload começa com "000201"
+    E contém o GUI "br.gov.bcb.pix"
+    E o campo 54 traz "45.50" com duas casas
+    E termina com "6304" seguido do CRC dos bytes anteriores
+
+  Cenário: o payload é determinístico
+    Quando a mesma cobrança é gerada duas vezes
+    Então os dois BR Codes são idênticos
+    # É o que permite NÃO armazenar o QR e recalculá-lo na leitura.
+
+  Cenário: o txid respeita o limite de 25 caracteres alfanuméricos
+    Dada uma referência longa com barra, espaço e hífen
+    Então o campo 05 dentro do 62 tem no máximo 25 caracteres, todos alfanuméricos
+```
+
+#### CT-035 — Nenhum dígito do cartão além dos quatro últimos sai da tela
+
+| Regra | Requisitos | Nível | Prioridade | Arquivo |
+|---|---|---|---|---|
+| RN-014 | RF-029, RNF-022 | Unitário | P0 | `app/src/domain/pix.test.ts` |
+
+```gherkin
+Funcionalidade: Redução do cartão ao resumo que pode trafegar
+
+  Cenário: o resumo tem três campos e nada mais
+    Dado o número "4539 5787 6362 1486" e o titular "Marina Alves"
+    Quando o cartão é resumido
+    Então o resultado é { ultimosQuatro: "1486", bandeira: "Visa", titular: "MARINA ALVES" }
+
+  Cenário: o número não é reconstruível a partir do resumo
+    Quando o resumo é serializado em JSON
+    Então a cadeia não contém o número completo
+    E não contém nem os 6 primeiros dígitos (o BIN)
+
+  Cenário: Luhn reprova dígito trocado
+    Então "4539578763621486" é válido e "4539578763621487" não é
+
+  Cenário: validade vale até o último dia do mês impresso
+    Dado que hoje é 15/09/2026
+    Então "09/26" é válida, "08/26" não é e "10/26" é
+    # Reprovar 09/26 no dia 1º cortaria um mês legítimo de uso.
+
+  Cenário: CVV tem 4 dígitos na Amex e 3 nas outras bandeiras
+```
+
+#### CT-036 — Token adulterado é recusado, e entrada lixo não derruba o leitor
+
+| Regra | Requisitos | Nível | Prioridade | Arquivo |
+|---|---|---|---|---|
+| RN-017 | RF-033, RF-034 | Unitário | P0 | `app/src/domain/ticketToken.test.ts` |
+
+```gherkin
+Funcionalidade: Integridade do token do ingresso
+
+  Cenário: ciclo completo preserva o payload
+    Quando um token é emitido e lido de volta
+    Então o payload é idêntico, inclusive com acento e emoji no conteúdo
+    # `btoa` quebraria aqui — é por isso que o base64url é escrito à mão.
+
+  Cenário: corpo alterado com assinatura mantida é recusado
+    Quando um caractere do corpo é trocado e a assinatura é preservada
+    Então a leitura devolve nulo
+
+  Cenário: emissor ou versão diferentes são recusados
+    Quando o prefixo "campus.v1" é trocado por "outro.v1" ou "campus.v2"
+    Então a leitura devolve nulo
+
+  Cenário: entrada lixo devolve nulo e NUNCA lança
+    Quando são lidos "", "   ", "abc", "a.b.c", "a.b.c.d.e", "campus.v1..x" e "{}"
+    Então cada leitura devolve nulo, sem exceção
+    # Na porta de um evento, um leitor que estoura com um QR de outro sistema
+    # para a fila.
+
+  Cenário: payload íntegro mas incompleto é recusado
+    Dado um token com assinatura válida e "participacaoId" vazio
+    Então a leitura devolve nulo
+    # O leitor não pode confiar só na assinatura.
+```
+
+#### CT-037 — As três formas de leitura convergem para a mesma decisão
+
+| Regra | Requisitos | Nível | Prioridade | Arquivo |
+|---|---|---|---|---|
+| RN-017, RN-018 | RF-033, RF-034 | Unitário | P0 | `app/src/domain/ticketToken.test.ts` |
+
+```gherkin
+Funcionalidade: Classificação da leitura na porta do evento
+
+  Cenário: token completo pela câmera
+    Quando a leitura começa com "campus.v1."
+    Então é classificada como TOKEN
+
+  Cenário: código numérico digitado
+    Quando a leitura é " 01234567 "
+    Então é classificada como CODIGO_NUMERICO com o valor sem espaços
+
+  Cenário: código legível impresso, em qualquer caixa
+    Quando a leitura é "cmp-3espx-0184"
+    Então é classificada como CODIGO_LEGIVEL com "CMP-3ESPX-0184"
+
+  Cenário: o que não é nenhuma das três formas é indecifrável
+    Quando são lidos "", "1234", "123456789", "CMP-3ESPX" e uma URL de outro app
+    Então cada um é classificado como INDECIFRAVEL
+
+  Cenário: o ingresso é estável entre emissões
+    Quando o mesmo ingresso é montado duas vezes
+    Então o código numérico e o código legível não mudam
+    # Código que muda a cada emissão inutiliza o ingresso impresso.
+```
+
+---
+
 ## 4. O único teste E2E
 
 **Arquivo:** `app/e2e/inscricao.spec.ts` · **Fluxo:** abrir feed → abrir evento →
@@ -1505,12 +1723,18 @@ retrospectiva.
 | CT-029 | RN-023 | — | RNF-012 | Unitário | P0 | `domain/participation.test.ts`, `domain/event.test.ts` |
 | CT-030 | RN-024 | RF-041, RF-042, RF-043 | RNF-012 | Unitário | P0 | `domain/permissions.test.ts` |
 | CT-031 | RN-025 | RF-017 | — | Unitário + componente | P1 | `domain/customQuestions.test.ts`, `pages/EventDetail.test.tsx` |
+| CT-032 | RN-002 | RF-002, RF-003 | RNF-021 | Unitário | P0 | `domain/auth.test.ts` |
+| CT-033 | RN-003 | RF-004, RF-005 | — | Unitário | P0 | `domain/auth.test.ts` |
+| CT-034 | RN-012, RN-014 | RF-027, RF-028 | — | Unitário | P1 | `domain/pix.test.ts` |
+| CT-035 | RN-014 | RF-029 | RNF-022 | Unitário | P0 | `domain/pix.test.ts` |
+| CT-036 | RN-017 | RF-033, RF-034 | RNF-020 | Unitário | P0 | `domain/ticketToken.test.ts` |
+| CT-037 | RN-017, RN-018 | RF-033, RF-034 | RNF-011 | Unitário | P0 | `domain/ticketToken.test.ts` |
 
 Cobertura das regras: **25 de 25** RN têm ao menos um CT. Nenhum CT existe sem RN — o
 espaço `CT-0xx` é reservado a regra de negócio, e verificação de RNF vira caso de componente
 ou passo de roteiro manual.
 
-Numeração futura: novo caso começa em **CT-032**. IDs não são reciclados nem renumerados,
+Numeração futura: novo caso começa em **CT-038**. IDs não são reciclados nem renumerados,
 igual à regra de `02-requisitos.md`.
 
 ---
@@ -1560,7 +1784,7 @@ falha antes da correção e passa depois.** Consequências práticas:
 
 - Se o defeito cai em um CT que já existe, o CT ganha um `Cenário:` novo nesta página, e a
   matriz da seção 7 não muda.
-- Se não cai em nenhum CT existente, o QA aloca um ID novo a partir de **CT-032**, escreve o
+- Se não cai em nenhum CT existente, o QA aloca um ID novo a partir de **CT-038**, escreve o
   Gherkin aqui e a implementação no mesmo PR da correção.
 - PR de correção de RN sem teste vermelho-antes é reprovado na revisão, mesmo que a correção
   esteja certa. Sem o teste, nada impede o defeito de voltar na próxima refatoração — e
