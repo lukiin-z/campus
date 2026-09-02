@@ -57,7 +57,7 @@ Cada recusa tem motivo. O catálogo completo, com IDs `RFX-xx`, está na seção
 
 Priorização feita pelo PO com o Analista de Requisitos, aplicada sobre os 43 RFs.
 
-### Must — sem isso não existe produto (26 RFs)
+### Must — sem isso não existe produto (28 RFs)
 
 O núcleo indivisível: **entrar (com vínculo) → ver o que é meu → reservar vaga → pagar
 → entrar no evento**.
@@ -71,7 +71,7 @@ O núcleo indivisível: **entrar (com vínculo) → ver o que é meu → reserva
 > objetivo principal. Exemplo — sem RF-025 (promoção FIFO), a lista de espera existe mas
 > não funciona, e o organizador volta a preencher vaga na mão.
 
-### Should — importante, mas há contorno (12 RFs)
+### Should — importante, mas há contorno (11 RFs)
 
 Melhora significativamente a experiência; ausência dói mas não bloqueia.
 
@@ -81,7 +81,7 @@ Melhora significativamente a experiência; ausência dói mas não bloqueia.
 > Contorno documentado, por exemplo: sem RF-035 (lista de presença), o organizador
 > conta cabeça na porta — funciona, mas perde o dado histórico.
 
-### Could — desejável se sobrar tempo (5 RFs)
+### Could — desejável se sobrar tempo (4 RFs)
 
 `RF-017` (perguntas customizadas) · `RF-018` (duplicar evento) · `RF-038`
 (comentários) · `RF-043` (gerenciar turmas do curso)
@@ -94,9 +94,9 @@ Os 12 itens `RFX-01` a `RFX-12` de [`02-requisitos.md`](02-requisitos.md#4-requi
 
 | Prioridade | Qtd. | % dos RFs | Onde é entregue |
 |---|---|---|---|
-| Must | 26 | 60% | CP5 (18) + CP6 (8) |
-| Should | 12 | 28% | CP6 |
-| Could | 5 | 12% | CP6, se houver folga |
+| Must | 28 | 65% | CP5 (19) + CP6 (9) |
+| Should | 11 | 26% | CP5 (2) + CP6 (9) |
+| Could | 4 | 9% | CP6, se houver folga |
 | Won't | 12 itens `RFX` | — | não entregue |
 
 ## 5. Premissas
@@ -164,7 +164,7 @@ real, nenhuma notificação real.
 
 | Entrega | Detalhe |
 |---|---|
-| 18 RFs `Must` funcionando com dados mockados | Onboarding, feed, lista, detalhe, criação, inscrição, cancelamento, lista de espera, ingresso com QR |
+| 21 RFs no CP5 — 19 `Must` e 2 `Should` — funcionando com dados mockados | Onboarding, feed, lista, detalhe, criação, inscrição, cancelamento, lista de espera, ingresso com QR |
 | Ambiente de teste acessível por link | GitHub Pages com o app buildado (`/campus/`) |
 | Diagramas de sequência e atividades atualizados conforme o implementado | Divergência entre diagrama e código é defeito, não detalhe |
 | Testes: ≥ 8 unitários e 1 E2E do fluxo de inscrição | RNF-015 com limite de cobertura no CI |

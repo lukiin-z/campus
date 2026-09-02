@@ -716,6 +716,1400 @@ textarea.field__ctrl{min-height:96px; resize:vertical}
 </style>
 </head>
 <body>
-<!--NEXT-BODY-->
+<a class="skiplink" href="#capa">Pular para o conteúdo</a>
+
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-logo" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z"/></symbol>
+  <symbol id="i-favicon" viewBox="0 0 32 32">
+    <rect class="fav__plate" width="32" height="32" rx="7"/>
+    <g transform="translate(4 4)"><path class="fav__mark" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z"/></g>
+  </symbol>
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M3 17l5-4 4 3 3-2 6 5"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z"/></symbol>
+</svg>
+
+<nav class="nav" aria-label="Seções do styleguide">
+  <div class="nav__brand"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span>Campus</span></div>
+  <ul class="nav__list">
+      <li><a href="#capa">Capa</a></li>
+      <li><a href="#logo">Logo</a></li>
+      <li><a href="#paleta">Paleta</a></li>
+      <li><a href="#contraste">Contraste AA</a></li>
+      <li><a href="#tipografia">Tipografia</a></li>
+      <li><a href="#espaco">Espaço, raio, sombra</a></li>
+      <li><a href="#componentes">Componentes</a></li>
+      <li><a href="#telas">Telas</a></li>
+      <li><a href="#voz">Tom de voz</a></li>
+  </ul>
+</nav>
+
+<div class="shell">
+
+<section class="sec capa" id="capa" aria-labelledby="capa-t">
+  <div class="capa__lockup"><svg width="72" height="72" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div>
+  <p class="eyebrow">Styleguide da marca</p>
+  <h1 class="t-display-2xl" id="capa-t">Campus</h1>
+  <p class="t-body-md muted" style="max-width:60ch;margin-top:var(--space-3)">
+    Eventos da sua turma, do seu curso e da sua faculdade — com vagas, fila de espera,
+    pagamento e check-in em um só lugar.
+  </p>
+  <div class="capa__meta">
+    <span>Engenharia de Software</span><span>FIAP</span>
+    <span>Engenharia de Computação · 3º ano</span><span>Prof. Hercules Ramos</span>
+    <span>Checkpoint 4</span>
+  </div>
+  <p class="t-body-sm muted">
+    Esta página é a <strong>prova visual</strong> da identidade: renderiza a marca inteira,
+    a paleta com o contraste medido, a escala tipográfica no tamanho real e todos os
+    componentes em todos os estados. É autossuficiente — um arquivo, sem JavaScript.
+  </p>
+  <div class="scroll-x" style="margin-top:var(--space-6)">
+    <table>
+      <caption>Equipe do projeto</caption>
+      <thead><tr><th scope="col">Integrante</th><th scope="col">RM</th><th scope="col">Papel</th></tr></thead>
+      <tbody>
+        <tr><td>Ana Luiza Dourado</td><td><code>RM558793</code></td><td>UX/UI Designer</td></tr>
+        <tr><td>João Viviani Baldini</td><td><code>RM558596</code></td><td>Product Owner</td></tr>
+        <tr><td>Lucas Baraldi</td><td><code>RM555407</code></td><td>Tech Lead / Arquiteto</td></tr>
+        <tr><td>Lucas Zolla</td><td><code>RM557952</code></td><td>Analista de Requisitos</td></tr>
+        <tr><td>Ronaldo Veloso Filho</td><td><code>RM556445</code></td><td>Modelagem / Analista UML</td></tr>
+        <tr><td>Vitor Pantarotto</td><td><code>RM554961</code></td><td>Scrum Master / QA</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec" id="logo" aria-labelledby="logo-t">
+  <header class="sec__head">
+    <p class="eyebrow">01</p>
+    <h2 class="t-display-xl" id="logo-t">Logo</h2>
+    <p class="sec__intro">
+      O símbolo é um <strong>ingresso com a inicial “C” vazada</strong>: um traço geométrico
+      que lê como ingresso (entrar em algo), como letra (a marca) e como picote (o pedaço que
+      você leva). Um <code>path</code> único com <code>fill-rule="evenodd"</code> — sem
+      máscara, sem gradiente, sem filtro.
+    </p>
+  </header>
+
+  <div class="sub"><h3 class="t-display-sm">Tamanhos</h3>
+    <p>Mínimo absoluto de 16px. Abaixo disso os recortes somem e o símbolo perde o conceito.</p></div>
+  <div class="demo"><div class="logo-sizes">
+      <figure class="logo-size"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><figcaption>16px</figcaption></figure>
+      <figure class="logo-size"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><figcaption>24px</figcaption></figure>
+      <figure class="logo-size"><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><figcaption>32px</figcaption></figure>
+      <figure class="logo-size"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><figcaption>48px</figcaption></figure>
+      <figure class="logo-size"><svg width="96" height="96" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><figcaption>96px</figcaption></figure>
+  </div></div>
+
+  <div class="sub"><h3 class="t-display-sm">Lockup, mono e favicon</h3>
+    <p>A versão monocromática usa <code>currentColor</code>: quem insere define a cor.</p></div>
+  <div class="demo"><div class="row" style="gap:var(--space-8)">
+    <span class="topbar__brand"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word">Campus</span></span>
+    <span class="row" style="gap:var(--space-2)"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word">Campus</span>
+      <span aria-hidden="true" class="muted">|</span>
+      <span class="t-mono-sm muted">eventos universitários</span></span>
+  </div></div>
+  <div class="demo demo--dark"><span class="topbar__brand" style="color:var(--neutral-50)">
+    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word" style="color:var(--neutral-50)">Campus</span></span></div>
+  <div class="demo demo--coral"><span class="topbar__brand" style="color:var(--white)">
+    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word" style="color:var(--white)">Campus</span></span></div>
+  <div class="demo"><div class="row" style="gap:var(--space-6)">
+    <figure class="logo-size"><svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><use href="#i-favicon"/></svg><figcaption>favicon 16px</figcaption></figure>
+    <figure class="logo-size"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><use href="#i-favicon"/></svg><figcaption>32px</figcaption></figure>
+    <figure class="logo-size"><svg width="64" height="64" viewBox="0 0 32 32" aria-hidden="true"><use href="#i-favicon"/></svg><figcaption>64px</figcaption></figure>
+  </div></div>
+
+  <div class="sub"><h3 class="t-display-sm">Área de proteção</h3>
+    <p>Distância igual à metade da altura do símbolo em todos os lados. Nada entra nessa margem.</p></div>
+  <div class="demo"><span class="clearspace"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></span></div>
+
+  <div class="sub"><h3 class="t-display-sm">Usos incorretos</h3>
+    <p>Cinco dos dez usos proibidos listados em <code>identidade-visual.md</code>.</p></div>
+  <div class="bad-grid">
+      <figure class="bad bad--distorcido">
+        <div class="bad__stage"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="bad__tag">não faça</span></div>
+        <figcaption><strong>Distorcido.</strong> Os arcos deixam de ser circulares e o “C” perde a leitura.</figcaption>
+      </figure>
+      <figure class="bad bad--rotacionado">
+        <div class="bad__stage"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="bad__tag">não faça</span></div>
+        <figcaption><strong>Rotacionado.</strong> O picote lateral só lê como ingresso na horizontal.</figcaption>
+      </figure>
+      <figure class="bad bad--sombra">
+        <div class="bad__stage"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="bad__tag">não faça</span></div>
+        <figcaption><strong>Com sombra.</strong> O símbolo é chapado por definição; efeito destrói o corte geométrico.</figcaption>
+      </figure>
+      <figure class="bad bad--recolorido">
+        <div class="bad__stage"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="bad__tag">não faça</span></div>
+        <figcaption><strong>Fora da paleta.</strong> O coral é o único identificador cromático da marca.</figcaption>
+      </figure>
+      <figure class="bad bad--pequeno">
+        <div class="bad__stage"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="bad__tag">não faça</span></div>
+        <figcaption><strong>Abaixo de 16px.</strong> Os recortes laterais desaparecem e o símbolo lê como um retângulo.</figcaption>
+      </figure>
+  </div>
+</section>
+
+<section class="sec" id="paleta" aria-labelledby="paleta-t">
+  <header class="sec__head">
+    <p class="eyebrow">02</p>
+    <h2 class="t-display-xl" id="paleta-t">Paleta</h2>
+    <p class="sec__intro">
+      Três escalas de 10 passos, ancoradas no passo 500 com a cor exata do protótipo
+      original. Nada fora destas 30 cores entra na interface. A escala do teal é mais escura
+      em toda a extensão porque o teal da marca (<code>#0F7A6E</code>, L = 27%) é um tom
+      profundo: forçá-lo em um passo claro tornaria a rampa não monotônica.
+    </p>
+  </header>
+    <div class="sub">
+      <h3 class="t-display-sm">coral</h3>
+      <p>Os dois números sob cada amostra são o contraste contra <code>#FFFFFF</code> e contra
+        <code>#14181C</code>, calculados pela fórmula da WCAG.</p>
+    </div>
+    <div class="sw-grid">
+      <figure class="sw">
+        <div class="sw__chip" style="background:#FAF4F2"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-50</span>
+          <span class="sw__hex">#FAF4F2</span>
+          <span class="sw__ratio">1.09 / 16.38</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#F7E6E1"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-100</span>
+          <span class="sw__hex">#F7E6E1</span>
+          <span class="sw__ratio">1.21 / 14.75</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#F3CBC1"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-200</span>
+          <span class="sw__hex">#F3CBC1</span>
+          <span class="sw__ratio">1.49 / 12.00</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#F0A693"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-300</span>
+          <span class="sw__hex">#F0A693</span>
+          <span class="sw__ratio">1.98 / 8.99</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#EE7D60"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-400</span>
+          <span class="sw__hex">#EE7D60</span>
+          <span class="sw__ratio">2.71 / 6.57</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#E8542E"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-500</span>
+          <span class="sw__hex">#E8542E</span>
+          <span class="sw__ratio">3.66 / 4.88</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#C83A16"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-600</span>
+          <span class="sw__hex">#C83A16</span>
+          <span class="sw__ratio">5.16 / 3.46</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#9B2E13"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-700</span>
+          <span class="sw__hex">#9B2E13</span>
+          <span class="sw__ratio">7.52 / 2.37</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#6F2411"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-800</span>
+          <span class="sw__hex">#6F2411</span>
+          <span class="sw__ratio">10.85 / 1.64</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#491A0E"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">coral-900</span>
+          <span class="sw__hex">#491A0E</span>
+          <span class="sw__ratio">14.61 / 1.22</span>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="sub">
+      <h3 class="t-display-sm">teal</h3>
+      <p>Os dois números sob cada amostra são o contraste contra <code>#FFFFFF</code> e contra
+        <code>#14181C</code>, calculados pela fórmula da WCAG.</p>
+    </div>
+    <div class="sw-grid">
+      <figure class="sw">
+        <div class="sw__chip" style="background:#F2F8F7"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-50</span>
+          <span class="sw__hex">#F2F8F7</span>
+          <span class="sw__ratio">1.07 / 16.60</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#DEEFED"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-100</span>
+          <span class="sw__hex">#DEEFED</span>
+          <span class="sw__ratio">1.19 / 15.02</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#BDE5E0"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-200</span>
+          <span class="sw__hex">#BDE5E0</span>
+          <span class="sw__ratio">1.36 / 13.12</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#82D9CF"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-300</span>
+          <span class="sw__hex">#82D9CF</span>
+          <span class="sw__ratio">1.64 / 10.85</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#27BFAE"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-400</span>
+          <span class="sw__hex">#27BFAE</span>
+          <span class="sw__ratio">2.30 / 7.77</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#0F7A6E"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-500</span>
+          <span class="sw__hex">#0F7A6E</span>
+          <span class="sw__ratio">5.21 / 3.42</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#0C6258"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-600</span>
+          <span class="sw__hex">#0C6258</span>
+          <span class="sw__ratio">7.23 / 2.47</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#094D46"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-700</span>
+          <span class="sw__hex">#094D46</span>
+          <span class="sw__ratio">9.72 / 1.84</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#093A34"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-800</span>
+          <span class="sw__hex">#093A34</span>
+          <span class="sw__ratio">12.60 / 1.42</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#072723"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">teal-900</span>
+          <span class="sw__hex">#072723</span>
+          <span class="sw__ratio">15.87 / 1.12</span>
+        </figcaption>
+      </figure>
+    </div>
+    <div class="sub">
+      <h3 class="t-display-sm">neutral</h3>
+      <p>Os dois números sob cada amostra são o contraste contra <code>#FFFFFF</code> e contra
+        <code>#14181C</code>, calculados pela fórmula da WCAG.</p>
+    </div>
+    <div class="sw-grid">
+      <figure class="sw">
+        <div class="sw__chip" style="background:#FBFBFA"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-50</span>
+          <span class="sw__hex">#FBFBFA</span>
+          <span class="sw__ratio">1.04 / 17.23</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#F2F1EE"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-100</span>
+          <span class="sw__hex">#F2F1EE</span>
+          <span class="sw__ratio">1.13 / 15.79</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#E7E5E0"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-200</span>
+          <span class="sw__hex">#E7E5E0</span>
+          <span class="sw__ratio">1.26 / 14.17</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#D6D3CC"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-300</span>
+          <span class="sw__hex">#D6D3CC</span>
+          <span class="sw__ratio">1.49 / 11.93</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#A9A5A0"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-400</span>
+          <span class="sw__hex">#A9A5A0</span>
+          <span class="sw__ratio">2.45 / 7.29</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#767D85"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-500</span>
+          <span class="sw__hex">#767D85</span>
+          <span class="sw__ratio">4.16 / 4.28</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#5C6269"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-600</span>
+          <span class="sw__hex">#5C6269</span>
+          <span class="sw__ratio">6.17 / 2.89</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#43484E"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-700</span>
+          <span class="sw__hex">#43484E</span>
+          <span class="sw__ratio">9.23 / 1.93</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#2A2E33"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-800</span>
+          <span class="sw__hex">#2A2E33</span>
+          <span class="sw__ratio">13.66 / 1.31</span>
+        </figcaption>
+      </figure>
+      <figure class="sw">
+        <div class="sw__chip" style="background:#14181C"></div>
+        <figcaption class="sw__meta">
+          <span class="sw__name">neutral-900</span>
+          <span class="sw__hex">#14181C</span>
+          <span class="sw__ratio">17.84 / 1.00</span>
+        </figcaption>
+      </figure>
+    </div>
+
+  <div class="sub"><h3 class="t-display-sm">Tokens semânticos</h3>
+    <p>Componente <strong>nunca</strong> referencia <code>coral-600</code> direto: referencia
+      <code>accent-strong</code>. Assim uma decisão de paleta muda em um lugar.</p></div>
+  <div class="scroll-x"><table>
+    <caption>Os mesmos nomes existem no <code>tailwind.config.ts</code> e no arquivo do Figma</caption>
+    <thead><tr><th scope="col">Token</th><th scope="col">Valor</th><th scope="col">Vem de</th><th scope="col">Uso</th></tr></thead>
+    <tbody>
+        <tr><td><code>bg</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><code>neutral-50</code></td><td>Fundo da tela</td></tr>
+        <tr><td><code>surface</code></td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><code>—</code></td><td>Cartão, ingresso, campo de formulário</td></tr>
+        <tr><td><code>surface-2</code></td><td><span class="dot" style="background:#F2F1EE"></span><code>#F2F1EE</code></td><td><code>neutral-100</code></td><td>Bloco secundário, coluna de data, trilha de progresso</td></tr>
+        <tr><td><code>border</code></td><td><span class="dot" style="background:#E7E5E0"></span><code>#E7E5E0</code></td><td><code>neutral-200</code></td><td>Borda de cartão e divisória (decorativa)</td></tr>
+        <tr><td><code>border-strong</code></td><td><span class="dot" style="background:#767D85"></span><code>#767D85</code></td><td><code>neutral-500</code></td><td>Borda de campo de formulário — precisa de 3:1</td></tr>
+        <tr><td><code>text</code></td><td><span class="dot" style="background:#14181C"></span><code>#14181C</code></td><td><code>neutral-900</code></td><td>Texto principal</td></tr>
+        <tr><td><code>text-muted</code></td><td><span class="dot" style="background:#5C6269"></span><code>#5C6269</code></td><td><code>neutral-600</code></td><td>Texto secundário — <strong>corrigido</strong> em relação ao protótipo</td></tr>
+        <tr><td><code>text-subtle</code></td><td><span class="dot" style="background:#767D85"></span><code>#767D85</code></td><td><code>neutral-500</code></td><td>Texto ≥ 18,66px bold ou ≥ 24px, e ícone decorativo</td></tr>
+        <tr><td><code>text-disabled</code></td><td><span class="dot" style="background:#A9A5A0"></span><code>#A9A5A0</code></td><td><code>neutral-400</code></td><td>Estado desabilitado (isento pela WCAG 1.4.3)</td></tr>
+        <tr><td><code>accent</code></td><td><span class="dot" style="background:#E8542E"></span><code>#E8542E</code></td><td><code>coral-500</code></td><td>Marca, gráfico, texto grande, faixa</td></tr>
+        <tr><td><code>accent-strong</code></td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><code>coral-600</code></td><td>Preenchimento de botão primário, anel de foco</td></tr>
+        <tr><td><code>accent-hover</code></td><td><span class="dot" style="background:#9B2E13"></span><code>#9B2E13</code></td><td><code>coral-700</code></td><td>Hover e active do botão primário</td></tr>
+        <tr><td><code>accent-soft</code></td><td><span class="dot" style="background:#F7E6E1"></span><code>#F7E6E1</code></td><td><code>coral-100</code></td><td>Fundo do badge de alcance turma</td></tr>
+        <tr><td><code>accent-2</code></td><td><span class="dot" style="background:#0F7A6E"></span><code>#0F7A6E</code></td><td><code>teal-500</code></td><td>Segundo acento: curso, confirmação</td></tr>
+        <tr><td><code>accent-2-hover</code></td><td><span class="dot" style="background:#0C6258"></span><code>#0C6258</code></td><td><code>teal-600</code></td><td>Hover do secundário</td></tr>
+        <tr><td><code>accent-2-soft</code></td><td><span class="dot" style="background:#DEEFED"></span><code>#DEEFED</code></td><td><code>teal-100</code></td><td>Fundo do badge de alcance curso</td></tr>
+        <tr><td><code>danger</code></td><td><span class="dot" style="background:#6F2411"></span><code>#6F2411</code></td><td><code>coral-800</code></td><td>Ação destrutiva</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note note--info">
+    <strong>Não existe token de sucesso verde nem de aviso amarelo.</strong> Sucesso usa
+    <code>accent-2</code> e o texto diz o que aconteceu; aviso usa <code>accent-strong</code>.
+    Duas cores fazem o trabalho de cinco — e cada cor nova é mais uma auditoria de contraste
+    para manter.
+  </div>
+</section>
+
+<section class="sec" id="contraste" aria-labelledby="contraste-t">
+  <header class="sec__head">
+    <p class="eyebrow">03</p>
+    <h2 class="t-display-xl" id="contraste-t">Verificação de contraste — WCAG 2.1 AA</h2>
+    <p class="sec__intro">
+      Razões calculadas pela fórmula oficial da WCAG: luminância relativa
+      <code>L = 0,2126·R + 0,7152·G + 0,0722·B</code> com linearização sRGB, contraste
+      <code>(L_claro + 0,05) / (L_escuro + 0,05)</code>. O critério <strong>1.4.3</strong>
+      exige 4,5:1 para texto normal e 3:1 para texto grande; o <strong>1.4.11</strong> exige
+      3:1 para componentes de interface.
+    </p>
+  </header>
+  <div class="scroll-x"><table>
+    <caption>28 pares texto/fundo da interface. As duas linhas destacadas reprovam — e são os valores herdados do protótipo.</caption>
+    <thead><tr><th scope="col">#</th><th scope="col">Uso</th><th scope="col">Frente</th>
+      <th scope="col">Fundo</th><th scope="col">Contraste</th><th scope="col">Mínimo</th><th scope="col">Resultado</th></tr></thead>
+    <tbody>
+        <tr><td><code>1</code></td><td>Texto principal 14px sobre fundo da tela</td><td><span class="dot" style="background:#14181C"></span><code>#14181C</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>17.23:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr><td><code>2</code></td><td>Texto principal 14px em cartão</td><td><span class="dot" style="background:#14181C"></span><code>#14181C</code></td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><strong>17.84:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr><td><code>3</code></td><td>Texto principal 14px sobre surface-2</td><td><span class="dot" style="background:#14181C"></span><code>#14181C</code></td><td><span class="dot" style="background:#F2F1EE"></span><code>#F2F1EE</code></td><td><strong>15.79:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr><td><code>4</code></td><td>Texto secundário 13px sobre fundo (corrigido, `neutral-600`)</td><td><span class="dot" style="background:#5C6269"></span><code>#5C6269</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>5.95:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>5</code></td><td>Texto secundário 13px em cartão (corrigido)</td><td><span class="dot" style="background:#5C6269"></span><code>#5C6269</code></td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><strong>6.17:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>6</code></td><td>Texto secundário 13px sobre surface-2 (corrigido)</td><td><span class="dot" style="background:#5C6269"></span><code>#5C6269</code></td><td><span class="dot" style="background:#F2F1EE"></span><code>#F2F1EE</code></td><td><strong>5.46:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr class="reprova"><td><code>7</code></td><td>Texto secundário com o valor original do protótipo (`neutral-500`)</td><td><span class="dot" style="background:#767D85"></span><code>#767D85</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>4.02:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-bad">reprova</span></td></tr>
+        <tr><td><code>8</code></td><td>Botão primário: branco sobre `coral-600`</td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><strong>5.16:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>9</code></td><td>Botão primário em hover: branco sobre `coral-700`</td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><span class="dot" style="background:#9B2E13"></span><code>#9B2E13</code></td><td><strong>7.52:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr class="reprova"><td><code>10</code></td><td>Botão primário com o coral original (`coral-500`)</td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><span class="dot" style="background:#E8542E"></span><code>#E8542E</code></td><td><strong>3.66:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-bad">reprova</span></td></tr>
+        <tr><td><code>11</code></td><td>Chip de filtro ativo: branco sobre `neutral-900`</td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><span class="dot" style="background:#14181C"></span><code>#14181C</code></td><td><strong>17.84:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr><td><code>12</code></td><td>Badge de alcance turma: `coral-700` sobre `coral-100`</td><td><span class="dot" style="background:#9B2E13"></span><code>#9B2E13</code></td><td><span class="dot" style="background:#F7E6E1"></span><code>#F7E6E1</code></td><td><strong>6.21:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>13</code></td><td>Badge de alcance curso: `teal-600` sobre `teal-100`</td><td><span class="dot" style="background:#0C6258"></span><code>#0C6258</code></td><td><span class="dot" style="background:#DEEFED"></span><code>#DEEFED</code></td><td><strong>6.09:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>14</code></td><td>Badge de alcance faculdade: `neutral-700` sobre `neutral-200`</td><td><span class="dot" style="background:#43484E"></span><code>#43484E</code></td><td><span class="dot" style="background:#E7E5E0"></span><code>#E7E5E0</code></td><td><strong>7.33:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr><td><code>15</code></td><td>Botão secundário preenchido: branco sobre `teal-500`</td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><span class="dot" style="background:#0F7A6E"></span><code>#0F7A6E</code></td><td><strong>5.21:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>16</code></td><td>Preço em destaque: `coral-600` em cartão</td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><strong>5.16:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>17</code></td><td>Eyebrow mono 11px: `coral-600` sobre fundo</td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>4.98:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>18</code></td><td>Ação textual: `coral-700` sobre surface-2</td><td><span class="dot" style="background:#9B2E13"></span><code>#9B2E13</code></td><td><span class="dot" style="background:#F2F1EE"></span><code>#F2F1EE</code></td><td><strong>6.65:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>19</code></td><td>Título display 28px: `neutral-900` sobre fundo</td><td><span class="dot" style="background:#14181C"></span><code>#14181C</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>17.23:1</strong></td><td>3:1 (texto grande)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>20</code></td><td>Número do dia 20px bold: `coral-600` sobre surface-2</td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><span class="dot" style="background:#F2F1EE"></span><code>#F2F1EE</code></td><td><strong>4.57:1</strong></td><td>3:1 (texto grande)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>21</code></td><td>Estado destrutivo: branco sobre `coral-800`</td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><span class="dot" style="background:#6F2411"></span><code>#6F2411</code></td><td><strong>10.85:1</strong></td><td>4,5:1 (1.4.3)</td><td><span class="tag-ok">AAA</span></td></tr>
+        <tr><td><code>22</code></td><td>Anel de foco: `coral-600` sobre fundo da tela</td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>4.98:1</strong></td><td>3:1 (1.4.11)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>23</code></td><td>Borda de campo de formulário: `neutral-500` sobre cartão</td><td><span class="dot" style="background:#767D85"></span><code>#767D85</code></td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><strong>4.16:1</strong></td><td>3:1 (1.4.11)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>24</code></td><td>Barra de vagas preenchida: `coral-600` sobre trilha `neutral-200`</td><td><span class="dot" style="background:#C83A16"></span><code>#C83A16</code></td><td><span class="dot" style="background:#E7E5E0"></span><code>#E7E5E0</code></td><td><strong>4.10:1</strong></td><td>3:1 (1.4.11)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>25</code></td><td>Ícone informativo: `neutral-600` sobre fundo</td><td><span class="dot" style="background:#5C6269"></span><code>#5C6269</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>5.95:1</strong></td><td>3:1 (1.4.11)</td><td><span class="tag-ok">AA</span></td></tr>
+        <tr><td><code>26</code></td><td>Borda de cartão: `neutral-200` sobre fundo</td><td><span class="dot" style="background:#E7E5E0"></span><code>#E7E5E0</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>1.22:1</strong></td><td>— decorativo</td><td><span class="tag-exempt">isento</span></td></tr>
+        <tr><td><code>27</code></td><td>Divisória tracejada do ingresso: `neutral-300` sobre cartão</td><td><span class="dot" style="background:#D6D3CC"></span><code>#D6D3CC</code></td><td><span class="dot" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td><strong>1.49:1</strong></td><td>— decorativo</td><td><span class="tag-exempt">isento</span></td></tr>
+        <tr><td><code>28</code></td><td>Texto de estado desabilitado: `neutral-400` sobre fundo</td><td><span class="dot" style="background:#A9A5A0"></span><code>#A9A5A0</code></td><td><span class="dot" style="background:#FBFBFA"></span><code>#FBFBFA</code></td><td><strong>2.36:1</strong></td><td>— desabilitado</td><td><span class="tag-exempt">isento</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note">
+    <strong>Duas correções que a auditoria obrigou.</strong>
+    <br><br>
+    <strong>1. Texto secundário.</strong> O protótipo usa <code>#767D85</code> em texto de
+    11–13px. Sobre o fundo <code>#FBFBFA</code> isso dá <strong>4,02:1</strong> e reprova o
+    mínimo de 4,5:1. Como esse é o segundo texto mais frequente da interface, manter seria um
+    defeito sistêmico: <code>text-muted</code> passa a ser <code>neutral-600</code>
+    <code>#5C6269</code> → <strong>5,95:1</strong>. O <code>#767D85</code> continua na paleta
+    como <code>text-subtle</code>, permitido só em texto grande e ícone decorativo.
+    <br><br>
+    <strong>2. Preenchimento do botão primário.</strong> O protótipo preenche o botão com
+    <code>#E8542E</code> e texto branco de 13px: <strong>3,66:1</strong>, reprova. A correção
+    é usar <code>coral-600</code> <code>#C83A16</code> (<strong>5,16:1</strong>). O
+    <code>coral-500</code> original <strong>permanece</strong> como a cor da marca, em texto
+    grande, faixa, gráfico e no símbolo — onde o mínimo é 3:1 e ele passa.
+  </div>
+
+  <div class="note note--info">
+    <strong>Nenhuma informação do Campus é transmitida apenas por cor.</strong> Alcance tem
+    badge <em>com texto</em> (“minha turma”, “meu curso”, “faculdade”), não só cor de fundo.
+    Estado de participação tem rótulo (“confirmado”, “lista de espera”). A barra de vagas traz
+    o número (“18/40”), não só a barra. Isso atende ao critério <strong>1.4.1 (Uso de cor)</strong>
+    e é o que faz a interface funcionar em impressão em preto e branco.
+  </div>
+</section>
+
+<section class="sec" id="tipografia" aria-labelledby="tipo-t">
+  <header class="sec__head">
+    <p class="eyebrow">04</p>
+    <h2 class="t-display-xl" id="tipo-t">Tipografia</h2>
+    <p class="sec__intro">
+      Três famílias, cada uma com um trabalho exclusivo — nenhuma sobreposição de função. O
+      teste de decisão é direto: é um <strong>nome</strong>? Space Grotesk. É uma
+      <strong>frase</strong> para ler? Inter. É um <strong>dado</strong> para conferir?
+      JetBrains Mono.
+    </p>
+  </header>
+  <div class="fam">
+    <div class="fam__name">
+      <span class="t-display-md">Space Grotesk</span>
+      <span class="t-mono-xs muted">pesos 700, 500</span>
+      <span class="badge badge--neutro">Display e títulos</span>
+    </div>
+    <p class="fam__pangram t-display-lg" style="font-family:'Space Grotesk', var(--font-body)">Quem organiza churrasco de turma já viu vaga evaporar por falta de fila.</p>
+    <p class="t-body-sm muted"><strong>Onde:</strong> Título de tela, título de evento, número em destaque, rótulo de botão primário</p>
+    <p class="t-body-sm muted" style="margin-top:var(--space-1)"><strong>Por quê:</strong> Geométrica com detalhes idiossincráticos. Lê como design contemporâneo, não como fonte de sistema — é o que separa “app de faculdade” de “produto”.</p>
+  </div>
+  <div class="fam">
+    <div class="fam__name">
+      <span class="t-display-md">Inter</span>
+      <span class="t-mono-xs muted">pesos 400, 500, 600</span>
+      <span class="badge badge--neutro">Corpo e interface</span>
+    </div>
+    <p class="fam__pangram t-body-md" style="font-family:'Inter', var(--font-body)">Quem organiza churrasco de turma já viu vaga evaporar por falta de fila.</p>
+    <p class="t-body-sm muted"><strong>Onde:</strong> Parágrafo, descrição, rótulo de campo, texto de lista, corpo de botão</p>
+    <p class="t-body-sm muted" style="margin-top:var(--space-1)"><strong>Por quê:</strong> Neutra e legível em corpo pequeno, que é onde a maior parte do texto do app vive.</p>
+  </div>
+  <div class="fam">
+    <div class="fam__name">
+      <span class="t-display-md">JetBrains Mono</span>
+      <span class="t-mono-xs muted">pesos 400, 500</span>
+      <span class="badge badge--neutro">Dados</span>
+    </div>
+    <p class="fam__pangram t-mono-sm" style="font-family:'JetBrains Mono', var(--font-body)">Quem organiza churrasco de turma já viu vaga evaporar por falta de fila.</p>
+    <p class="t-body-sm muted"><strong>Onde:</strong> Data, hora, preço, contador de vagas, código de turma, tag, eyebrow, código de ingresso</p>
+    <p class="t-body-sm muted" style="margin-top:var(--space-1)"><strong>Por quê:</strong> Monoespaçada dá ar técnico e organizado justamente onde a informação é objetiva — e alinha números em coluna, o que a barra de vagas e a lista exigem.</p>
+  </div>
+
+  <div class="sub"><h3 class="t-display-sm">Escala tipográfica</h3>
+    <p>Cada linha está renderizada no tamanho real. Não existe tamanho fora desta escala:
+      <code>text-[15px]</code> em componente é revisão reprovada — e erro de lint.</p></div>
+  <div class="demo">
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-mono-xs">MINHA TURMA · CMP-3ESPX-0184</span></div>
+      <div class="scale-row__spec"><strong>mono-xs</strong><br>11px / 14px / +0,10em / 500 / JetBrains Mono<br>Eyebrow, tag de alcance, código</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-mono-sm">Sáb, 12 set · 13h  ·  18/40 vagas  ·  R$ 25,00</span></div>
+      <div class="scale-row__spec"><strong>mono-sm</strong><br>12px / 17px / +0,04em / 400 / JetBrains Mono<br>Data, contador de vagas, meta</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-body-xs">Prazos aplicados automaticamente pelo formulário.</span></div>
+      <div class="scale-row__spec"><strong>body-xs</strong><br>12px / 18px / 0 / 400 / Inter<br>Rótulo auxiliar, nota de rodapé</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-body-sm">Você vê o que é da sua turma, do seu curso e da faculdade.</span></div>
+      <div class="scale-row__spec"><strong>body-sm</strong><br>13px / 20px / 0 / 400 / Inter<br>Meta de evento, legenda, texto de lista</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-body-md">Quem se inscrever tem 60 minutos para pagar. Sem pagamento, a vaga volta para a fila.</span></div>
+      <div class="scale-row__spec"><strong>body-md</strong><br>14px / 22px / 0 / 400 / Inter<br>Corpo padrão, descrição de evento</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-body-md-strong">Abriu uma vaga para você. Confirme até quinta, 19h.</span></div>
+      <div class="scale-row__spec"><strong>body-md-strong</strong><br>14px / 22px / 0 / 600 / Inter<br>Ênfase em corpo, nome de autor</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-display-sm">Em destaque</span></div>
+      <div class="scale-row__spec"><strong>display-sm</strong><br>16px / 21px / −0,01em / 700 / Space Grotesk<br>Título de seção, rótulo de botão</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-display-md">Marina Alves</span></div>
+      <div class="scale-row__spec"><strong>display-md</strong><br>20px / 25px / −0,01em / 700 / Space Grotesk<br>Nome no perfil, número de destaque</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-display-lg">Hackathon Campus 48h</span></div>
+      <div class="scale-row__spec"><strong>display-lg</strong><br>24px / 29px / −0,02em / 700 / Space Grotesk<br>Título do detalhe do evento</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-display-xl">Churrasco de encerramento</span></div>
+      <div class="scale-row__spec"><strong>display-xl</strong><br>28px / 31px / −0,02em / 700 / Space Grotesk<br>Título de tela</div>
+    </div>
+    <div class="scale-row">
+      <div class="scale-row__sample"><span class="t-display-2xl">Campus</span></div>
+      <div class="scale-row__spec"><strong>display-2xl</strong><br>36px / 38px / −0,03em / 700 / Space Grotesk<br>Capa, styleguide, apresentação</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Fallback declarado.</strong> As três famílias vêm do Google Fonts, mas nenhuma é
+    obrigatória para o layout funcionar:
+    <code>--font-display: 'Space Grotesk', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif</code>.
+    Se a fonte não carregar, a página degrada para uma geométrica próxima em vez de quebrar.
+  </div>
+</section>
+
+<section class="sec" id="espaco" aria-labelledby="espaco-t">
+  <header class="sec__head">
+    <p class="eyebrow">05</p>
+    <h2 class="t-display-xl" id="espaco-t">Espaçamento, raios e sombras</h2>
+    <p class="sec__intro">
+      Toda medida da interface é múltiplo de 4. Consequência prática: elementos alinham entre
+      si sem ajuste manual, e a revisão de layout deixa de ser discussão de gosto.
+    </p>
+  </header>
+
+  <div class="sub"><h3 class="t-display-sm">Escala de espaçamento (base 4px)</h3>
+    <p>A escala é <strong>fechada</strong>: no app, uma classe fora dela não gera CSS e o
+      elemento colapsa em silêncio — por isso há um verificador no CI
+      (<code>npm run check:scale</code>).</p></div>
+  <div class="demo">
+      <div class="space-row">
+        <span class="space-row__lbl">space-1 · 4px</span>
+        <span class="space-row__bar" style="width:4px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-2 · 8px</span>
+        <span class="space-row__bar" style="width:8px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-3 · 12px</span>
+        <span class="space-row__bar" style="width:12px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-4 · 16px</span>
+        <span class="space-row__bar" style="width:16px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-5 · 20px</span>
+        <span class="space-row__bar" style="width:20px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-6 · 24px</span>
+        <span class="space-row__bar" style="width:24px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-8 · 32px</span>
+        <span class="space-row__bar" style="width:32px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-10 · 40px</span>
+        <span class="space-row__bar" style="width:40px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-12 · 48px</span>
+        <span class="space-row__bar" style="width:48px"></span>
+      </div>
+      <div class="space-row">
+        <span class="space-row__lbl">space-16 · 64px</span>
+        <span class="space-row__bar" style="width:64px"></span>
+      </div>
+  </div>
+
+  <div class="sub"><h3 class="t-display-sm">Raios de borda</h3></div>
+  <div class="radius-grid">
+      <figure><div class="radius-tile" style="border-radius:var(--radius-sm)">radius-sm</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">8px · Chip pequeno, tag, badge quadrado</figcaption></figure>
+      <figure><div class="radius-tile" style="border-radius:var(--radius-md)">radius-md</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">12px · Campo de formulário, bloco de estatística</figcaption></figure>
+      <figure><div class="radius-tile" style="border-radius:var(--radius-lg)">radius-lg</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">16px · Cartão, ingresso, publicação do feed</figcaption></figure>
+      <figure><div class="radius-tile" style="border-radius:var(--radius-xl)">radius-xl</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">20px · Capa de evento, modal</figcaption></figure>
+      <figure><div class="radius-tile" style="border-radius:var(--radius-full)">radius-full</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">999px · Chip de filtro, badge, avatar, botão pílula</figcaption></figure>
+  </div>
+
+  <div class="sub"><h3 class="t-display-sm">Sombras</h3>
+    <p>A interface é <strong>plana por padrão</strong>: separação vem de borda e de superfície,
+      não de sombra. Sombra é reservada ao que flutua de verdade. A cor é
+      <code>neutral-900</code> com alfa — nunca preto puro, que sobre fundo quente cria uma
+      borda acinzentada suja.</p></div>
+  <div class="demo demo--surface"><div class="shadow-grid">
+      <figure><div class="shadow-tile" style="box-shadow:var(--shadow-sm)">shadow-sm</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">Barra superior fixa quando a página rola</figcaption></figure>
+      <figure><div class="shadow-tile" style="box-shadow:var(--shadow-md)">shadow-md</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">Toast e menu suspenso</figcaption></figure>
+      <figure><div class="shadow-tile" style="box-shadow:var(--shadow-lg)">shadow-lg</div>
+        <figcaption class="t-body-xs muted" style="margin-top:var(--space-2)">Modal e folha inferior</figcaption></figure>
+  </div></div>
+</section>
+
+<section class="sec" id="componentes" aria-labelledby="comp-t">
+  <header class="sec__head">
+    <p class="eyebrow">06</p>
+    <h2 class="t-display-xl" id="comp-t">Componentes</h2>
+    <p class="sec__intro">
+      Todos os componentes do design system, em todos os estados. Esta página não tem
+      JavaScript: os estados interativos aparecem <strong>lado a lado, com rótulo</strong>,
+      forçados por classe. No app eles são as pseudoclasses reais.
+    </p>
+  </header>
+  <div class="sub"><h3 class="t-display-sm">Button</h3><p>Ação. Uma ação primária por tela — é princípio do design system, não estilo. O preenchimento primário usa <code>accent-strong</code>, não o coral da marca: branco sobre <code>#E8542E</code> dá 3,66:1 e reprova AA. Altura mínima de 44px.</p></div>
+  <div class="demo"><div class="states">
+    <div class="state"><span class="state__lbl">primary · default</span>
+      <button type="button" class="btn btn--primary">Quero participar</button></div>
+    <div class="state"><span class="state__lbl">primary · hover</span>
+      <button type="button" class="btn btn--primary is-hover">Quero participar</button></div>
+    <div class="state"><span class="state__lbl">primary · active</span>
+      <button type="button" class="btn btn--primary is-active">Quero participar</button></div>
+    <div class="state"><span class="state__lbl">primary · focus</span>
+      <button type="button" class="btn btn--primary is-focus">Quero participar</button></div>
+    <div class="state"><span class="state__lbl">primary · loading</span>
+      <button type="button" class="btn btn--primary" aria-busy="true"><span class="spin"></span>Aguarde…</button></div>
+    <div class="state"><span class="state__lbl">primary · disabled</span>
+      <button type="button" class="btn btn--primary is-disabled" disabled>Inscrições encerradas</button></div>
+  </div></div>
+  <div class="demo"><div class="states">
+    <div class="state"><span class="state__lbl">com dado no rótulo</span>
+      <button type="button" class="btn btn--primary">Quero participar <span class="btn__data">· R$ 25,00</span></button></div>
+    <div class="state"><span class="state__lbl">confirm (accent-2)</span>
+      <button type="button" class="btn btn--confirm"><svg aria-hidden="true"><use href="#i-check"/></svg>Confirmar vaga</button></div>
+    <div class="state"><span class="state__lbl">danger</span>
+      <button type="button" class="btn btn--danger">Cancelar evento</button></div>
+    <div class="state"><span class="state__lbl">secondary</span>
+      <button type="button" class="btn btn--secondary">Entrar na lista de espera</button></div>
+    <div class="state"><span class="state__lbl">tertiary</span>
+      <button type="button" class="btn btn--tertiary">Sair da lista</button></div>
+    <div class="state"><span class="state__lbl">icon</span>
+      <button type="button" class="btn btn--secondary btn--icon" aria-label="Voltar">
+        <svg aria-hidden="true"><use href="#i-back"/></svg></button></div>
+  </div></div>
+  <div class="demo"><button type="button" class="btn btn--primary btn--block">Publicar evento</button></div>
+  <div class="note">
+    Os estados <code>hover</code>, <code>active</code> e <code>focus</code> aparecem aqui
+    <strong>forçados por classe</strong> (<code>.is-hover</code>, <code>.is-active</code>,
+    <code>.is-focus</code>), porque esta página não tem JavaScript. No app eles são as
+    pseudoclasses reais — e <code>:focus-visible</code>, não <code>:focus</code>, para o anel
+    aparecer só na navegação por teclado.
+  </div>
+  <div class="sub"><h3 class="t-display-sm">Chip</h3><p>Filtro clicável. O estado ativo é indicado por cor <strong>e</strong> por <code>aria-pressed</code>: estado nunca é só cor.</p></div>
+  <div class="demo"><div class="chiprow">
+    <button type="button" class="chip" aria-pressed="true">Todos</button>
+    <button type="button" class="chip" aria-pressed="false">Minha turma</button>
+    <button type="button" class="chip is-hover" aria-pressed="false">Meu curso</button>
+    <button type="button" class="chip" aria-pressed="false">Faculdade</button>
+    <button type="button" class="chip" aria-pressed="false">Gratuitos</button>
+    <button type="button" class="chip is-disabled" disabled>Este mês</button>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">TicketCard — elemento de assinatura da marca</h3><p>O picote é feito em CSS puro: borda tracejada no pseudo-elemento <code>::before</code> mais dois recortes circulares laterais na cor do <em>fundo</em>. Variantes por alcance (turma / curso / faculdade) e por preço (pago / gratuito). Conteúdo do seed canônico do projeto.</p></div>
+  <div class="demo"><div class="ticketrow">
+      <a class="ticket " href="#componentes">
+        <div class="ticket__head"><span class="badge badge--turma">3ESPX</span></div>
+        <div class="ticket__title">Churrasco de encerramento do semestre</div>
+        <div class="ticket__meta">Sáb, 12 set · 13h</div>
+        <div class="ticket__meta">Quadra do Campus 2</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price">R$ 25,00</span>
+          <span class="ticket__spots">18/40 vagas</span></div>
+      </a>
+      <a class="ticket " href="#componentes">
+        <div class="ticket__head"><span class="badge badge--faculdade">faculdade</span></div>
+        <div class="ticket__title">Hackathon Campus 48h</div>
+        <div class="ticket__meta">Sex, 18 set · 18h</div>
+        <div class="ticket__meta">Bloco de Tecnologia</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price ticket__price--free">Gratuito</span>
+          <span class="ticket__spots">fila: 7</span></div>
+      </a>
+      <a class="ticket " href="#componentes">
+        <div class="ticket__head"><span class="badge badge--curso">ECOMP</span></div>
+        <div class="ticket__title">Roda de conversa: mercado de dados</div>
+        <div class="ticket__meta">Qui, 24 set · 19h</div>
+        <div class="ticket__meta">Auditório B</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price ticket__price--free">Gratuito</span>
+          <span class="ticket__spots">41/60 vagas</span></div>
+      </a>
+      <a class="ticket " href="#componentes">
+        <div class="ticket__head"><span class="badge badge--faculdade">faculdade</span></div>
+        <div class="ticket__title">Festa Junina Fora de Época</div>
+        <div class="ticket__meta">Sáb, 10 out · 20h</div>
+        <div class="ticket__meta">Clube Paulista</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price">R$ 45,00</span>
+          <span class="ticket__spots">287/300 vagas</span></div>
+      </a>
+      <a class="ticket ticket--rascunho" href="#componentes">
+        <div class="ticket__head"><span class="badge badge--turma">3ESPX</span></div>
+        <div class="ticket__title">Sarau de fim de semestre</div>
+        <div class="ticket__meta">Sáb, 3 out · 20h</div>
+        <div class="ticket__meta">A definir com a coordenação</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price ticket__price--free">Gratuito</span>
+          <span class="ticket__spots">rascunho</span></div>
+      </a>
+      <a class="ticket ticket--cancelado" href="#componentes">
+        <div class="ticket__head"><span class="badge badge--cancelado">cancelado</span></div>
+        <div class="ticket__title">Palestra: Carreira em Segurança</div>
+        <div class="ticket__meta">Ter, 6 out · 19h</div>
+        <div class="ticket__meta">Auditório A</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price ticket__price--free">Gratuito</span>
+          <span class="ticket__spots">cancelado</span></div>
+      </a>
+  </div></div>
+  <div class="demo demo--surface"><div class="ticketrow">
+      <a class="ticket " href="#componentes">
+        <div class="ticket__head"><span class="badge badge--turma">3ESPX</span></div>
+        <div class="ticket__title">Churrasco de encerramento do semestre</div>
+        <div class="ticket__meta">Sáb, 12 set · 13h</div>
+        <div class="ticket__meta">Quadra do Campus 2</div>
+        <div class="ticket__perf"></div>
+        <div class="ticket__foot"><span class="ticket__price">R$ 25,00</span>
+          <span class="ticket__spots">18/40 vagas</span></div>
+      </a>
+  </div>
+  <p class="t-body-xs muted" style="margin-top:var(--space-2)">Sobre <code>surface-2</code>: os
+    recortes acompanham a cor do fundo via a variável <code>--ticket-notch</code>. É isso que
+    permite o mesmo componente funcionar em qualquer superfície.</p></div>
+  <div class="sub"><h3 class="t-display-sm">EventListItem</h3><p>Linha compacta da lista de eventos, otimizada para varredura vertical: a coluna de data à esquerda alinha os dias em coluna, o que só funciona porque a fonte de dados é monoespaçada.</p></div>
+  <div class="demo"><div class="lilist">
+      <a class="li " href="#componentes">
+        <span class="li__date"><span class="li__day">12</span><span class="li__mon">set</span></span>
+        <span class="li__body">
+          <span class="li__title">Churrasco de encerramento do semestre</span>
+          <span class="li__meta">13h · Quadra do Campus 2 · R$ 25,00</span>
+          <span class="li__badges"><span class="badge badge--turma">3ESPX</span><span class="t-mono-xs muted">22 vagas livres</span></span>
+        </span>
+        <span class="li__right"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a class="li " href="#componentes">
+        <span class="li__date"><span class="li__day">18</span><span class="li__mon">set</span></span>
+        <span class="li__body">
+          <span class="li__title">Hackathon Campus 48h</span>
+          <span class="li__meta">18h · Bloco de Tecnologia · Gratuito</span>
+          <span class="li__badges"><span class="badge badge--faculdade">faculdade</span><span class="t-mono-xs muted">lista de espera</span></span>
+        </span>
+        <span class="li__right"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a class="li " href="#componentes">
+        <span class="li__date"><span class="li__day">24</span><span class="li__mon">set</span></span>
+        <span class="li__body">
+          <span class="li__title">Roda de conversa: mercado de dados</span>
+          <span class="li__meta">19h · Auditório B · Gratuito</span>
+          <span class="li__badges"><span class="badge badge--curso">ECOMP</span><span class="t-mono-xs muted">19 vagas livres</span></span>
+        </span>
+        <span class="li__right"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+      <a class="li li--cancelado" href="#componentes">
+        <span class="li__date"><span class="li__day">06</span><span class="li__mon">out</span></span>
+        <span class="li__body">
+          <span class="li__title">Palestra: Carreira em Segurança da Informação</span>
+          <span class="li__meta">19h · Auditório A · Gratuito</span>
+          <span class="li__badges"><span class="badge badge--cancelado">cancelado</span></span>
+        </span>
+        <span class="li__right"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">Avatar</h3><p>Avatar de iniciais. Não há upload de foto na v1 — sem storage nem moderação de imagem no CP4/CP5 —, então a cor é derivada de uma semente: a mesma pessoa tem sempre a mesma cor.</p></div>
+  <div class="demo"><div class="states">
+    <div class="state"><span class="state__lbl">xs · 24</span><span class="av av--xs">MA</span></div>
+    <div class="state"><span class="state__lbl">sm · 32</span><span class="av av--sm">MA</span></div>
+    <div class="state"><span class="state__lbl">md · 40</span><span class="av av--md">RS</span></div>
+    <div class="state"><span class="state__lbl">lg · 56</span><span class="av av--lg">BN</span></div>
+    <div class="state"><span class="state__lbl">xl · 96</span><span class="av av--xl av--ring-1">MA</span></div>
+    <div class="state"><span class="state__lbl">marca</span><span class="av av--lg av--brand"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></span></div>
+    <div class="state"><span class="state__lbl">empilhados</span>
+      <span class="avstack"><span class="av av--sm">MA</span><span class="av av--sm">RS</span>
+        <span class="av av--sm">GR</span><span class="av av--sm">+9</span></span></div>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">ScopeBadge e StatusBadge</h3><p>O rótulo <strong>tem texto</strong>, não só cor: é o que faz a interface funcionar para quem não distingue coral de verde-azulado, e em impressão em preto e branco.</p></div>
+  <div class="demo"><div class="states">
+    <div class="state"><span class="state__lbl">alcance turma</span><span class="badge badge--turma">minha turma</span></div>
+    <div class="state"><span class="state__lbl">alcance curso</span><span class="badge badge--curso">meu curso</span></div>
+    <div class="state"><span class="state__lbl">alcance faculdade</span><span class="badge badge--faculdade">faculdade</span></div>
+  </div></div>
+  <div class="demo"><div class="states">
+    <div class="state"><span class="state__lbl">CONFIRMADA</span><span class="badge badge--ok"><span class="badge__dot"></span>confirmado</span></div>
+    <div class="state"><span class="state__lbl">PRESENTE</span><span class="badge badge--ok"><span class="badge__dot"></span>presente</span></div>
+    <div class="state"><span class="state__lbl">PENDENTE_PAGAMENTO</span><span class="badge badge--warn"><span class="badge__dot"></span>aguardando pagamento</span></div>
+    <div class="state"><span class="state__lbl">OFERTA_PENDENTE</span><span class="badge badge--warn"><span class="badge__dot"></span>vaga liberada</span></div>
+    <div class="state"><span class="state__lbl">LISTA_ESPERA</span><span class="badge badge--neutro">lista de espera</span></div>
+    <div class="state"><span class="state__lbl">AUSENTE</span><span class="badge badge--neutro">ausente</span></div>
+    <div class="state"><span class="state__lbl">CANCELADA</span><span class="badge badge--cancelado">cancelado</span></div>
+  </div></div>
+  <div class="note note--info">A UI nunca mostra o nome do enum:
+    <code>PENDENTE_PAGAMENTO</code> vira “aguardando pagamento”.</div>
+  <div class="sub"><h3 class="t-display-sm">ProgressBar — barra de vagas</h3><p>O número acompanha a barra <strong>sempre</strong>: “18/40 vagas”, nunca só a barra. O preenchimento usa <code>accent-strong</code>, que dá 4,10:1 sobre a trilha (WCAG 1.4.11).</p></div>
+  <div class="demo"><div class="states">
+    <div class="state" style="flex:1 1 240px"><span class="state__lbl">45% · com vaga</span>
+      <div class="bar"><div class="bar__lbl"><strong>18/40 vagas</strong> · inscrições até 12 de setembro</div>
+        <div class="bar__track" role="progressbar" aria-valuenow="18" aria-valuemin="0" aria-valuemax="40"
+          aria-label="18 de 40 vagas preenchidas"><div class="bar__fill" style="width:45%"></div></div></div></div>
+    <div class="state" style="flex:1 1 240px"><span class="state__lbl">96% · quase lotado</span>
+      <div class="bar"><div class="bar__lbl"><strong>287/300 vagas</strong> · restam 13</div>
+        <div class="bar__track" role="progressbar" aria-valuenow="287" aria-valuemin="0" aria-valuemax="300"
+          aria-label="287 de 300 vagas preenchidas"><div class="bar__fill" style="width:96%"></div></div></div></div>
+    <div class="state" style="flex:1 1 240px"><span class="state__lbl">100% · lotado com fila</span>
+      <div class="bar"><div class="bar__lbl"><strong>80/80 vagas</strong> · 7 na fila</div>
+        <div class="bar__track" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="80"
+          aria-label="80 de 80 vagas preenchidas"><div class="bar__fill" style="width:100%"></div></div></div></div>
+    <div class="state" style="flex:1 1 240px"><span class="state__lbl">indeterminado · carregando</span>
+      <div class="bar bar--indet"><div class="bar__lbl">carregando vagas…</div>
+        <div class="bar__track"><div class="bar__fill"></div></div></div></div>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">Input, Select e Textarea</h3><p>A borda usa <code>border-strong</code> (<code>#767D85</code>), não <code>border</code>: a borda de um campo é necessária para identificar o componente, então precisa de 3:1 — e <code>#E7E5E0</code> dá 1,22:1. O erro é ligado ao campo por <code>aria-describedby</code> e <code>aria-invalid</code>, não só por cor.</p></div>
+  <div class="demo"><div class="states">
+    <div class="field"><label class="field__label" for="sg-1">Nome do evento</label>
+      <input class="field__ctrl" id="sg-1" type="text" placeholder="Ex: Churrasco de encerramento">
+      <span class="field__help">Aparece no cartão-ingresso e na lista.</span></div>
+    <div class="field"><label class="field__label" for="sg-2">Local</label>
+      <input class="field__ctrl is-focus" id="sg-2" type="text" value="Quadra do Campus 2">
+      <span class="field__help">Estado <code>focus</code>.</span></div>
+    <div class="field"><label class="field__label" for="sg-3">Vagas</label>
+      <input class="field__ctrl is-error" id="sg-3" type="text" value="1" aria-invalid="true" aria-describedby="sg-3-e">
+      <span class="field__err" id="sg-3-e"><svg aria-hidden="true"><use href="#i-alert"/></svg>O mínimo é 2 vagas.</span></div>
+    <div class="field"><label class="field__label" for="sg-4">Código de turma</label>
+      <input class="field__ctrl is-disabled" id="sg-4" type="text" value="3ESPX-26" disabled>
+      <span class="field__help">Estado <code>disabled</code>.</span></div>
+  </div></div>
+  <div class="demo"><div class="states">
+    <div class="field"><label class="field__label" for="sg-5">Alcance</label>
+      <span class="selwrap"><select class="field__ctrl" id="sg-5">
+        <option>Minha turma — 3ESPX</option><option>Meu curso — Engenharia de Computação</option>
+        <option>Faculdade — FIAP</option></select>
+        <svg class="selwrap__chev" aria-hidden="true"><use href="#i-chev"/></svg></span>
+      <span class="field__help">Abre em “minha turma”: errar para menos gera evento pouco divulgado; errar para mais expõe um churrasco de 40 pessoas à faculdade inteira.</span></div>
+    <div class="field" style="max-width:420px"><label class="field__label" for="sg-6">Descrição</label>
+      <textarea class="field__ctrl" id="sg-6" rows="3">48 horas de imersão em desenvolvimento, com mentoria de empresas parceiras e premiação para as três melhores equipes.</textarea>
+      <span class="field__foot"><span class="field__help">Opcional.</span>
+        <span class="field__count">148/4000</span></span></div>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">Toast</h3><p><code>aria-live=&quot;polite&quot;</code> para o leitor de tela anunciar sem interromper; erro usa <code>assertive</code>, porque exige atenção imediata.</p></div>
+  <div class="demo"><div class="stack">
+    <div class="toast" role="status"><svg class="toast__icon" aria-hidden="true"><use href="#i-check"/></svg>
+      <div class="toast__body"><p class="toast__title">Inscrição confirmada</p>
+        <p class="toast__text">Seu ingresso com QR Code já está em Meu ingresso.</p></div>
+      <button type="button" class="toast__close" aria-label="Fechar aviso"><svg aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="toast toast--warn" role="status"><svg class="toast__icon" aria-hidden="true"><use href="#i-alert"/></svg>
+      <div class="toast__body"><p class="toast__title">Vaga reservada</p>
+        <p class="toast__text">Você tem 60 min para pagar. Sem pagamento, a vaga volta para a fila.</p></div>
+      <button type="button" class="toast__close" aria-label="Fechar aviso"><svg aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="toast toast--err" role="alert"><svg class="toast__icon" aria-hidden="true"><use href="#i-alert"/></svg>
+      <div class="toast__body"><p class="toast__title">Ingresso já utilizado</p>
+        <p class="toast__text">Este ingresso foi validado às 20h14, no nome de Marina Alves.</p></div>
+      <button type="button" class="toast__close" aria-label="Fechar aviso"><svg aria-hidden="true"><use href="#i-x"/></svg></button></div>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">Modal e folha inferior</h3><p>Fecha por <code>Esc</code> e por clique fora, devolve o foco a quem o abriu, e o conteúdo é rotulado por <code>aria-labelledby</code>. Aqui está renderizado como espécime estático.</p></div>
+  <div class="demo"><div class="mstage">
+    <div class="mstage__back">
+      <div class="skel skel--title" style="width:60%"></div>
+      <div class="skel skel--line" style="width:90%"></div>
+      <div class="skel skel--line" style="width:75%"></div>
+    </div>
+    <div class="mstage__ov"></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sg-m1">
+      <p class="modal__title" id="sg-m1">Cancelar sua inscrição?</p>
+      <p class="modal__text">Sua vaga é liberada na hora e oferecida ao primeiro da lista de
+        espera. O reembolso segue a política vigente no momento do seu pagamento: com 11 dias
+        de antecedência, você recebe os R$ 25,00 integralmente.</p>
+      <div class="modal__foot">
+        <button type="button" class="btn btn--secondary">Continuar inscrito</button>
+        <button type="button" class="btn btn--danger">Sim, cancelar</button></div>
+    </div>
+  </div></div>
+  <div class="demo"><div class="mstage">
+    <div class="mstage__back">
+      <div class="skel skel--title" style="width:50%"></div>
+      <div class="skel skel--line" style="width:80%"></div></div>
+    <div class="mstage__ov"></div>
+    <div class="modal modal--sheet" role="dialog" aria-modal="true" aria-labelledby="sg-m2">
+      <div class="modal__grab"></div>
+      <p class="modal__title" id="sg-m2">Como você quer pagar?</p>
+      <p class="modal__text">R$ 25,00 · a vaga fica reservada por 60 min.</p>
+      <div class="stack">
+        <button type="button" class="btn btn--primary btn--block">Pix — copia e cola</button>
+        <button type="button" class="btn btn--secondary btn--block">Cartão de crédito</button></div>
+    </div>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">Tabs</h3><p>Padrão ARIA de <code>tablist</code>: a aba ativa é indicada por <code>aria-current</code>, não apenas por cor.</p></div>
+  <div class="demo"><div class="tabs" role="tablist" aria-label="Minhas participações">
+    <button type="button" class="tab" role="tab" aria-current="true">Participando <span class="tab__count">3</span></button>
+    <button type="button" class="tab" role="tab">Criados <span class="tab__count">1</span></button>
+    <button type="button" class="tab is-hover" role="tab">Anteriores <span class="tab__count">2</span></button>
+    <button type="button" class="tab is-disabled" role="tab" disabled>Recusados</button>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">EmptyState e Skeleton</h3><p>Estado vazio diz o que aconteceu <strong>e</strong> o que fazer — nunca só “nada aqui”. O esqueleto existe porque a camada de dados fala HTTP de verdade desde o CP4: há estado de carregamento para exercitar.</p></div>
+  <div class="demo"><div class="empty">
+    <svg class="empty__mark" width="64" height="64" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ticket"/></svg>
+    <p class="empty__title">Nada por aqui ainda</p>
+    <p class="empty__text">Quando alguém da sua turma publicar a foto de um evento, aparece aqui.</p>
+    <button type="button" class="btn btn--secondary">Ver eventos</button>
+  </div></div>
+  <div class="demo"><div class="row" style="align-items:flex-start;gap:var(--space-6)">
+    <div class="skelbox" style="flex:1 1 240px">
+      <span class="state__lbl">lista</span>
+      <div class="skel skel--title" style="width:70%"></div>
+      <div class="skel skel--line" style="width:95%"></div>
+      <div class="skel skel--line-sm" style="width:60%"></div>
+      <div class="skel skel--pill"></div></div>
+    <div class="skelbox" style="flex:1 1 240px">
+      <span class="state__lbl">publicação do feed</span>
+      <div class="row" style="gap:var(--space-3)">
+        <div class="skel skel--av" style="width:40px;height:40px"></div>
+        <div class="skelbox" style="flex:1 1 auto"><div class="skel skel--line-sm" style="width:50%"></div>
+          <div class="skel skel--line-sm" style="width:30%"></div></div></div>
+      <div class="skel skel--img"></div></div>
+    <div class="skelbox"><span class="state__lbl">ingresso</span><div class="skel skel--qr"></div></div>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">TopBar e BottomNav</h3><p>O app é mobile: o destino principal fica ao alcance do polegar. A barra superior é translúcida com desfoque e recebe <code>shadow-sm</code> só quando há conteúdo rolado sob ela.</p></div>
+  <div class="demo demo--surface">
+    <div class="stack">
+      <div><span class="state__lbl">topbar · feed</span>
+        <div class="topbar">
+          <div class="topbar__left"><span class="topbar__brand"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word">Campus</span></span></div>
+          <div class="topbar__right">
+            <button type="button" class="btn btn--primary btn--sm">+ Criar evento</button>
+            <button type="button" class="iconbtn" aria-label="Avisos, 2 não lidos"><svg aria-hidden="true"><use href="#i-bell"/></svg></button>
+            <span class="av av--sm">MA</span></div></div></div>
+      <div><span class="state__lbl">topbar · rolada, com título de tela</span>
+        <div class="topbar topbar--rolada">
+          <div class="topbar__left">
+            <button type="button" class="iconbtn" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+            <span class="topbar__title">Hackathon Campus 48h</span></div>
+          <div class="topbar__right"><span class="av av--sm">MA</span></div></div></div>
+      <div><span class="state__lbl">bottomnav</span>
+        <nav class="bnav" aria-label="Navegação principal">
+          <a class="bnav__item" href="#componentes" aria-current="page"><svg aria-hidden="true"><use href="#i-home"/></svg>Início</a>
+          <a class="bnav__item" href="#componentes"><svg aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+          <button type="button" class="bnav__fab" aria-label="Criar evento"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+          <a class="bnav__item is-hover" href="#componentes"><svg aria-hidden="true"><use href="#i-ticket"/></svg>Ingressos</a>
+          <a class="bnav__item" href="#componentes"><svg aria-hidden="true"><use href="#i-user"/></svg>Perfil</a>
+        </nav></div>
+    </div>
+  </div>
+  <div class="sub"><h3 class="t-display-sm">PostCard</h3><p>Toda publicação pertence a um evento — o link para o evento não é decoração: é o que dá contexto e o que sustenta a regra de visibilidade herdada do alcance.</p></div>
+  <div class="demo"><div class="row" style="align-items:flex-start;gap:var(--space-4)">
+    <article class="post" style="flex:1 1 300px">
+      <header class="post__head"><span class="av av--md">RS</span>
+        <span class="post__id"><span class="post__name">Rafael Souza</span>
+          <span class="post__ctx">turma 3ESPX · há 2h</span></span>
+        <button type="button" class="iconbtn" aria-label="Opções da publicação"><svg aria-hidden="true"><use href="#i-chev"/></svg></button></header>
+      <div class="post__img post__img--wide"><svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-img"/></svg></div>
+      <a class="post__link" href="#componentes"><svg aria-hidden="true"><use href="#i-ticket"/></svg>Semana de Recepção 2026.2</a>
+      <p class="post__cap">Semana de recepção foi a melhor dos últimos anos. 412 pessoas
+        passaram pelo campus em cinco dias. Quem tira a próxima foto no mural?</p>
+      <p class="post__foot">14 comentários</p>
+    </article>
+    <article class="post" style="flex:1 1 300px">
+      <header class="post__head"><span class="av av--md av--brand"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></span>
+        <span class="post__id"><span class="post__name">Centro Acadêmico</span>
+          <span class="post__ctx">faculdade · há 5h</span></span></header>
+      <div class="post__mod"><strong>Publicação removida pela moderação.</strong> Motivo:
+        conteúdo fora do escopo do evento. Removida por Isabela Duarte (Admin de Faculdade)
+        em 1 set, 14h02. Retida por 90 dias para contestação.</div>
+    </article>
+  </div></div>
+  <div class="sub"><h3 class="t-display-sm">QrTicket — o ingresso</h3><p>Esta é a tela que o aluno abre na porta do evento, então é deliberadamente densa em uma coisa só: o código. O QR carrega um token assinado por HMAC, válido só na janela do evento e aceito uma única vez.</p></div>
+  <div class="demo"><div class="row" style="align-items:flex-start;gap:var(--space-6)">
+    <div class="qrt">
+      <div class="qrt__head"><span class="badge badge--turma">minha turma</span>
+        <span class="badge badge--ok"><span class="badge__dot"></span>confirmado</span></div>
+      <p class="qrt__title">Churrasco de encerramento do semestre</p>
+      <p class="qrt__meta">Sáb, 12 set · 13h – 19h</p>
+      <p class="qrt__meta">Quadra do Campus 2</p>
+      <div class="qrt__holder"><p class="qrt__name">Marina Alves</p>
+        <p class="qrt__meta">Engenharia de Computação · 3ESPX</p></div>
+      <div class="qrt__perf"></div>
+      <div class="qrt__qrbox"><svg class="qr" viewBox="0 0 21 21" shape-rendering="crispEdges" role="img" aria-label="Código de check-in CMP-3ESPX-0184"><rect class="qr__mod" x="0" y="0" width="1" height="1"/><rect class="qr__mod" x="1" y="0" width="1" height="1"/><rect class="qr__mod" x="2" y="0" width="1" height="1"/><rect class="qr__mod" x="3" y="0" width="1" height="1"/><rect class="qr__mod" x="4" y="0" width="1" height="1"/><rect class="qr__mod" x="5" y="0" width="1" height="1"/><rect class="qr__mod" x="6" y="0" width="1" height="1"/><rect class="qr__mod" x="9" y="0" width="1" height="1"/><rect class="qr__mod" x="10" y="0" width="1" height="1"/><rect class="qr__mod" x="11" y="0" width="1" height="1"/><rect class="qr__mod" x="13" y="0" width="1" height="1"/><rect class="qr__mod" x="14" y="0" width="1" height="1"/><rect class="qr__mod" x="15" y="0" width="1" height="1"/><rect class="qr__mod" x="16" y="0" width="1" height="1"/><rect class="qr__mod" x="17" y="0" width="1" height="1"/><rect class="qr__mod" x="18" y="0" width="1" height="1"/><rect class="qr__mod" x="19" y="0" width="1" height="1"/><rect class="qr__mod" x="20" y="0" width="1" height="1"/><rect class="qr__mod" x="0" y="1" width="1" height="1"/><rect class="qr__mod" x="6" y="1" width="1" height="1"/><rect class="qr__mod" x="8" y="1" width="1" height="1"/><rect class="qr__mod" x="9" y="1" width="1" height="1"/><rect class="qr__mod" x="10" y="1" width="1" height="1"/><rect class="qr__mod" x="12" y="1" width="1" height="1"/><rect class="qr__mod" x="14" y="1" width="1" height="1"/><rect class="qr__mod" x="20" y="1" width="1" height="1"/><rect class="qr__mod" x="0" y="2" width="1" height="1"/><rect class="qr__mod" x="2" y="2" width="1" height="1"/><rect class="qr__mod" x="3" y="2" width="1" height="1"/><rect class="qr__mod" x="4" y="2" width="1" height="1"/><rect class="qr__mod" x="6" y="2" width="1" height="1"/><rect class="qr__mod" x="7" y="2" width="1" height="1"/><rect class="qr__mod" x="8" y="2" width="1" height="1"/><rect class="qr__mod" x="10" y="2" width="1" height="1"/><rect class="qr__mod" x="11" y="2" width="1" height="1"/><rect class="qr__mod" x="13" y="2" width="1" height="1"/><rect class="qr__mod" x="14" y="2" width="1" height="1"/><rect class="qr__mod" x="16" y="2" width="1" height="1"/><rect class="qr__mod" x="17" y="2" width="1" height="1"/><rect class="qr__mod" x="18" y="2" width="1" height="1"/><rect class="qr__mod" x="20" y="2" width="1" height="1"/><rect class="qr__mod" x="0" y="3" width="1" height="1"/><rect class="qr__mod" x="2" y="3" width="1" height="1"/><rect class="qr__mod" x="3" y="3" width="1" height="1"/><rect class="qr__mod" x="4" y="3" width="1" height="1"/><rect class="qr__mod" x="6" y="3" width="1" height="1"/><rect class="qr__mod" x="14" y="3" width="1" height="1"/><rect class="qr__mod" x="16" y="3" width="1" height="1"/><rect class="qr__mod" x="17" y="3" width="1" height="1"/><rect class="qr__mod" x="18" y="3" width="1" height="1"/><rect class="qr__mod" x="20" y="3" width="1" height="1"/><rect class="qr__mod" x="0" y="4" width="1" height="1"/><rect class="qr__mod" x="2" y="4" width="1" height="1"/><rect class="qr__mod" x="3" y="4" width="1" height="1"/><rect class="qr__mod" x="4" y="4" width="1" height="1"/><rect class="qr__mod" x="6" y="4" width="1" height="1"/><rect class="qr__mod" x="9" y="4" width="1" height="1"/><rect class="qr__mod" x="10" y="4" width="1" height="1"/><rect class="qr__mod" x="14" y="4" width="1" height="1"/><rect class="qr__mod" x="16" y="4" width="1" height="1"/><rect class="qr__mod" x="17" y="4" width="1" height="1"/><rect class="qr__mod" x="18" y="4" width="1" height="1"/><rect class="qr__mod" x="20" y="4" width="1" height="1"/><rect class="qr__mod" x="0" y="5" width="1" height="1"/><rect class="qr__mod" x="6" y="5" width="1" height="1"/><rect class="qr__mod" x="7" y="5" width="1" height="1"/><rect class="qr__mod" x="11" y="5" width="1" height="1"/><rect class="qr__mod" x="12" y="5" width="1" height="1"/><rect class="qr__mod" x="13" y="5" width="1" height="1"/><rect class="qr__mod" x="14" y="5" width="1" height="1"/><rect class="qr__mod" x="20" y="5" width="1" height="1"/><rect class="qr__mod" x="0" y="6" width="1" height="1"/><rect class="qr__mod" x="1" y="6" width="1" height="1"/><rect class="qr__mod" x="2" y="6" width="1" height="1"/><rect class="qr__mod" x="3" y="6" width="1" height="1"/><rect class="qr__mod" x="4" y="6" width="1" height="1"/><rect class="qr__mod" x="5" y="6" width="1" height="1"/><rect class="qr__mod" x="6" y="6" width="1" height="1"/><rect class="qr__mod" x="7" y="6" width="1" height="1"/><rect class="qr__mod" x="11" y="6" width="1" height="1"/><rect class="qr__mod" x="14" y="6" width="1" height="1"/><rect class="qr__mod" x="15" y="6" width="1" height="1"/><rect class="qr__mod" x="16" y="6" width="1" height="1"/><rect class="qr__mod" x="17" y="6" width="1" height="1"/><rect class="qr__mod" x="18" y="6" width="1" height="1"/><rect class="qr__mod" x="19" y="6" width="1" height="1"/><rect class="qr__mod" x="20" y="6" width="1" height="1"/><rect class="qr__mod" x="1" y="7" width="1" height="1"/><rect class="qr__mod" x="3" y="7" width="1" height="1"/><rect class="qr__mod" x="5" y="7" width="1" height="1"/><rect class="qr__mod" x="9" y="7" width="1" height="1"/><rect class="qr__mod" x="12" y="7" width="1" height="1"/><rect class="qr__mod" x="16" y="7" width="1" height="1"/><rect class="qr__mod" x="18" y="7" width="1" height="1"/><rect class="qr__mod" x="20" y="7" width="1" height="1"/><rect class="qr__mod" x="4" y="8" width="1" height="1"/><rect class="qr__mod" x="6" y="8" width="1" height="1"/><rect class="qr__mod" x="9" y="8" width="1" height="1"/><rect class="qr__mod" x="10" y="8" width="1" height="1"/><rect class="qr__mod" x="14" y="8" width="1" height="1"/><rect class="qr__mod" x="16" y="8" width="1" height="1"/><rect class="qr__mod" x="20" y="8" width="1" height="1"/><rect class="qr__mod" x="2" y="9" width="1" height="1"/><rect class="qr__mod" x="4" y="9" width="1" height="1"/><rect class="qr__mod" x="5" y="9" width="1" height="1"/><rect class="qr__mod" x="6" y="9" width="1" height="1"/><rect class="qr__mod" x="7" y="9" width="1" height="1"/><rect class="qr__mod" x="11" y="9" width="1" height="1"/><rect class="qr__mod" x="13" y="9" width="1" height="1"/><rect class="qr__mod" x="15" y="9" width="1" height="1"/><rect class="qr__mod" x="16" y="9" width="1" height="1"/><rect class="qr__mod" x="18" y="9" width="1" height="1"/><rect class="qr__mod" x="19" y="9" width="1" height="1"/><rect class="qr__mod" x="2" y="10" width="1" height="1"/><rect class="qr__mod" x="3" y="10" width="1" height="1"/><rect class="qr__mod" x="5" y="10" width="1" height="1"/><rect class="qr__mod" x="7" y="10" width="1" height="1"/><rect class="qr__mod" x="8" y="10" width="1" height="1"/><rect class="qr__mod" x="13" y="10" width="1" height="1"/><rect class="qr__mod" x="14" y="10" width="1" height="1"/><rect class="qr__mod" x="15" y="10" width="1" height="1"/><rect class="qr__mod" x="18" y="10" width="1" height="1"/><rect class="qr__mod" x="4" y="11" width="1" height="1"/><rect class="qr__mod" x="5" y="11" width="1" height="1"/><rect class="qr__mod" x="10" y="11" width="1" height="1"/><rect class="qr__mod" x="11" y="11" width="1" height="1"/><rect class="qr__mod" x="13" y="11" width="1" height="1"/><rect class="qr__mod" x="16" y="11" width="1" height="1"/><rect class="qr__mod" x="19" y="11" width="1" height="1"/><rect class="qr__mod" x="1" y="12" width="1" height="1"/><rect class="qr__mod" x="2" y="12" width="1" height="1"/><rect class="qr__mod" x="3" y="12" width="1" height="1"/><rect class="qr__mod" x="5" y="12" width="1" height="1"/><rect class="qr__mod" x="8" y="12" width="1" height="1"/><rect class="qr__mod" x="9" y="12" width="1" height="1"/><rect class="qr__mod" x="11" y="12" width="1" height="1"/><rect class="qr__mod" x="12" y="12" width="1" height="1"/><rect class="qr__mod" x="13" y="12" width="1" height="1"/><rect class="qr__mod" x="17" y="12" width="1" height="1"/><rect class="qr__mod" x="19" y="12" width="1" height="1"/><rect class="qr__mod" x="20" y="12" width="1" height="1"/><rect class="qr__mod" x="3" y="13" width="1" height="1"/><rect class="qr__mod" x="5" y="13" width="1" height="1"/><rect class="qr__mod" x="7" y="13" width="1" height="1"/><rect class="qr__mod" x="8" y="13" width="1" height="1"/><rect class="qr__mod" x="10" y="13" width="1" height="1"/><rect class="qr__mod" x="17" y="13" width="1" height="1"/><rect class="qr__mod" x="0" y="14" width="1" height="1"/><rect class="qr__mod" x="1" y="14" width="1" height="1"/><rect class="qr__mod" x="2" y="14" width="1" height="1"/><rect class="qr__mod" x="3" y="14" width="1" height="1"/><rect class="qr__mod" x="4" y="14" width="1" height="1"/><rect class="qr__mod" x="5" y="14" width="1" height="1"/><rect class="qr__mod" x="6" y="14" width="1" height="1"/><rect class="qr__mod" x="11" y="14" width="1" height="1"/><rect class="qr__mod" x="14" y="14" width="1" height="1"/><rect class="qr__mod" x="16" y="14" width="1" height="1"/><rect class="qr__mod" x="17" y="14" width="1" height="1"/><rect class="qr__mod" x="19" y="14" width="1" height="1"/><rect class="qr__mod" x="0" y="15" width="1" height="1"/><rect class="qr__mod" x="6" y="15" width="1" height="1"/><rect class="qr__mod" x="7" y="15" width="1" height="1"/><rect class="qr__mod" x="8" y="15" width="1" height="1"/><rect class="qr__mod" x="11" y="15" width="1" height="1"/><rect class="qr__mod" x="12" y="15" width="1" height="1"/><rect class="qr__mod" x="14" y="15" width="1" height="1"/><rect class="qr__mod" x="15" y="15" width="1" height="1"/><rect class="qr__mod" x="16" y="15" width="1" height="1"/><rect class="qr__mod" x="20" y="15" width="1" height="1"/><rect class="qr__mod" x="0" y="16" width="1" height="1"/><rect class="qr__mod" x="2" y="16" width="1" height="1"/><rect class="qr__mod" x="3" y="16" width="1" height="1"/><rect class="qr__mod" x="4" y="16" width="1" height="1"/><rect class="qr__mod" x="6" y="16" width="1" height="1"/><rect class="qr__mod" x="8" y="16" width="1" height="1"/><rect class="qr__mod" x="10" y="16" width="1" height="1"/><rect class="qr__mod" x="11" y="16" width="1" height="1"/><rect class="qr__mod" x="13" y="16" width="1" height="1"/><rect class="qr__mod" x="14" y="16" width="1" height="1"/><rect class="qr__mod" x="16" y="16" width="1" height="1"/><rect class="qr__mod" x="18" y="16" width="1" height="1"/><rect class="qr__mod" x="19" y="16" width="1" height="1"/><rect class="qr__mod" x="0" y="17" width="1" height="1"/><rect class="qr__mod" x="2" y="17" width="1" height="1"/><rect class="qr__mod" x="3" y="17" width="1" height="1"/><rect class="qr__mod" x="4" y="17" width="1" height="1"/><rect class="qr__mod" x="6" y="17" width="1" height="1"/><rect class="qr__mod" x="8" y="17" width="1" height="1"/><rect class="qr__mod" x="9" y="17" width="1" height="1"/><rect class="qr__mod" x="10" y="17" width="1" height="1"/><rect class="qr__mod" x="11" y="17" width="1" height="1"/><rect class="qr__mod" x="15" y="17" width="1" height="1"/><rect class="qr__mod" x="16" y="17" width="1" height="1"/><rect class="qr__mod" x="17" y="17" width="1" height="1"/><rect class="qr__mod" x="18" y="17" width="1" height="1"/><rect class="qr__mod" x="20" y="17" width="1" height="1"/><rect class="qr__mod" x="0" y="18" width="1" height="1"/><rect class="qr__mod" x="2" y="18" width="1" height="1"/><rect class="qr__mod" x="3" y="18" width="1" height="1"/><rect class="qr__mod" x="4" y="18" width="1" height="1"/><rect class="qr__mod" x="6" y="18" width="1" height="1"/><rect class="qr__mod" x="10" y="18" width="1" height="1"/><rect class="qr__mod" x="11" y="18" width="1" height="1"/><rect class="qr__mod" x="17" y="18" width="1" height="1"/><rect class="qr__mod" x="0" y="19" width="1" height="1"/><rect class="qr__mod" x="6" y="19" width="1" height="1"/><rect class="qr__mod" x="8" y="19" width="1" height="1"/><rect class="qr__mod" x="9" y="19" width="1" height="1"/><rect class="qr__mod" x="13" y="19" width="1" height="1"/><rect class="qr__mod" x="16" y="19" width="1" height="1"/><rect class="qr__mod" x="0" y="20" width="1" height="1"/><rect class="qr__mod" x="1" y="20" width="1" height="1"/><rect class="qr__mod" x="2" y="20" width="1" height="1"/><rect class="qr__mod" x="3" y="20" width="1" height="1"/><rect class="qr__mod" x="4" y="20" width="1" height="1"/><rect class="qr__mod" x="5" y="20" width="1" height="1"/><rect class="qr__mod" x="6" y="20" width="1" height="1"/><rect class="qr__mod" x="7" y="20" width="1" height="1"/><rect class="qr__mod" x="9" y="20" width="1" height="1"/><rect class="qr__mod" x="10" y="20" width="1" height="1"/><rect class="qr__mod" x="12" y="20" width="1" height="1"/><rect class="qr__mod" x="15" y="20" width="1" height="1"/><rect class="qr__mod" x="16" y="20" width="1" height="1"/><rect class="qr__mod" x="17" y="20" width="1" height="1"/><rect class="qr__mod" x="18" y="20" width="1" height="1"/></svg><p class="qrt__code">CMP-3ESPX-0184</p></div>
+      <p class="qrt__fine">Check-in aceito entre 12 set 09h e 12 set 21h. Cada ingresso vale
+        uma entrada — a segunda leitura é recusada.</p>
+    </div>
+    <div class="qrt">
+      <div class="qrt__head"><span class="badge badge--faculdade">faculdade</span>
+        <span class="badge badge--neutro">lista de espera</span></div>
+      <p class="qrt__title">Hackathon Campus 48h</p>
+      <p class="qrt__meta">Sex, 18 set · 18h</p>
+      <div class="qrt__perf"></div>
+      <div class="qrt__qrbox"><div class="qrt__blocked">Você é o 7º da fila. O ingresso é
+        emitido se uma vaga abrir e você confirmar dentro de 24 h.</div></div>
+      <div class="qrt__acts"><button type="button" class="btn btn--tertiary btn--block">Sair da lista de espera</button></div>
+    </div>
+    <div class="qrt">
+      <div class="qrt__head"><span class="badge badge--turma">1CCB</span>
+        <span class="badge badge--ok"><span class="badge__dot"></span>presente</span></div>
+      <p class="qrt__title">Churrasco de boas-vindas 1CCB</p>
+      <p class="qrt__meta">Sáb, 22 ago · 12h</p>
+      <div class="qrt__perf"></div>
+      <div class="qrt__qrbox"><div class="qrt__done"><svg aria-hidden="true"><use href="#i-check"/></svg></div>
+        <p class="qrt__code">check-in às 12h14</p></div>
+      <p class="qrt__fine">Você fez check-in neste evento e pode publicar foto no feed dele.</p>
+    </div>
+  </div></div>
+</section>
+
+<section class="sec" id="telas" aria-labelledby="telas-t">
+  <header class="sec__head">
+    <p class="eyebrow">07</p>
+    <h2 class="t-display-xl" id="telas-t">Telas de referência</h2>
+    <p class="sec__intro">
+      Quatro telas montadas com os <strong>mesmos componentes</strong> desta página, em
+      molduras de 390 × 844 (iPhone 14), com o conteúdo do seed canônico do projeto — os
+      mesmos nomes de evento, datas e vagas que estão no app e no arquivo do Figma. Nada de
+      texto de preenchimento.
+    </p>
+  </header>
+  <div class="phones">
+    <figure>
+      <figcaption class="phone__cap">01 · Feed — 390 × 844</figcaption>
+      <div class="phone">
+      <div class="topbar">
+        <div class="topbar__left"><span class="topbar__brand"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word">Campus</span></span></div>
+        <div class="topbar__right"><button type="button" class="iconbtn" aria-label="Avisos"><svg aria-hidden="true"><use href="#i-bell"/></svg></button><span class="av av--sm">MA</span></div>
+      </div>
+        <div class="phone__body">
+          <div><p class="eyebrow">Engenharia de Computação · turma 3ESPX</p>
+            <p class="phone__h1">Boa tarde, Marina</p></div>
+          <div class="row row--between"><span class="t-display-sm">Em destaque</span>
+            <span class="t-mono-sm" style="color:var(--accent-hover)">ver tudo</span></div>
+          <div class="ticketrow">
+          <a class="ticket" href="#telas">
+            <div class="ticket__head"><span class="badge badge--turma">3ESPX</span></div>
+            <div class="ticket__title">Churrasco de encerramento do semestre</div>
+            <div class="ticket__meta">Sáb, 12 set · 13h</div>
+            <div class="ticket__meta">Quadra do Campus 2</div>
+            <div class="ticket__perf"></div>
+            <div class="ticket__foot"><span class="ticket__price">R$ 25,00</span><span class="ticket__spots">18/40 vagas</span></div>
+          </a>
+          <a class="ticket" href="#telas">
+            <div class="ticket__head"><span class="badge badge--faculdade">faculdade</span></div>
+            <div class="ticket__title">Hackathon Campus 48h</div>
+            <div class="ticket__meta">Sex, 18 set · 18h</div>
+            <div class="ticket__meta">Bloco de Tecnologia</div>
+            <div class="ticket__perf"></div>
+            <div class="ticket__foot"><span class="ticket__price ticket__price--free">Gratuito</span><span class="ticket__spots">fila: 7</span></div>
+          </a>
+          </div>
+          <span class="t-display-sm">Do seu campus</span>
+          <article class="post">
+            <header class="post__head"><span class="av av--md">RS</span>
+              <span class="post__id"><span class="post__name">Rafael Souza</span>
+                <span class="post__ctx">turma 3ESPX · há 2h</span></span></header>
+            <div class="post__img post__img--wide"><svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-img"/></svg></div>
+            <p class="post__cap">Semana de recepção foi a melhor dos últimos anos.</p>
+          </article>
+        </div>
+      <nav class="bnav" aria-label="Navegação principal">
+        <a class="bnav__item is-sel" href="#telas" aria-current="page"><svg aria-hidden="true"><use href="#i-home"/></svg>Início</a>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <button type="button" class="bnav__fab" aria-label="Criar evento"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-ticket"/></svg>Ingressos</a>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-user"/></svg>Perfil</a>
+      </nav>
+      </div>
+    </figure>
+    <figure>
+      <figcaption class="phone__cap">02 · Eventos com filtros — 390 × 844</figcaption>
+      <div class="phone">
+      <div class="topbar">
+        <div class="topbar__left"><span class="topbar__brand"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word">Campus</span></span></div>
+        <div class="topbar__right"><button type="button" class="iconbtn" aria-label="Avisos"><svg aria-hidden="true"><use href="#i-bell"/></svg></button><span class="av av--sm">MA</span></div>
+      </div>
+        <div class="phone__body">
+          <div><p class="eyebrow">Encontrar</p><p class="phone__h1">Eventos</p>
+            <p class="t-body-sm muted">Você vê o que é da sua turma, do seu curso e da faculdade.</p></div>
+          <div class="chiprow">
+            <button type="button" class="chip" aria-pressed="true">Todos</button>
+            <button type="button" class="chip" aria-pressed="false">Minha turma</button>
+            <button type="button" class="chip" aria-pressed="false">Meu curso</button>
+            <button type="button" class="chip" aria-pressed="false">Faculdade</button>
+          </div>
+          <p class="t-mono-sm muted">8 eventos</p>
+          <div class="lilist">
+          <a class="li" href="#telas">
+            <span class="li__date"><span class="li__day">12</span><span class="li__mon">set</span></span>
+            <span class="li__body"><span class="li__title">Churrasco de encerramento</span>
+              <span class="li__meta">13h · Quadra 2 · R$ 25,00</span><span class="li__badges"><span class="badge badge--turma">3ESPX</span></span></span>
+          </a>
+          <a class="li" href="#telas">
+            <span class="li__date"><span class="li__day">18</span><span class="li__mon">set</span></span>
+            <span class="li__body"><span class="li__title">Hackathon Campus 48h</span>
+              <span class="li__meta">18h · Bloco de Tecnologia · Gratuito</span><span class="li__badges"><span class="badge badge--faculdade">faculdade</span></span></span>
+          </a>
+          <a class="li" href="#telas">
+            <span class="li__date"><span class="li__day">24</span><span class="li__mon">set</span></span>
+            <span class="li__body"><span class="li__title">Roda de conversa: dados</span>
+              <span class="li__meta">19h · Auditório B · Gratuito</span><span class="li__badges"><span class="badge badge--curso">ECOMP</span></span></span>
+          </a>
+          <a class="li" href="#telas">
+            <span class="li__date"><span class="li__day">01</span><span class="li__mon">out</span></span>
+            <span class="li__body"><span class="li__title">Feira de Carreiras 2026.2</span>
+              <span class="li__meta">14h · Ginásio Central · Gratuito</span><span class="li__badges"><span class="badge badge--faculdade">faculdade</span></span></span>
+          </a>
+          </div>
+        </div>
+      <nav class="bnav" aria-label="Navegação principal">
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-home"/></svg>Início</a>
+        <a class="bnav__item is-sel" href="#telas" aria-current="page"><svg aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <button type="button" class="bnav__fab" aria-label="Criar evento"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-ticket"/></svg>Ingressos</a>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-user"/></svg>Perfil</a>
+      </nav>
+      </div>
+    </figure>
+    <figure>
+      <figcaption class="phone__cap">03 · Detalhe do evento — 390 × 844</figcaption>
+      <div class="phone">
+      <div class="topbar topbar--rolada">
+        <div class="topbar__left"><button type="button" class="iconbtn" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+          <span class="topbar__title">Hackathon Campus 48h</span></div>
+        <div class="topbar__right"><span class="av av--sm">MA</span></div>
+      </div>
+        <div class="phone__body">
+          <div class="phone__cover"><svg width="56" height="56" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-img"/></svg></div>
+          <div class="row"><span class="badge badge--faculdade">faculdade</span>
+            <span class="badge badge--neutro">lista de espera</span></div>
+          <p class="t-display-lg">Hackathon Campus 48h</p>
+          <div class="row" style="gap:var(--space-2)"><span class="av av--sm">CF</span>
+            <span class="t-body-sm muted">Organizado por Caio Ferreira</span></div>
+          <div class="bar"><div class="bar__lbl"><strong>80/80 vagas</strong> · 7 na fila</div>
+            <div class="bar__track" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="80"
+              aria-label="80 de 80 vagas preenchidas"><div class="bar__fill" style="width:100%"></div></div></div>
+          <p class="t-body-md">48 horas de imersão em desenvolvimento, com mentoria de empresas
+            parceiras e premiação para as três melhores equipes.</p>
+        </div>
+        <div class="phone__fixedfoot">
+          <button type="button" class="btn btn--secondary btn--block">Você é o 7º da fila</button>
+          <p class="t-body-xs muted" style="text-align:center;margin-top:var(--space-2)">
+            Se abrir vaga, você tem 24 h para confirmar.</p>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption class="phone__cap">04 · Meu ingresso — 390 × 844</figcaption>
+      <div class="phone">
+      <div class="topbar topbar--rolada">
+        <div class="topbar__left"><button type="button" class="iconbtn" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+          <span class="topbar__title">Meu ingresso</span></div>
+        <div class="topbar__right"><span class="av av--sm">MA</span></div>
+      </div>
+        <div class="phone__body">
+          <div class="qrt" style="max-width:100%;min-width:0">
+            <div class="qrt__head"><span class="badge badge--turma">minha turma</span>
+              <span class="badge badge--ok"><span class="badge__dot"></span>confirmado</span></div>
+            <p class="qrt__title" style="font-size:var(--size-display-md);line-height:var(--lh-display-md)">Churrasco de encerramento</p>
+            <p class="qrt__meta">Sáb, 12 set · 13h – 19h</p>
+            <p class="qrt__meta">Quadra do Campus 2</p>
+            <div class="qrt__holder"><p class="qrt__name">Marina Alves</p>
+              <p class="qrt__meta">Eng. de Computação · 3ESPX</p></div>
+            <div class="qrt__perf"></div>
+            <div class="qrt__qrbox"><svg class="qr" viewBox="0 0 21 21" shape-rendering="crispEdges" role="img" aria-label="Código de check-in CMP-3ESPX-0184"><rect class="qr__mod" x="0" y="0" width="1" height="1"/><rect class="qr__mod" x="1" y="0" width="1" height="1"/><rect class="qr__mod" x="2" y="0" width="1" height="1"/><rect class="qr__mod" x="3" y="0" width="1" height="1"/><rect class="qr__mod" x="4" y="0" width="1" height="1"/><rect class="qr__mod" x="5" y="0" width="1" height="1"/><rect class="qr__mod" x="6" y="0" width="1" height="1"/><rect class="qr__mod" x="9" y="0" width="1" height="1"/><rect class="qr__mod" x="10" y="0" width="1" height="1"/><rect class="qr__mod" x="11" y="0" width="1" height="1"/><rect class="qr__mod" x="13" y="0" width="1" height="1"/><rect class="qr__mod" x="14" y="0" width="1" height="1"/><rect class="qr__mod" x="15" y="0" width="1" height="1"/><rect class="qr__mod" x="16" y="0" width="1" height="1"/><rect class="qr__mod" x="17" y="0" width="1" height="1"/><rect class="qr__mod" x="18" y="0" width="1" height="1"/><rect class="qr__mod" x="19" y="0" width="1" height="1"/><rect class="qr__mod" x="20" y="0" width="1" height="1"/><rect class="qr__mod" x="0" y="1" width="1" height="1"/><rect class="qr__mod" x="6" y="1" width="1" height="1"/><rect class="qr__mod" x="8" y="1" width="1" height="1"/><rect class="qr__mod" x="9" y="1" width="1" height="1"/><rect class="qr__mod" x="10" y="1" width="1" height="1"/><rect class="qr__mod" x="12" y="1" width="1" height="1"/><rect class="qr__mod" x="14" y="1" width="1" height="1"/><rect class="qr__mod" x="20" y="1" width="1" height="1"/><rect class="qr__mod" x="0" y="2" width="1" height="1"/><rect class="qr__mod" x="2" y="2" width="1" height="1"/><rect class="qr__mod" x="3" y="2" width="1" height="1"/><rect class="qr__mod" x="4" y="2" width="1" height="1"/><rect class="qr__mod" x="6" y="2" width="1" height="1"/><rect class="qr__mod" x="7" y="2" width="1" height="1"/><rect class="qr__mod" x="8" y="2" width="1" height="1"/><rect class="qr__mod" x="10" y="2" width="1" height="1"/><rect class="qr__mod" x="11" y="2" width="1" height="1"/><rect class="qr__mod" x="13" y="2" width="1" height="1"/><rect class="qr__mod" x="14" y="2" width="1" height="1"/><rect class="qr__mod" x="16" y="2" width="1" height="1"/><rect class="qr__mod" x="17" y="2" width="1" height="1"/><rect class="qr__mod" x="18" y="2" width="1" height="1"/><rect class="qr__mod" x="20" y="2" width="1" height="1"/><rect class="qr__mod" x="0" y="3" width="1" height="1"/><rect class="qr__mod" x="2" y="3" width="1" height="1"/><rect class="qr__mod" x="3" y="3" width="1" height="1"/><rect class="qr__mod" x="4" y="3" width="1" height="1"/><rect class="qr__mod" x="6" y="3" width="1" height="1"/><rect class="qr__mod" x="14" y="3" width="1" height="1"/><rect class="qr__mod" x="16" y="3" width="1" height="1"/><rect class="qr__mod" x="17" y="3" width="1" height="1"/><rect class="qr__mod" x="18" y="3" width="1" height="1"/><rect class="qr__mod" x="20" y="3" width="1" height="1"/><rect class="qr__mod" x="0" y="4" width="1" height="1"/><rect class="qr__mod" x="2" y="4" width="1" height="1"/><rect class="qr__mod" x="3" y="4" width="1" height="1"/><rect class="qr__mod" x="4" y="4" width="1" height="1"/><rect class="qr__mod" x="6" y="4" width="1" height="1"/><rect class="qr__mod" x="9" y="4" width="1" height="1"/><rect class="qr__mod" x="10" y="4" width="1" height="1"/><rect class="qr__mod" x="14" y="4" width="1" height="1"/><rect class="qr__mod" x="16" y="4" width="1" height="1"/><rect class="qr__mod" x="17" y="4" width="1" height="1"/><rect class="qr__mod" x="18" y="4" width="1" height="1"/><rect class="qr__mod" x="20" y="4" width="1" height="1"/><rect class="qr__mod" x="0" y="5" width="1" height="1"/><rect class="qr__mod" x="6" y="5" width="1" height="1"/><rect class="qr__mod" x="7" y="5" width="1" height="1"/><rect class="qr__mod" x="11" y="5" width="1" height="1"/><rect class="qr__mod" x="12" y="5" width="1" height="1"/><rect class="qr__mod" x="13" y="5" width="1" height="1"/><rect class="qr__mod" x="14" y="5" width="1" height="1"/><rect class="qr__mod" x="20" y="5" width="1" height="1"/><rect class="qr__mod" x="0" y="6" width="1" height="1"/><rect class="qr__mod" x="1" y="6" width="1" height="1"/><rect class="qr__mod" x="2" y="6" width="1" height="1"/><rect class="qr__mod" x="3" y="6" width="1" height="1"/><rect class="qr__mod" x="4" y="6" width="1" height="1"/><rect class="qr__mod" x="5" y="6" width="1" height="1"/><rect class="qr__mod" x="6" y="6" width="1" height="1"/><rect class="qr__mod" x="7" y="6" width="1" height="1"/><rect class="qr__mod" x="11" y="6" width="1" height="1"/><rect class="qr__mod" x="14" y="6" width="1" height="1"/><rect class="qr__mod" x="15" y="6" width="1" height="1"/><rect class="qr__mod" x="16" y="6" width="1" height="1"/><rect class="qr__mod" x="17" y="6" width="1" height="1"/><rect class="qr__mod" x="18" y="6" width="1" height="1"/><rect class="qr__mod" x="19" y="6" width="1" height="1"/><rect class="qr__mod" x="20" y="6" width="1" height="1"/><rect class="qr__mod" x="1" y="7" width="1" height="1"/><rect class="qr__mod" x="3" y="7" width="1" height="1"/><rect class="qr__mod" x="5" y="7" width="1" height="1"/><rect class="qr__mod" x="9" y="7" width="1" height="1"/><rect class="qr__mod" x="12" y="7" width="1" height="1"/><rect class="qr__mod" x="16" y="7" width="1" height="1"/><rect class="qr__mod" x="18" y="7" width="1" height="1"/><rect class="qr__mod" x="20" y="7" width="1" height="1"/><rect class="qr__mod" x="4" y="8" width="1" height="1"/><rect class="qr__mod" x="6" y="8" width="1" height="1"/><rect class="qr__mod" x="9" y="8" width="1" height="1"/><rect class="qr__mod" x="10" y="8" width="1" height="1"/><rect class="qr__mod" x="14" y="8" width="1" height="1"/><rect class="qr__mod" x="16" y="8" width="1" height="1"/><rect class="qr__mod" x="20" y="8" width="1" height="1"/><rect class="qr__mod" x="2" y="9" width="1" height="1"/><rect class="qr__mod" x="4" y="9" width="1" height="1"/><rect class="qr__mod" x="5" y="9" width="1" height="1"/><rect class="qr__mod" x="6" y="9" width="1" height="1"/><rect class="qr__mod" x="7" y="9" width="1" height="1"/><rect class="qr__mod" x="11" y="9" width="1" height="1"/><rect class="qr__mod" x="13" y="9" width="1" height="1"/><rect class="qr__mod" x="15" y="9" width="1" height="1"/><rect class="qr__mod" x="16" y="9" width="1" height="1"/><rect class="qr__mod" x="18" y="9" width="1" height="1"/><rect class="qr__mod" x="19" y="9" width="1" height="1"/><rect class="qr__mod" x="2" y="10" width="1" height="1"/><rect class="qr__mod" x="3" y="10" width="1" height="1"/><rect class="qr__mod" x="5" y="10" width="1" height="1"/><rect class="qr__mod" x="7" y="10" width="1" height="1"/><rect class="qr__mod" x="8" y="10" width="1" height="1"/><rect class="qr__mod" x="13" y="10" width="1" height="1"/><rect class="qr__mod" x="14" y="10" width="1" height="1"/><rect class="qr__mod" x="15" y="10" width="1" height="1"/><rect class="qr__mod" x="18" y="10" width="1" height="1"/><rect class="qr__mod" x="4" y="11" width="1" height="1"/><rect class="qr__mod" x="5" y="11" width="1" height="1"/><rect class="qr__mod" x="10" y="11" width="1" height="1"/><rect class="qr__mod" x="11" y="11" width="1" height="1"/><rect class="qr__mod" x="13" y="11" width="1" height="1"/><rect class="qr__mod" x="16" y="11" width="1" height="1"/><rect class="qr__mod" x="19" y="11" width="1" height="1"/><rect class="qr__mod" x="1" y="12" width="1" height="1"/><rect class="qr__mod" x="2" y="12" width="1" height="1"/><rect class="qr__mod" x="3" y="12" width="1" height="1"/><rect class="qr__mod" x="5" y="12" width="1" height="1"/><rect class="qr__mod" x="8" y="12" width="1" height="1"/><rect class="qr__mod" x="9" y="12" width="1" height="1"/><rect class="qr__mod" x="11" y="12" width="1" height="1"/><rect class="qr__mod" x="12" y="12" width="1" height="1"/><rect class="qr__mod" x="13" y="12" width="1" height="1"/><rect class="qr__mod" x="17" y="12" width="1" height="1"/><rect class="qr__mod" x="19" y="12" width="1" height="1"/><rect class="qr__mod" x="20" y="12" width="1" height="1"/><rect class="qr__mod" x="3" y="13" width="1" height="1"/><rect class="qr__mod" x="5" y="13" width="1" height="1"/><rect class="qr__mod" x="7" y="13" width="1" height="1"/><rect class="qr__mod" x="8" y="13" width="1" height="1"/><rect class="qr__mod" x="10" y="13" width="1" height="1"/><rect class="qr__mod" x="17" y="13" width="1" height="1"/><rect class="qr__mod" x="0" y="14" width="1" height="1"/><rect class="qr__mod" x="1" y="14" width="1" height="1"/><rect class="qr__mod" x="2" y="14" width="1" height="1"/><rect class="qr__mod" x="3" y="14" width="1" height="1"/><rect class="qr__mod" x="4" y="14" width="1" height="1"/><rect class="qr__mod" x="5" y="14" width="1" height="1"/><rect class="qr__mod" x="6" y="14" width="1" height="1"/><rect class="qr__mod" x="11" y="14" width="1" height="1"/><rect class="qr__mod" x="14" y="14" width="1" height="1"/><rect class="qr__mod" x="16" y="14" width="1" height="1"/><rect class="qr__mod" x="17" y="14" width="1" height="1"/><rect class="qr__mod" x="19" y="14" width="1" height="1"/><rect class="qr__mod" x="0" y="15" width="1" height="1"/><rect class="qr__mod" x="6" y="15" width="1" height="1"/><rect class="qr__mod" x="7" y="15" width="1" height="1"/><rect class="qr__mod" x="8" y="15" width="1" height="1"/><rect class="qr__mod" x="11" y="15" width="1" height="1"/><rect class="qr__mod" x="12" y="15" width="1" height="1"/><rect class="qr__mod" x="14" y="15" width="1" height="1"/><rect class="qr__mod" x="15" y="15" width="1" height="1"/><rect class="qr__mod" x="16" y="15" width="1" height="1"/><rect class="qr__mod" x="20" y="15" width="1" height="1"/><rect class="qr__mod" x="0" y="16" width="1" height="1"/><rect class="qr__mod" x="2" y="16" width="1" height="1"/><rect class="qr__mod" x="3" y="16" width="1" height="1"/><rect class="qr__mod" x="4" y="16" width="1" height="1"/><rect class="qr__mod" x="6" y="16" width="1" height="1"/><rect class="qr__mod" x="8" y="16" width="1" height="1"/><rect class="qr__mod" x="10" y="16" width="1" height="1"/><rect class="qr__mod" x="11" y="16" width="1" height="1"/><rect class="qr__mod" x="13" y="16" width="1" height="1"/><rect class="qr__mod" x="14" y="16" width="1" height="1"/><rect class="qr__mod" x="16" y="16" width="1" height="1"/><rect class="qr__mod" x="18" y="16" width="1" height="1"/><rect class="qr__mod" x="19" y="16" width="1" height="1"/><rect class="qr__mod" x="0" y="17" width="1" height="1"/><rect class="qr__mod" x="2" y="17" width="1" height="1"/><rect class="qr__mod" x="3" y="17" width="1" height="1"/><rect class="qr__mod" x="4" y="17" width="1" height="1"/><rect class="qr__mod" x="6" y="17" width="1" height="1"/><rect class="qr__mod" x="8" y="17" width="1" height="1"/><rect class="qr__mod" x="9" y="17" width="1" height="1"/><rect class="qr__mod" x="10" y="17" width="1" height="1"/><rect class="qr__mod" x="11" y="17" width="1" height="1"/><rect class="qr__mod" x="15" y="17" width="1" height="1"/><rect class="qr__mod" x="16" y="17" width="1" height="1"/><rect class="qr__mod" x="17" y="17" width="1" height="1"/><rect class="qr__mod" x="18" y="17" width="1" height="1"/><rect class="qr__mod" x="20" y="17" width="1" height="1"/><rect class="qr__mod" x="0" y="18" width="1" height="1"/><rect class="qr__mod" x="2" y="18" width="1" height="1"/><rect class="qr__mod" x="3" y="18" width="1" height="1"/><rect class="qr__mod" x="4" y="18" width="1" height="1"/><rect class="qr__mod" x="6" y="18" width="1" height="1"/><rect class="qr__mod" x="10" y="18" width="1" height="1"/><rect class="qr__mod" x="11" y="18" width="1" height="1"/><rect class="qr__mod" x="17" y="18" width="1" height="1"/><rect class="qr__mod" x="0" y="19" width="1" height="1"/><rect class="qr__mod" x="6" y="19" width="1" height="1"/><rect class="qr__mod" x="8" y="19" width="1" height="1"/><rect class="qr__mod" x="9" y="19" width="1" height="1"/><rect class="qr__mod" x="13" y="19" width="1" height="1"/><rect class="qr__mod" x="16" y="19" width="1" height="1"/><rect class="qr__mod" x="0" y="20" width="1" height="1"/><rect class="qr__mod" x="1" y="20" width="1" height="1"/><rect class="qr__mod" x="2" y="20" width="1" height="1"/><rect class="qr__mod" x="3" y="20" width="1" height="1"/><rect class="qr__mod" x="4" y="20" width="1" height="1"/><rect class="qr__mod" x="5" y="20" width="1" height="1"/><rect class="qr__mod" x="6" y="20" width="1" height="1"/><rect class="qr__mod" x="7" y="20" width="1" height="1"/><rect class="qr__mod" x="9" y="20" width="1" height="1"/><rect class="qr__mod" x="10" y="20" width="1" height="1"/><rect class="qr__mod" x="12" y="20" width="1" height="1"/><rect class="qr__mod" x="15" y="20" width="1" height="1"/><rect class="qr__mod" x="16" y="20" width="1" height="1"/><rect class="qr__mod" x="17" y="20" width="1" height="1"/><rect class="qr__mod" x="18" y="20" width="1" height="1"/></svg><p class="qrt__code">CMP-3ESPX-0184</p></div>
+            <p class="qrt__fine">Cada ingresso vale uma entrada.</p>
+          </div>
+        </div>
+      <nav class="bnav" aria-label="Navegação principal">
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-home"/></svg>Início</a>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <button type="button" class="bnav__fab" aria-label="Criar evento"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+        <a class="bnav__item is-sel" href="#telas" aria-current="page"><svg aria-hidden="true"><use href="#i-ticket"/></svg>Ingressos</a>
+        <a class="bnav__item" href="#telas"><svg aria-hidden="true"><use href="#i-user"/></svg>Perfil</a>
+      </nav>
+      </div>
+    </figure>
+  </div>
+  <div class="note note--info">
+    Estas telas são <strong>referência estática</strong>. O app React em <code>app/</code>
+    é a versão funcional das mesmas telas, com dados mockados e navegação real — publicado
+    em <a href="https://lukiin-z.github.io/campus/">lukiin-z.github.io/campus</a>.
+  </div>
+</section>
+
+<section class="sec" id="voz" aria-labelledby="voz-t">
+  <header class="sec__head">
+    <p class="eyebrow">08</p>
+    <h2 class="t-display-xl" id="voz-t">Tom de voz</h2>
+    <p class="sec__intro">
+      O Campus fala como <strong>um veterano organizado explicando algo a um calouro</strong>:
+      direto, prestativo, sem formalidade institucional e sem gíria forçada.
+    </p>
+  </header>
+  <div class="vozgrid">
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Direto ao ponto</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> 18/40 vagas</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> Ainda restam algumas vagas disponíveis!</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Diga o que aconteceu e o que fazer</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> Pagamento não identificado. Você tem 42 min para pagar.</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> Ops! Algo deu errado</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Sem euforia artificial</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> Inscrição confirmada.</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> Uhuuul! Você conseguiu!!!</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Segunda pessoa, verbo no presente</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> Você é o 8º da fila.</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> O usuário encontra-se na posição 8.</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Número em vez de adjetivo</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> Encerra em 2 dias</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> Corre, tá acabando!</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Erro sem culpar quem leu</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> Use seu e-mail institucional (@fiap.com.br).</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> E-mail inválido.</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Sem jargão de sistema</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> Este ingresso já foi usado às 20h14.</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> Erro 409: conflito de estado.</p>
+    </div>
+    <div class="voz">
+      <p class="t-body-md-strong" style="margin-bottom:var(--space-2)">Português do Brasil</p>
+      <p class="t-body-sm"><span class="voz__do">Faça:</span> lista de espera · ingresso · publicação</p>
+      <p class="t-body-sm" style="margin-top:var(--space-1)"><span class="voz__dont">Não faça:</span> waitlist · ticket · post</p>
+    </div>
+  </div>
+  <div class="sub"><h3 class="t-display-sm">Microcópia de referência</h3>
+    <p>Os textos reais da interface. Se um texto novo não couber neste registro, ele está errado.</p></div>
+  <div class="scroll-x"><table>
+    <caption>Situação e o texto exato que o app usa</caption>
+    <thead><tr><th scope="col">Situação</th><th scope="col">Texto</th></tr></thead>
+    <tbody>
+        <tr><td>Botão de inscrição, evento gratuito</td><td><strong>Quero participar</strong></td></tr>
+        <tr><td>Botão de inscrição, evento pago</td><td><strong>Quero participar · R$ 25</strong></td></tr>
+        <tr><td>Evento lotado</td><td><strong>Entrar na lista de espera — abaixo: “7 pessoas na fila”</strong></td></tr>
+        <tr><td>Posição na fila</td><td><strong>Você é o 8º da fila. Se abrir vaga, você tem 24 h para confirmar.</strong></td></tr>
+        <tr><td>Vaga oferecida</td><td><strong>Abriu uma vaga para você. Confirme até quinta, 19h.</strong></td></tr>
+        <tr><td>Aguardando Pix</td><td><strong>Aguardando pagamento. Confirmamos automaticamente quando o Pix cair.</strong></td></tr>
+        <tr><td>Prazo encerrado</td><td><strong>Inscrições encerradas em 10 de setembro.</strong></td></tr>
+        <tr><td>Evento cancelado</td><td><strong>Evento cancelado pelo organizador. Motivo: chuva prevista. Seu pagamento será devolvido integralmente.</strong></td></tr>
+        <tr><td>Check-in aceito</td><td><strong>Marina Alves · confirmado às 20h14</strong></td></tr>
+        <tr><td>Check-in recusado, já usado</td><td><strong>Ingresso já utilizado às 20h14.</strong></td></tr>
+        <tr><td>Estado vazio do feed</td><td><strong>Nada por aqui ainda. Quando alguém da sua turma publicar, aparece aqui.</strong></td></tr>
+        <tr><td>Erro de domínio de e-mail</td><td><strong>Use seu e-mail institucional. O Campus só aceita e-mail da faculdade.</strong></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div>
+
+<footer class="footer">
+  <div class="shell" style="padding:0">
+    <span class="topbar__brand"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg><span class="topbar__word">Campus</span></span>
+    <p class="t-body-sm muted" style="margin-top:var(--space-3);max-width:60ch">
+      Esta página é gerada a partir dos mesmos dados que alimentam
+      <code>docs/06-marca/identidade-visual.md</code> e <code>app/tailwind.config.ts</code>.
+      As razões de contraste são calculadas, não copiadas.
+    </p>
+    <div class="footlinks">
+      <a href="identidade-visual.md"><strong>Identidade visual</strong>
+        <span>Racional da marca, paleta, contraste WCAG, tipografia, tom de voz</span></a>
+      <a href="design-system.md"><strong>Design system</strong>
+        <span>Inventário de componentes com anatomia, variantes e estados</span></a>
+      <a href="guia-figma.md"><strong>Guia do Figma</strong>
+        <span>O que existe no arquivo, o mapa styles↔tokens e como estender</span></a>
+      <a href="../README.md"><strong>Índice da documentação</strong>
+        <span>Todos os documentos do projeto, por peso na avaliação</span></a>
+      <a href="../../README.md"><strong>Repositório</strong>
+        <span>Como rodar, estrutura de pastas, equipe e status por checkpoint</span></a>
+      <a href="https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp"><strong>Arquivo do Figma</strong>
+        <span>64 tokens, 11 estilos de texto e 9 componentes com 34 variants</span></a>
+    </div>
+    <p class="t-body-xs muted" style="margin-top:var(--space-6)">
+      Campus · Engenharia de Software · FIAP · Engenharia de Computação, 3º ano ·
+      Prof. Hercules Ramos · Checkpoint 4 · Licença MIT
+    </p>
+  </div>
+</footer>
 </body>
 </html>

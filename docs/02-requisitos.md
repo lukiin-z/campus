@@ -55,7 +55,7 @@ criou o evento — é papel, não tipo), **Admin de Curso**, **Admin de Faculdad
 | RF-013 | Editar evento publicado | Alterar dados do evento; mudanças sensíveis (data, local, preço) notificam os inscritos. | Must | Organizador | **Dado** que meu evento tem 18 inscritos, **Quando** altero a data, **Então** os 18 inscritos recebem notificação de alteração com o valor antigo e o novo. | 6 |
 | RF-014 | Cancelar evento | O organizador cancela o evento com motivo obrigatório; participações são canceladas e pagamentos entram em reembolso. | Must | Organizador | **Dado** que meu evento pago tem 12 pagamentos confirmados, **Quando** cancelo com motivo, **Então** as 12 participações ficam `CANCELADA`, os pagamentos vão para `REEMBOLSO_SOLICITADO` e todos são notificados. | 6 |
 | RF-015 | Listar eventos visíveis com filtros | Lista ordenada por data, filtrável por alcance (minha turma / meu curso / faculdade), preço (gratuito) e período. | Must | Aluno | **Dado** que estou em `/eventos`, **Quando** aplico o filtro "Minha turma", **Então** vejo apenas eventos de alcance `TURMA` da minha turma, ordenados pela data mais próxima. | 5 |
-| RF-016 | Ver detalhe do evento | Capa, alcance, organizador, data, local, preço, descrição, barra de ocupação de vagas, prazo de inscrição e ação principal contextual. | Must | Aluno | **Dado** que abro um evento com 72 de 80 vagas, **Quando** a tela carrega, **Então** vejo "72/80 vagas" e a barra preenchida proporcionalmente, e o botão diz "Quero participar". | 5 |
+| RF-016 | Ver detalhe do evento | Capa, alcance, organizador, data, local, preço, descrição, barra de ocupação de vagas, prazo de inscrição e ação principal contextual. | Must | Aluno | **Dado** que abro o churrasco da 3ESPX com 18 de 40 vagas, **Quando** a tela carrega, **Então** vejo "18/40 vagas" e a barra preenchida proporcionalmente, e o botão diz "Quero participar · R$ 25,00". | 5 |
 | RF-017 | Adicionar perguntas customizadas | O organizador define até 5 perguntas (texto curto ou escolha única) respondidas no momento da inscrição. | Could | Organizador | **Dado** que adicionei a pergunta "Vai levar acompanhante?", **Quando** um aluno se inscreve, **Então** a pergunta é exibida após a reserva da vaga e a resposta fica visível ao organizador. | 6 |
 | RF-018 | Duplicar evento | Criar um novo evento a partir de um existente, copiando tudo menos data e inscritos. | Could | Organizador | **Dado** que organizei um churrasco no semestre passado, **Quando** escolho "duplicar", **Então** abre o formulário preenchido, sem data e sem participantes. | 6 |
 
@@ -119,7 +119,7 @@ criou o evento — é papel, não tipo), **Admin de Curso**, **Admin de Faculdad
 | RF-042 | Moderar publicações do feed | Organizador do evento, Admin de Curso e Admin de Faculdade podem remover publicação ou comentário, com motivo registrado. | Should | Organizador / Admin | **Dado** que uma publicação foi denunciada, **Quando** o organizador do evento a remove informando o motivo, **Então** ela deixa de aparecer no feed e a ação fica registrada com autor e horário. | 6 |
 | RF-043 | Gerenciar turmas do curso | Admin de Curso cria turmas, gera e revoga códigos de convite. | Could | Admin de Curso | **Dado** que sou admin do curso de Engenharia de Computação, **Quando** crio a turma 1ESPA e gero o código, **Então** o código passa a permitir vínculo e pode ser revogado depois. | 6 |
 
-**Total: 43 requisitos funcionais** — 26 `Must`, 12 `Should`, 5 `Could`.
+**Total: 43 requisitos funcionais** — 28 `Must`, 11 `Should`, 4 `Could`.
 
 ---
 
@@ -250,8 +250,8 @@ coluna de sprint — nenhum RF é *implementado* na Sprint 1. Ver
 | Checkpoint | RFs entregues | Observação |
 |---|---|---|
 | CP4 | — (base técnica + documentação) | RNF-002, RNF-017, RNF-020 já cumpridos: contraste calculado, lint no CI, inventário mínimo de dados |
-| CP5 | 22 RFs (todos os `Must` dos módulos B, C, D, E, G-parcial, H-parcial) | Protótipo funcional com dados mockados |
-| CP6 | 21 RFs restantes | Persistência real, pagamento, notificação, moderação, administração |
+| CP5 | 21 RFs — 19 `Must` + 2 `Should` | Protótipo funcional com dados mockados |
+| CP6 | 22 RFs — 9 `Must` + 9 `Should` + 4 `Could` | Persistência real, pagamento, notificação, moderação, administração |
 
 ---
 
