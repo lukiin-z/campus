@@ -4,7 +4,42 @@
 **Espelhado em código:** [`app/src/types/domain.ts`](../../app/src/types/domain.ts) — divergência
 entre este diagrama e aquele arquivo é defeito, não detalhe.
 
-## 1. Diagrama
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | 13 classes de entidade (o texto dizia 14), 9 enumerações, atributos tipados, multiplicidades, composição e agregação, e sete decisões de modelagem |
+| 2.0 | 2026-09-02 | CP5 | O documento passa a separar **três categorias de tipo** em dois diagramas: entidade persistida, projeção de leitura e entrada de escrita. Corrigidos cinco atributos que o código nunca teve (`Usuario.senhaHash`, `Usuario.fotoUrl`, `Turma.totalAlunos`) ou que tinham tipo errado (`capaSeed`, `imagemSeed`). Enumerações vão de 9 para **15**. `PoliticaReembolso` e `ResumoCartao` entram como objetos-valor. A tabela "método → implementação" foi refeita: **cinco linhas apontavam para arquivos que não existem** |
+
+## 0. Três categorias de tipo, e por que não vão no mesmo diagrama
+
+`app/src/types/domain.ts` declara 45 tipos. Jogar todos em um `classDiagram` produziria a
+impressão — falsa e caríssima — de que cada um é uma tabela. As três categorias têm ciclos
+de vida, donos e destinos completamente diferentes:
+
+| Categoria | O que é | Quantos | Vira tabela no CP6? | Onde está neste documento |
+|---|---|---|---|---|
+| **Entidade persistida** | Tem identidade própria, sobrevive à requisição, tem linha no banco | 13 | Sim, uma tabela cada | Diagrama 1 |
+| **Objeto-valor** | Não tem identidade; é um pedaço de estado de outra coisa | 3 | Coluna(s) da entidade dona, nunca tabela | Diagrama 1, com `<<value object>>` |
+| **Projeção de leitura** | O que a API **devolve** para a tela, com relacionamento já resolvido | 10 + 1 união | Não. É `SELECT` com `JOIN`, ou serializador | Diagrama 2 |
+| **Entrada de escrita / filtro** | O que a tela **envia**. Vive o tempo de uma requisição | 7 + 3 filtros | Não. É corpo de requisição ou *query string* | Diagrama 2 |
+
+A regra que separa as duas últimas da primeira é simples e verificável: **se o tipo
+`extends` uma entidade, ou se compõe pedaços de várias, é projeção.** `EventoView extends
+Evento` acrescenta `organizador`, `alcanceRotulo`, `vagasDisponiveis`, `taxaOcupacao`,
+`inscricoesAbertas`, `totalListaEspera` e `minhaParticipacao` — sete campos que **não
+existem no banco**: cinco são derivados e dois são `JOIN`. Modelá-los como colunas seria
+criar sete lugares para desalinhar.
+
+> Um detalhe honesto sobre esses cinco: quatro saem de funções de domínio
+> (`availableSpots`, `enrollmentOpen`, `waitlistSize`, `alcanceRotulo`) e `taxaOcupacao` é
+> calculada em linha dentro de `toEventoView`, embora
+> `domain/capacity.ts#occupancyRate` exista para isso. É divergência pequena e real —
+> registrada aqui em vez de arredondada.
+
+---
+
+## 1. Entidades persistidas, objetos-valor e enumerações
 
 ```mermaid
 classDiagram
@@ -25,7 +60,6 @@ classDiagram
         +String nome
         +String codigo
         +Int duracaoSemestres
-        +listarTurmas() Turma[]
     }
 
     class Turma {
@@ -35,27 +69,23 @@ classDiagram
         +String periodo
         +String codigoConvite
         +Boolean codigoAtivo
-        +Int totalAlunos
-        +gerarCodigo() String
-        +revogarCodigo() void
     }
 
     class Usuario {
         +String id
         +String nome
         +String email
-        +String senhaHash
-        +String fotoUrl
-        +String turmaId
-        +String cursoId
+        +Int avatarSeed
         +String faculdadeId
+        +String cursoId
+        +String turmaId
         +PapelUsuario[] papeis
         +Boolean emailVerificado
         +Boolean visivelEntreConfirmados
         +DateTime criadoEm
         +podeVer(evento) Boolean
         +ehOrganizadorDe(evento) Boolean
-        +temPapel(papel) Boolean
+        +onboardingPendente() Boolean
     }
 
     class Evento {
@@ -77,14 +107,13 @@ classDiagram
         +String motivoCancelamento
         +DateTime prazoInscricao
         +DateTime prazoCancelamento
-        +String capaSeed
+        +Int capaSeed
         +DateTime criadoEm
         +vagasDisponiveis() Int
         +estaLotado() Boolean
         +inscricoesAbertas() Boolean
-        +ehGratuito() Boolean
         +taxaOcupacao() Float
-        +cancelar(motivo) void
+        +janelaDeCheckin() Janela
     }
 
     class Participacao {
@@ -95,17 +124,23 @@ classDiagram
         +Int posicaoFila
         +DateTime pagamentoExpiraEm
         +DateTime ofertaExpiraEm
-        +String motivoCancelamento
+        +MotivoCancelamento motivoCancelamento
         +Boolean canceladaAposPrazo
         +PoliticaReembolso politicaVigente
         +DateTime criadoEm
         +DateTime atualizadoEm
         +ocupaVaga() Boolean
         +estaAtiva() Boolean
-        +podeFazerCheckin() Boolean
-        +confirmar() void
-        +cancelar(motivo) void
-        +expirar() void
+        +minutosParaPagar() Int
+        +transicaoPermitida(destino) Boolean
+    }
+
+    class PoliticaReembolso {
+        <<value object>>
+        +Int reembolsoIntegralDiasAntes
+        +Int reembolsoParcialHorasAntes
+        +Float reembolsoParcialTaxa
+        +DateTime congeladaEm
     }
 
     class Pagamento {
@@ -119,9 +154,15 @@ classDiagram
         +String chaveIdempotencia
         +DateTime criadoEm
         +DateTime confirmadoEm
-        +confirmar(transacaoId) void
-        +reembolsar(valor) void
-        +estornar() void
+        +planejarWebhook(notificacao) Desfecho
+        +calcularReembolso(agora) Reembolso
+    }
+
+    class ResumoCartao {
+        <<value object>>
+        +String ultimosQuatro
+        +String bandeira
+        +String titular
     }
 
     class Presenca {
@@ -139,7 +180,7 @@ classDiagram
         +String eventoId
         +String autorId
         +String legenda
-        +String imagemSeed
+        +Int imagemSeed
         +Boolean removida
         +String motivoRemocao
         +String removidaPorId
@@ -165,7 +206,6 @@ classDiagram
         +String referenciaId
         +Boolean lida
         +DateTime criadoEm
-        +marcarComoLida() void
     }
 
     class PerguntaCustomizada {
@@ -265,6 +305,15 @@ classDiagram
         ESCOLHA_UNICA
     }
 
+    class MotivoCancelamento {
+        <<enumeration>>
+        ALUNO_DESISTIU
+        EVENTO_CANCELADO
+        VINCULO_PERDIDO
+        REMOVIDO_PELO_ORGANIZADOR
+        OFERTA_RECUSADA
+    }
+
     Faculdade "1" *-- "1..*" Curso : composicao
     Curso "1" *-- "1..*" Turma : composicao
     Turma "1" o-- "0..*" Usuario : agregacao
@@ -277,6 +326,8 @@ classDiagram
 
     Participacao "1" --> "0..1" Pagamento : gera
     Participacao "1" --> "0..1" Presenca : registra
+    Participacao "1" *-- "0..1" PoliticaReembolso : congela
+    Pagamento "1" *-- "0..1" ResumoCartao : guarda so o resumo
 
     Evento "1" *-- "0..5" PerguntaCustomizada : composicao
     PerguntaCustomizada "1" --> "0..*" RespostaPergunta : responde
@@ -292,6 +343,7 @@ classDiagram
     Evento ..> AlcanceEvento : usa
     Evento ..> StatusEvento : usa
     Participacao ..> StatusParticipacao : usa
+    Participacao ..> MotivoCancelamento : usa
     Pagamento ..> StatusPagamento : usa
     Pagamento ..> MetodoPagamento : usa
     Usuario ..> PapelUsuario : usa
@@ -300,7 +352,262 @@ classDiagram
     PerguntaCustomizada ..> TipoPergunta : usa
 ```
 
-## 2. O que o diagrama mostra e por que foi modelado assim
+### As outras cinco enumerações
+
+`MOTIVO_RECUSA_INSCRICAO`, `MOTIVO_RECUSA_LOGIN`, `MOTIVO_RECUSA_ONBOARDING`,
+`MOTIVO_RECUSA_CHECKIN` e `DESFECHO_SIMULADO` **não estão no diagrama acima de propósito**:
+nenhuma é atributo de entidade. Elas tipam o **corpo da resposta** de uma decisão recusada
+(o campo `erro` do `422`, do `409` ou do `200 aceito: false`) e o gatilho da simulação de
+gateway. Estão no diagrama 2, onde vivem as formas de conversa com a tela.
+
+Total de enumerações no código: **15**. Dez são atributo de entidade; cinco são vocabulário
+de resposta.
+
+---
+
+## 2. Projeções de leitura e entradas de escrita
+
+Nenhum tipo deste diagrama tem tabela, `id` próprio ou ciclo de vida. Ele existe porque a
+tela conversa com estes tipos, não com os do diagrama 1 — e porque confundir os dois é o
+erro mais caro deste modelo.
+
+```mermaid
+classDiagram
+    direction LR
+
+    class EventoView {
+        <<projection>>
+        +Evento tudo
+        +Pick~Usuario~ organizador
+        +String alcanceRotulo
+        +Int vagasDisponiveis
+        +Float taxaOcupacao
+        +Boolean inscricoesAbertas
+        +Int totalListaEspera
+        +Participacao minhaParticipacao
+    }
+
+    class ParticipacaoView {
+        <<projection>>
+        +Participacao tudo
+        +Pick~Evento~ evento
+        +Pagamento pagamento
+        +Presenca presenca
+    }
+
+    class PagamentoView {
+        <<projection>>
+        +Pagamento tudo
+        +CobrancaPix pix
+        +ResumoCartao cartao
+        +Int minutosRestantes
+    }
+
+    class PublicacaoView {
+        <<projection>>
+        +Publicacao tudo
+        +Pick~Usuario~ autor
+        +Pick~Evento~ evento
+        +Comentario[] comentarios
+    }
+
+    class PresencaView {
+        <<projection>>
+        +Presenca tudo
+        +Pick~Usuario~ participante
+    }
+
+    class SessaoUsuario {
+        <<projection>>
+        +Usuario usuario
+        +Faculdade faculdade
+        +Curso curso
+        +Turma turma
+    }
+
+    class PainelCheckin {
+        <<projection>>
+        +Pick~Evento~ evento
+        +Boolean abertoAgora
+        +DateTime abreEm
+        +DateTime fechaEm
+        +Int confirmados
+        +Int presentes
+        +PresencaView[] presencas
+    }
+
+    class TokenIngresso {
+        <<projection>>
+        +String valor
+        +String codigoNumerico
+        +String codigoLegivel
+        +DateTime emitidoEm
+    }
+
+    class ResultadoLogin {
+        <<projection>>
+        +String token
+        +SessaoUsuario sessao
+    }
+
+    class ResultadoCheckin {
+        <<projection>>
+        +Boolean aceito
+        +MotivoRecusaCheckin motivo
+        +String mensagem
+        +Participante participante
+        +DateTime registradoEm
+    }
+
+    class ResultadoInscricao {
+        <<union>>
+        CONFIRMADA
+        PENDENTE_PAGAMENTO
+        SEM_VAGA com acao LISTA_ESPERA
+        RECUSADA com MotivoRecusaInscricao
+    }
+
+    class CobrancaPix {
+        <<value object>>
+        +String chave
+        +String brCode
+        +DateTime expiraEm
+    }
+
+    class Credenciais {
+        <<input>>
+        +String email
+        +String senha
+    }
+
+    class EntradaOnboarding {
+        <<input>>
+        +String cursoId
+        +String codigoConvite
+    }
+
+    class NovoEvento {
+        <<input>>
+        +String titulo
+        +String descricao
+        +AlcanceEvento alcance
+        +DateTime inicio
+        +DateTime fim
+        +String local
+        +Int capacidade
+        +Decimal preco
+        +DateTime prazoInscricao
+        +DateTime prazoCancelamento
+        +Boolean publicar
+    }
+
+    class NovoPagamento {
+        <<input>>
+        +MetodoPagamento metodo
+        +ResumoCartao cartao
+    }
+
+    class NovaPublicacao {
+        <<input>>
+        +String eventoId
+        +String legenda
+        +Int imagemSeed
+    }
+
+    class NovoComentario {
+        <<input>>
+        +String texto
+    }
+
+    class FiltroEventos {
+        <<input>>
+        +FiltroAlcance alcance
+        +FiltroPreco preco
+        +FiltroPeriodo periodo
+        +String busca
+    }
+
+    class MotivoRecusaLogin {
+        <<enumeration>>
+        DOMINIO_NAO_INSTITUCIONAL
+        CREDENCIAL_INVALIDA
+        EMAIL_NAO_VERIFICADO
+    }
+
+    class MotivoRecusaOnboarding {
+        <<enumeration>>
+        CURSO_INEXISTENTE
+        CODIGO_INVALIDO
+        CODIGO_INATIVO
+        CODIGO_DE_OUTRO_CURSO
+    }
+
+    class MotivoRecusaInscricao {
+        <<enumeration>>
+        PRAZO_ENCERRADO
+        JA_INSCRITO
+        EVENTO_CANCELADO
+        FORA_DO_ALCANCE
+        EVENTO_NAO_PUBLICADO
+    }
+
+    class MotivoRecusaCheckin {
+        <<enumeration>>
+        TOKEN_INVALIDO
+        OUTRO_EVENTO
+        AINDA_NAO_ABRIU
+        JA_ENCERROU
+        JA_UTILIZADO
+        NAO_CONFIRMADA
+        SEM_PERMISSAO
+        EVENTO_CANCELADO
+    }
+
+    class DesfechoSimulado {
+        <<enumeration>>
+        CONFIRMAR
+        RECUSAR
+        DUPLICAR
+    }
+
+    EventoView ..> ParticipacaoView : irmas, nao herdeiras
+    PagamentoView *-- CobrancaPix : derivada, nao armazenada
+    PagamentoView ..> ResumoCartao : reflete o que foi guardado
+    ParticipacaoView ..> PagamentoView : mesma participacao
+    PainelCheckin *-- PresencaView : lista do organizador
+    ResultadoLogin *-- SessaoUsuario : o que a store recebe
+    ResultadoCheckin ..> MotivoRecusaCheckin : recusa tipada
+    ResultadoInscricao ..> MotivoRecusaInscricao : recusa tipada
+    Credenciais ..> MotivoRecusaLogin : decideLogin recusa com isto
+    EntradaOnboarding ..> MotivoRecusaOnboarding : decideOnboarding recusa com isto
+    NovoPagamento *-- ResumoCartao : so o resumo sai do formulario
+    NovoPagamento ..> DesfechoSimulado : gatilho do gateway simulado
+```
+
+### O que ler neste diagrama
+
+**As projeções não herdam umas das outras.** `EventoView` e `ParticipacaoView` são irmãs:
+cada uma `extends` a entidade correspondente e compõe pedaços das outras com `Pick<>`. O
+`Pick<>` é a parte importante — `EventoView.organizador` é
+`Pick<Usuario, 'id' | 'nome' | 'avatarSeed'>`, **não** `Usuario`. A projeção carrega o mínimo
+que a tela desenha, e nada mais: mandar o `Usuario` inteiro exporia `email` de um organizador
+a todo mundo que abre a lista de eventos.
+
+**`CobrancaPix` é objeto-valor derivado, e por isso está com `*--`.** Ela é recalculada por
+`gerarCobrancaPix` a cada leitura ([RN-028](../04-regras-de-negocio.md)) e não existe em
+`db.ts`. Aparece em `PagamentoView` e em lugar nenhum mais.
+
+**`ResumoCartao` aparece três vezes, e é o único tipo que atravessa as três categorias.**
+Ver a decisão 9.
+
+**As quatro enumerações de recusa são vocabulário de resposta.** Elas garantem que o código
+que a API põe no campo `erro` e o código que a tela testa em `ApiError.codigo` saem do mesmo
+conjunto. Sem isso, `if (erro.codigo === 'SEM_VAGA')` seria comparação de literal solto — e
+um erro de digitação passaria pelo compilador.
+
+---
+
+## 3. O que o diagrama mostra e por que foi modelado assim
 
 O modelo é organizado em três blocos, e a fronteira entre eles é o que sustenta as
 regras de negócio.
@@ -334,7 +641,10 @@ expira, gera pagamento, gera presença, e é a base do reembolso.
 e `RespostaPergunta`: sem entidade própria, os três não teriam onde se ligar.
 
 Consequência prática: **um** identificador (`participacaoId`) resolve ingresso, QR Code,
-pagamento e presença. Ver [ADR-0004](../adr/0004-participacao-como-entidade-propria.md).
+pagamento e presença. O CP5 confirmou isso de um jeito que o CP4 não previa: o código
+numérico de 8 dígitos e o código legível `CMP-3ESPX-0184` são **derivados** de
+`participacaoId` por `numericCheckInCode`, o que dispensa qualquer tabela de códigos. Ver
+[ADR-0004](../adr/0004-participacao-como-entidade-propria.md).
 
 ### Decisão 2 — `politicaVigente` congelada na participação
 
@@ -342,6 +652,10 @@ pagamento e presença. Ver [ADR-0004](../adr/0004-participacao-como-entidade-pro
 não uma referência ao evento. Se o organizador mudar a política depois, quem já pagou
 mantém a que aceitou ([RN-013](../04-regras-de-negocio.md)). Uma referência viva ao
 evento permitiria alterar retroativamente o direito de quem já pagou.
+
+No CP5 ela é preenchida por `currentPolicy(agora)` em dois pontos: na criação da
+participação paga e na confirmação de uma oferta em evento pago. Os dois estão dentro da
+transação, e a segunda sobrescreve a primeira quando a participação passou pela fila.
 
 ### Decisão 3 — `Organizador` não é classe
 
@@ -365,7 +679,9 @@ Fato auditável merece registro próprio e imutável; campo em outra entidade co
 sobrescrito.
 
 A multiplicidade `0..1` expressa exatamente a regra de uso único do QR Code: não existe
-segunda presença para a mesma participação.
+segunda presença para a mesma participação. No CP5 ela é verificada em dois níveis:
+`decideCheckIn` a consulta para dar a mensagem certa, e `assertInvariants` de `db.ts`
+**estoura** se duas presenças existirem para a mesma participação.
 
 ### Decisão 5 — Alcance como enum + três âncoras nulas
 
@@ -376,7 +692,7 @@ A alternativa "polimórfica" (uma classe `Escopo` com subclasses `EscopoTurma`,
 `EscopoCurso`, `EscopoFaculdade`) foi recusada: três subclasses sem comportamento
 próprio, só para carregar um identificador, complicam a consulta mais frequente do
 sistema (listar eventos visíveis) sem ganho algum. A invariante fica garantida por
-`CHECK` no banco e por tipo discriminado no TypeScript. Ver
+`CHECK` no banco e por `ancoraCoerente` em `domain/visibility.ts`. Ver
 [ADR-0005](../adr/0005-alcance-como-enum-com-ancora-condicional.md).
 
 ### Decisão 6 — `ocupadas` denormalizado em `Evento`
@@ -384,17 +700,68 @@ sistema (listar eventos visíveis) sem ganho algum. A invariante fica garantida 
 `Evento.ocupadas` é contagem derivada (poderia ser `COUNT` das participações que ocupam
 vaga). Está materializada porque é lida em toda listagem e em todo detalhe, e porque a
 verificação atômica de [RN-004](../04-regras-de-negocio.md) precisa de um valor sobre o
-qual travar. Consistência garantida por atualização na mesma transação da participação;
-uma rotina de reconciliação confere o valor periodicamente.
+qual travar. Consistência garantida por atualização na mesma transação da participação.
+
+No CP5 quem faz o papel da rotina de reconciliação é `assertInvariants`, que roda ao fim de
+**cada** transação e verifica três coisas: `ocupadas <= capacidade`, `ocupadas >= 0` e
+`ocupadas` nunca abaixo do número de participações conhecidas que ocupam vaga.
 
 ### Decisão 7 — Enums, não *strings* livres
 
-Nove enumerações substituem campos de texto livre. Isso torna impossível existir
+Quinze enumerações substituem campos de texto livre. Isso torna impossível existir
 `status = "confirmado "` com espaço, ou `"pago"` em um lugar e `"CONFIRMADO"` em outro —
 e faz o diagrama de estados ([`06-diagrama-estados.md`](06-diagrama-estados.md)) ser
 verificável contra o código.
 
-## 3. Multiplicidades e o que cada uma proíbe
+### Decisão 8 — As projeções ficam fora do diagrama de entidades
+
+Nova no CP5, e é a decisão que este documento mais precisava. Ver a seção 0.
+
+O gatilho foi concreto: `PagamentoView`, `PainelCheckin`, `ResultadoCheckin` e
+`TokenIngresso` nasceram no CP5 e nenhuma delas é tabela. `PainelCheckin`, por exemplo,
+tem `confirmados` e `presentes` — dois `COUNT` — e `abertoAgora`, que é uma comparação de
+relógio. Colocá-la no diagrama 1 sugeriria três colunas que ninguém deve gravar, e que
+estariam erradas um segundo depois de gravadas.
+
+### Decisão 9 — `ResumoCartao` **merece** figurar no modelo de dados, como colunas de `Pagamento`
+
+A pergunta é legítima porque `ResumoCartao` aparece em três papéis:
+
+| Papel | Onde | Categoria |
+|---|---|---|
+| Entrada de escrita | `NovoPagamento.cartao`, montado no cliente por `resumirCartao` | *input* |
+| Estado persistido | `db.resumosCartao: Array<{ pagamentoId } & ResumoCartao>` em `mocks/db.ts` | **persistido** |
+| Projeção de leitura | `PagamentoView.cartao`, lido de volta por `toPagamentoView` | *projection* |
+
+**Decisão: sim, entra no modelo de dados — como três colunas anuláveis de `PAGAMENTO`, não
+como tabela.** Três justificativas, na ordem em que pesam:
+
+1. **É estado que sobrevive à requisição.** `toPagamentoView` o **lê de volta** para a tela
+   mostrar "Visa •••• 4242". Um dado que é escrito, guardado e lido depois é dado
+   persistido, e omiti-lo do modelo faria o modelo mentir sobre o que o sistema guarda.
+2. **RNF-022 é sobre exatamente isto.** O requisito não diz "não guarde nada de cartão" —
+   diz que número e CVV nunca trafegam nem são armazenados. Os quatro últimos dígitos, a
+   bandeira e o titular são o que a lei e o produto permitem manter para o aluno reconhecer
+   a própria cobrança. **Documentar o que se guarda é a única forma de o inventário LGPD do
+   [dicionário de dados](dicionario-de-dados.md) ser auditável.** Esconder isso do modelo
+   seria pior que guardar.
+3. **Tabela própria não se justifica.** É relação 1:0..1 com `PAGAMENTO`, três campos
+   pequenos, nunca consultada isoladamente e nunca filtrada. Uma tabela `resumo_cartao`
+   existiria só para hospedar três colunas opcionais e um `JOIN` obrigatório em toda leitura
+   de pagamento.
+
+No diagrama 1 ela é `Pagamento "1" *-- "0..1" ResumoCartao`, composição: o resumo não existe
+sem a cobrança e morre com ela. No [modelo ER](03-modelo-dados-er.md) são
+`ultimos_quatro`, `bandeira_cartao` e `titular_cartao` em `PAGAMENTO`, anuláveis, com
+`CHECK` de coerência com `metodo`.
+
+**Por que em `db.ts` está como array separado, então?** Porque a interface `Pagamento` de
+`types/domain.ts` espelha a entidade do CP4, e acrescentar três campos a ela mudaria o tipo
+que o diagrama 1 documenta. Manter o mock com um array paralelo foi a escolha de menor
+acoplamento no CP5 — e é uma diferença de **implementação do mock**, não de modelo. No CP6
+as três colunas moram em `pagamento`.
+
+## 4. Multiplicidades e o que cada uma proíbe
 
 | Associação | Multiplicidade | O que a multiplicidade impede |
 |---|---|---|
@@ -404,8 +771,10 @@ verificável contra o código.
 | `Usuario` — `Evento` (organiza) | 1 : 0..* | Evento sem organizador; evento com dois organizadores (v1) |
 | `Usuario` — `Participacao` | 1 : 0..* | Participação sem dono |
 | `Evento` — `Participacao` | 1 : 0..* | Participação sem evento |
-| `Participacao` — `Pagamento` | 1 : 0..1 | Duas cobranças para a mesma vaga; pagamento avulso sem participação |
+| `Participacao` — `Pagamento` | 1 : 0..1 | Duas cobranças para a mesma vaga ([RN-027](../04-regras-de-negocio.md)); pagamento avulso sem participação |
+| `Participacao` — `PoliticaReembolso` | 1 : 0..1 | Duas políticas congeladas para a mesma participação |
 | `Participacao` — `Presenca` | 1 : 0..1 | **Check-in duplo** — é a expressão estrutural de [RN-018](../04-regras-de-negocio.md) |
+| `Pagamento` — `ResumoCartao` | 1 : 0..1 | Dois cartões para a mesma cobrança; resumo de cartão sem cobrança |
 | `Evento` — `PerguntaCustomizada` | 1 : 0..5 | Mais de 5 perguntas (`MAX_CUSTOM_QUESTIONS`) |
 | `PerguntaCustomizada` — `RespostaPergunta` | 1 : 0..* | Resposta sem pergunta |
 | `Participacao` — `RespostaPergunta` | 1 : 0..* | Resposta sem participação |
@@ -415,39 +784,67 @@ verificável contra o código.
 Restrição adicional que a multiplicidade **não** expressa e por isso vive como
 invariante: *no máximo uma participação **ativa** por (evento, usuário)*
 ([RN-015](../04-regras-de-negocio.md)). Participações terminais podem se acumular para o
-mesmo par — é o histórico.
+mesmo par — é o histórico. No CP5 quem a garante é `assertInvariants` em `mocks/db.ts`; no
+CP6 é o índice único parcial de [`03-modelo-dados-er.md`](03-modelo-dados-er.md).
 
-## 4. Métodos e onde ficam no código
+## 5. Métodos e onde ficam no código
 
 Os métodos do diagrama não são "getters": cada um encapsula uma regra de negócio. No
 app React eles são funções puras da camada de domínio, não métodos de instância — a
 tradução está aqui para que o diagrama continue verificável.
 
-| Método no diagrama | Implementação | Regra |
+**Esta tabela foi refeita no CP5, e é o achado mais concreto desta revisão: cinco linhas
+da versão do CP4 apontavam para arquivos que nunca existiram.**
+
+| Método no diagrama | Implementação real | Regra |
 |---|---|---|
 | `Evento.vagasDisponiveis()` | `domain/capacity.ts → availableSpots(event)` | RN-004 |
 | `Evento.estaLotado()` | `domain/capacity.ts → isFull(event)` | RN-006 |
 | `Evento.inscricoesAbertas()` | `domain/deadlines.ts → enrollmentOpen(event, now)` | RN-009 |
 | `Evento.taxaOcupacao()` | `domain/capacity.ts → occupancyRate(event)` | — |
-| `Evento.cancelar(motivo)` | `domain/event.ts → cancelEvent(event, reason)` | RN-021, RN-022 |
+| `Evento.janelaDeCheckin()` | `domain/deadlines.ts → checkInWindow(event)` e `checkInOpen(event, now)` | RN-017 |
 | `Participacao.ocupaVaga()` | `domain/capacity.ts → occupiesSpot(status)` | RN-004 |
 | `Participacao.estaAtiva()` | `domain/participation.ts → isActive(status)` | RN-015 |
-| `Participacao.podeFazerCheckin()` | `domain/checkin.ts → canCheckIn(participation, event, now)` | RN-017 |
-| `Pagamento.confirmar(id)` | `domain/payment.ts → confirmPayment(payment, txId)` | RN-014 |
-| `Pagamento.reembolsar(v)` | `domain/refund.ts → computeRefund(...)` | RN-013 |
-| `Usuario.podeVer(evento)` | `domain/visibility.ts → canSee(user, event)` | RN-001 |
-| `Usuario.ehOrganizadorDe(e)` | `domain/permissions.ts → isOrganizer(user, event)` | RN-023 |
-| `Publicacao.podeSerRemovidaPor(u)` | `domain/moderation.ts → canRemove(user, post, event)` | RN-020 |
-| `Faculdade.validarDominio(e)` | `domain/auth.ts → isInstitutionalEmail(email, college)` | RF-002 |
-| `Turma.gerarCodigo()` | `domain/classGroup.ts → generateInviteCode()` | RF-043 |
+| `Participacao.minutosParaPagar()` | `domain/payment.ts → minutesLeftToPay(participacao, now)` | RN-012 |
+| `Participacao.transicaoPermitida(d)` | `domain/participation.ts → canTransition(from, to)` | RN-015, diagrama de estados |
+| `Pagamento.planejarWebhook(n)` | `domain/payment.ts → planWebhook(pagamento, participacao, notificacao)` | RN-014 |
+| `Pagamento.calcularReembolso(t)` | `domain/refund.ts → computeRefund(...)` | RN-013 |
+| `Usuario.podeVer(evento)` | `domain/visibility.ts → canSee(usuario, event, options)` | RN-001 |
+| `Usuario.ehOrganizadorDe(e)` | `domain/permissions.ts → isOrganizer(usuario, event)` | RN-023 |
+| `Usuario.onboardingPendente()` | `domain/auth.ts → onboardingPendente(usuario)` | RF-004, RF-005 |
+| `Publicacao.podeSerRemovidaPor(u)` | `domain/permissions.ts → canRemovePost(usuario, post, event)` | RN-020 |
+| `Faculdade.validarDominio(e)` | `domain/auth.ts → dominioInstitucional(email, dominios)` | RN-002, RF-002 |
 
-## 5. Atributos que **não** existem, de propósito
+### Métodos removidos nesta revisão, e por quê
+
+| Método do CP4 | Apontava para | Situação real | Decisão |
+|---|---|---|---|
+| `Evento.cancelar(motivo)` | `domain/event.ts → cancelEvent(...)` | **`domain/event.ts` não existe.** Só `canCancelEvent` em `permissions.ts` decide *quem* pode; nada executa o cancelamento | Removido do diagrama. Volta no CP6 com o endpoint |
+| `Turma.gerarCodigo()` / `.revogarCodigo()` | `domain/classGroup.ts → generateInviteCode()` | **`domain/classGroup.ts` não existe.** Os códigos de convite vêm do seed | Removidos. RF-043 é CP6 |
+| `Participacao.podeFazerCheckin()` | `domain/checkin.ts → canCheckIn(...)` | Função não existe com esse nome. A decisão é `decideCheckIn`, que recebe sete entradas e devolve motivo — não é um predicado de instância | Substituído: a decisão é de `Presenca`/serviço, não da participação |
+| `Participacao.confirmar()` / `.expirar()` | — | Nenhuma função de domínio; a transição é escrita pelo handler dentro da transação | Removidos. Transição pertence ao [diagrama de estados](06-diagrama-estados.md), não a método |
+| `Pagamento.confirmar(txId)` / `.estornar()` | `domain/payment.ts → confirmPayment(...)` | Função não existe. Quem decide é `planWebhook`; quem escreve é o handler | Substituído por `planejarWebhook` |
+| `Turma.totalAlunos` (atributo) | — | Nunca existiu em `types/domain.ts` | Removido |
+| `Usuario.senhaHash`, `Usuario.fotoUrl` (atributos) | — | Nunca existiram em `types/domain.ts`. A senha é do CP6 (argon2id, RNF-019); a identidade visual é `avatarSeed`, sem *upload* | Removidos; `avatarSeed: Int` acrescentado |
+
+O padrão nas sete linhas é o mesmo, e vale registrar: **o CP4 nomeou métodos pelo verbo do
+caso de uso; o CP5 mostrou que o domínio expõe decisões, não comandos.** `planWebhook`
+devolve um plano, `planPromotion` devolve um plano, `decideCheckIn` devolve uma decisão,
+`resolvePrimaryAction` devolve uma ação. Nenhuma escreve nada. Quem escreve é sempre o
+handler, dentro de `transaction`. Essa forma é o que permite testar exaustivamente sem banco
+e reusar a mesma regra no servidor no CP6 ([ADR-0003](../adr/0003-camada-de-repositorio-com-msw.md)).
+
+## 6. Atributos que **não** existem, de propósito
 
 | Atributo ausente | Por quê |
 |---|---|
 | `Usuario.cpf`, `.telefone`, `.endereco`, `.dataNascimento` | Minimização de dados pessoais (RNF-020). Nada disso é necessário para o produto funcionar |
-| `Pagamento.numeroCartao`, `.cvv`, `.titular` | Dado de cartão nunca entra no nosso modelo (RNF-022). Guardamos só `transacaoExternaId` |
-| `Evento.imagemUrl` (arquivo enviado) | Na v1 a capa é gerada localmente a partir de `capaSeed`, sem *upload* nem armazenamento de mídia — evita dependência de storage e de moderação de imagem no CP4/CP5 |
-| `Participacao.senhaIngresso` | O token do QR é derivado por HMAC no servidor, não armazenado (RN-017) |
+| `Usuario.fotoUrl` | Sem *upload* na v1: a identidade visual é o avatar de iniciais, gerado de `avatarSeed` |
+| `Usuario.senhaHash` | Existe no [modelo ER](03-modelo-dados-er.md) como alvo do CP6 (`argon2id`, RNF-019) e **não** no tipo do cliente. O CP5 autentica contra `SENHA_DEMO` no mock, e o tipo não deve sugerir que o cliente vê hash |
+| `Pagamento.numeroCartao`, `.cvv` | Nunca entram no modelo (RNF-022). O que sobrevive ao formulário é `ResumoCartao` — ver decisão 9 |
+| `Pagamento.brCode` | Payload Pix é derivado por `gerarCobrancaPix`, não armazenado ([RN-028](../04-regras-de-negocio.md)) |
+| `Evento.imagemUrl` (arquivo enviado) | Na v1 a capa é gerada localmente a partir de `capaSeed`, sem *upload* nem armazenamento de mídia |
+| `Participacao.senhaIngresso` | O token do QR é derivado e assinado a cada emissão, não armazenado (RN-017) |
+| `Participacao.codigoNumerico` | Derivado de `participacaoId` por `numericCheckInCode`. Guardá-lo criaria uma segunda verdade sobre o mesmo ingresso |
 | `Usuario.tipo` | Não existe tipo de usuário: papéis são lista, e organizador é relação (RN-023) |
 | `Evento.aprovadoPorId` | Registrado na `Notificacao` de tipo `EVENTO_APROVADO` e no log de auditoria; não polui a entidade principal |

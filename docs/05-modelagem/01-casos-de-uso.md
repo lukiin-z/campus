@@ -2,6 +2,13 @@
 
 **Responsável:** Ronaldo Veloso Filho · **Requisitos-fonte:** [`../02-requisitos.md`](../02-requisitos.md)
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | 23 casos de uso, 7 atores, relações `include` e `extend` justificadas, cobertura UC ↔ RF e especificação textual de UC-001 a UC-005 |
+| 1.1 | 2026-09-02 | CP5 | Os casos de uso passam a ser **coloridos pelo estado da implementação** — 7 fechados, 9 parciais, 7 não iniciados. A tabela de cobertura ganha a coluna de estado, derivada requisito por requisito de [`../02-requisitos.md`](../02-requisitos.md) §1.1, e a seção 2.1 explica o que "fechado" significa aqui |
+
 ## 1. Atores
 
 | Ator | Tipo | Descrição | Persona correspondente |
@@ -23,7 +30,7 @@
 
 ## 2. Diagrama
 
-Os 22 casos de uso estão agrupados pelos módulos de [`../02-requisitos.md`](../02-requisitos.md).
+Os 23 casos de uso estão agrupados pelos módulos de [`../02-requisitos.md`](../02-requisitos.md).
 Setas cheias são associações ator → caso de uso; setas pontilhadas são relações
 `<<include>>` (obrigatória, sempre executa) e `<<extend>>` (opcional, executa sob
 condição).
@@ -146,7 +153,23 @@ flowchart LR
     E3 --> UC03
     E3 --> UC04
     E3 --> UC17
+
+    classDef fechado fill:#DCEFE3,stroke:#2F7D55,color:#14181C
+    classDef parcial fill:#FCF0DC,stroke:#B07A18,color:#14181C
+    classDef aberto fill:#F2F1EE,stroke:#A9A6A0,color:#5B6068
+
+    class UC02,UC05,UC10,UC11,UC12,UC13,UC14 fechado
+    class UC01,UC03,UC04,UC06,UC07,UC08,UC09,UC17,UC21 parcial
+    class UC15,UC16,UC18,UC19,UC20,UC22,UC23 aberto
 ```
+
+**Cor de fundo dos casos de uso — estado no CP5:**
+
+| Cor | Significado | Quantos |
+|---|---|---|
+| Verde | **Fechado no CP5** — todos os RFs do caso de uso respondem, de ponta a ponta contra a API simulada | 7 |
+| Âmbar | **Parcial** — o fluxo principal responde, mas um ou mais RFs do caso de uso não têm endpoint | 9 |
+| Cinza | **Não iniciado** — nenhum RF do caso de uso tem endpoint no CP5 | 7 |
 
 ### Por que estas relações, e não outras
 
@@ -164,35 +187,70 @@ flowchart LR
 | UC-013 → UC-005 | `extend` | Publicar no feed exige presença registrada (RN-019); é extensão do check-in, não obrigação |
 | UC-020 → UC-001 | `extend` | Aprovação só entra no fluxo quando o alcance é `FACULDADE` e o organizador não é admin (RN-003) |
 
-### Cobertura: caso de uso ↔ requisito
+### Cobertura: caso de uso ↔ requisito ↔ estado no CP5
 
-| UC | Nome | RFs cobertos |
-|---|---|---|
-| UC-001 | Criar evento | RF-010, RF-011, RF-012, RF-018 |
-| UC-002 | Inscrever-se em evento | RF-019, RF-020, RF-022, RF-023 |
-| UC-003 | Pagar inscrição | RF-028, RF-029, RF-030 |
-| UC-004 | Entrar na lista de espera | RF-024, RF-025, RF-026, RF-027 |
-| UC-005 | Fazer check-in por QR Code | RF-033, RF-034 |
-| UC-006 | Cadastrar-se com e-mail institucional | RF-001, RF-002 |
-| UC-007 | Autenticar-se | RF-003, RF-004 |
-| UC-008 | Vincular-se a turma por código | RF-005, RF-008 |
-| UC-009 | Gerenciar perfil e privacidade | RF-006, RF-007, RF-009 |
-| UC-010 | Buscar e filtrar eventos | RF-015 |
-| UC-011 | Ver detalhe do evento | RF-016, RF-036 |
-| UC-012 | Cancelar inscrição | RF-021 |
-| UC-013 | Publicar no feed do evento | RF-037 |
-| UC-014 | Comentar publicação | RF-038 |
-| UC-015 | Editar evento | RF-013 |
-| UC-016 | Cancelar evento | RF-014 |
-| UC-017 | Gerenciar lista de presença | RF-032, RF-035 |
-| UC-018 | Solicitar reembolso | RF-031 |
-| UC-019 | Moderar publicação | RF-042 |
-| UC-020 | Aprovar evento de faculdade | RF-041 |
-| UC-021 | Consultar notificações | RF-039, RF-040 |
-| UC-022 | Responder perguntas customizadas | RF-017 |
-| UC-023 | Gerenciar turmas e códigos | RF-043 |
+A coluna "Estado no CP5" é **derivada**, não declarada: ela sai do status por requisito
+levantado em [`../02-requisitos.md`](../02-requisitos.md) §1.1, lendo o código. Um caso de
+uso só é **fechado** quando **todos** os seus RFs respondem.
+
+| UC | Nome | RFs cobertos | Estado no CP5 | O que falta |
+|---|---|---|---|---|
+| UC-001 | Criar evento | RF-010, RF-011, RF-012, RF-018 | 🟠 parcial | RF-012 (publicar rascunho depois) e RF-018 (duplicar) sem endpoint |
+| UC-002 | Inscrever-se em evento | RF-019, RF-020, RF-022, RF-023 | 🟢 **fechado** | — |
+| UC-003 | Pagar inscrição | RF-028, RF-029, RF-030 | 🟠 parcial | RF-030: a expiração da janela não é escrita por ninguém |
+| UC-004 | Entrar na lista de espera | RF-024, RF-025, RF-026, RF-027 | 🟠 parcial | RF-026: `offerExpired` existe e nada a chama |
+| UC-005 | Fazer check-in por QR Code | RF-033, RF-034 | 🟢 **fechado** | Assinatura calculada no cliente ([ADR-0007](../adr/0007-token-assinado-no-cliente-no-cp5.md)) |
+| UC-006 | Cadastrar-se com e-mail institucional | RF-001, RF-002 | 🟠 parcial | RF-001: não há `POST /auth/cadastro` |
+| UC-007 | Autenticar-se | RF-003, RF-004 | 🟠 parcial | RF-004: recuperação de senha |
+| UC-008 | Vincular-se a turma por código | RF-005, RF-008 | 🟠 parcial | RF-008: troca de turma |
+| UC-009 | Gerenciar perfil e privacidade | RF-006, RF-007, RF-009 | 🟠 parcial | RF-006 escrita e RF-009 sem endpoint |
+| UC-010 | Buscar e filtrar eventos | RF-015 | 🟢 **fechado** | — |
+| UC-011 | Ver detalhe do evento | RF-016, RF-036 | 🟢 **fechado** | — |
+| UC-012 | Cancelar inscrição | RF-021 | 🟢 **fechado** | — |
+| UC-013 | Publicar no feed do evento | RF-037 | 🟢 **fechado** | Critério de "quem pode publicar" divergente — ver [sequência 7](04-diagrama-sequencia.md) |
+| UC-014 | Comentar publicação | RF-038 | 🟢 **fechado** | — |
+| UC-015 | Editar evento | RF-013 | ⚪ não iniciado | Nenhum `PATCH /eventos/:id`. `canEditEvent` existe |
+| UC-016 | Cancelar evento | RF-014 | ⚪ não iniciado | Nenhum endpoint. `canCancelEvent` existe; o estado `CANCELADO` já é lido |
+| UC-017 | Gerenciar lista de presença | RF-032, RF-035 | 🟠 parcial | RF-035 responde; RF-032 (painel financeiro) não |
+| UC-018 | Solicitar reembolso | RF-031 | ⚪ não iniciado | `computeRefund` implementado e testado; sem endpoint |
+| UC-019 | Moderar publicação | RF-042 | ⚪ não iniciado | Campos e filtro de leitura existem; sem endpoint de remoção |
+| UC-020 | Aprovar evento de faculdade | RF-041 | ⚪ não iniciado | `EM_APROVACAO` é criado; `canApproveCollegeEvent` existe; sem endpoint |
+| UC-021 | Consultar notificações | RF-039, RF-040 | 🟠 parcial | RF-039: 2 dos 6 gatilhos emitem notificação |
+| UC-022 | Responder perguntas customizadas | RF-017 | ⚪ não iniciado | Só o parâmetro `MAX_CUSTOM_QUESTIONS` existe |
+| UC-023 | Gerenciar turmas e códigos | RF-043 | ⚪ não iniciado | Códigos vêm do seed |
 
 Os 43 RFs estão cobertos por 23 casos de uso.
+
+### 2.1 O que o CP5 fechou, e o padrão que isso revela
+
+**7 fechados, 9 parciais, 7 não iniciados.**
+
+| Estado | Casos de uso |
+|---|---|
+| 🟢 Fechado | UC-002, UC-005, UC-010, UC-011, UC-012, UC-013, UC-014 |
+| 🟠 Parcial | UC-001, UC-003, UC-004, UC-006, UC-007, UC-008, UC-009, UC-017, UC-021 |
+| ⚪ Não iniciado | UC-015, UC-016, UC-018, UC-019, UC-020, UC-022, UC-023 |
+
+Três leituras que a tabela permite, e que valem mais que a contagem:
+
+**1. O eixo que o CP5 fechou é o caminho do aluno até a porta do evento.** UC-011 (ver) →
+UC-002 (inscrever) → UC-003 (pagar) → UC-005 (check-in) → UC-013 (publicar). É a espinha da
+demonstração, e não foi coincidência: é o recorte de
+[`../03-escopo.md`](../03-escopo.md).
+
+**2. Os sete não iniciados são, quase todos, administração — e todos têm domínio pronto.**
+Editar, cancelar, aprovar, moderar, reembolsar, gerenciar turmas. `canEditEvent`,
+`canCancelEvent`, `canApproveCollegeEvent`, `canRemovePost` e `computeRefund` existem em
+`app/src/domain/`, são funções puras e — no caso de `computeRefund` — cobertas por teste.
+**O que falta é sempre o endpoint, nunca a regra.** É o desenho do
+[ADR-0003](../adr/0003-camada-de-repositorio-com-msw.md) funcionando: a decisão primeiro,
+a autoridade depois.
+
+**3. Cinco dos nove parciais são parciais pelo mesmo motivo: falta uma rotina de tempo ou um
+endpoint de escrita.** UC-003 e UC-004 esperam a expiração (`paymentExpired`, `offerExpired`);
+UC-009 e UC-001 esperam um `PATCH`; UC-021 espera os outros quatro gatilhos de notificação.
+Nenhum deles espera uma decisão de produto. Ver a seção "Transições que o CP5 ainda não
+executa" em [`06-diagrama-estados.md`](06-diagrama-estados.md).
 
 ---
 

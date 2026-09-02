@@ -3,8 +3,21 @@
 **Responsável:** Ronaldo Veloso Filho
 **Modelo:** [`03-modelo-dados-er.md`](03-modelo-dados-er.md) · **Classes:** [`02-diagrama-classes.md`](02-diagrama-classes.md)
 
-Especificação campo a campo das 14 entidades. Tipos em PostgreSQL 16 (alvo do CP6); o
-equivalente em TypeScript está em [`app/src/types/domain.ts`](../../app/src/types/domain.ts).
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | 13 tabelas campo a campo, 9 tipos enumerados e inventário de dados pessoais |
+| 1.1 | 2026-09-02 | CP5 | `usuario.foto_url` sai, entra `avatar_seed` — e sai também do inventário LGPD, porque não é dado pessoal. `participacao.motivo_cancelamento` passa a tipo enumerado, com o quinto valor que o código tem. `pagamento` recebe as três colunas do resumo de cartão que o CP5 guarda, e a nota "nome do titular nunca existirá aqui" **foi corrigida: existe**. Tipos enumerados vão de 9 para 10. Nova seção 16 com os 20 tipos que **não** são tabela |
+
+Especificação campo a campo das 13 entidades persistidas. Tipos em PostgreSQL 16 (alvo do
+CP6); o equivalente em TypeScript está em
+[`app/src/types/domain.ts`](../../app/src/types/domain.ts).
+
+Aquele arquivo declara 45 tipos, e só 13 são tabela. Os outros — projeções de leitura e
+entradas de escrita — estão na **seção 16**, sem coluna, sem tipo de banco e sem restrição,
+porque não têm. A distinção é a seção 0 de
+[`02-diagrama-classes.md`](02-diagrama-classes.md).
 
 ## Convenções
 
@@ -91,8 +104,8 @@ subclasse por papel ([RN-023](../04-regras-de-negocio.md)).
 | `id` | `uuid` | Sim | `gen_random_uuid()` | Identificador | `PK` |
 | `nome` | `varchar(120)` | Sim | — | Nome de exibição, editável (RF-006) | `CHECK length >= 2` |
 | `email` | `varchar(180)` | Sim | — | E-mail institucional; identidade da conta | `UK`, `CHECK` domínio pertence a `faculdade.dominios_email` |
-| `senha_hash` | `varchar(255)` | Sim | — | Hash Argon2id. **Nunca** a senha (RNF-010) | — |
-| `foto_url` | `varchar(400)` | Não | `NULL` | Avatar. Nulo gera iniciais com cor derivada do `id` | — |
+| `senha_hash` | `varchar(255)` | Sim | — | Hash Argon2id. **Nunca** a senha (RNF-010). Coluna do CP6: no CP5 o mock autentica contra `SENHA_DEMO`, e a interface `Usuario` do cliente **não tem** este campo | — |
+| `avatar_seed` | `smallint` | Sim | aleatório | Semente da cor do avatar de iniciais. Não há *upload* de foto na v1, então não há URL nem storage | `CHECK >= 1` |
 | `faculdade_id` | `uuid` | Sim | — | Vínculo institucional | `FK faculdade(id) ON DELETE RESTRICT` |
 | `curso_id` | `uuid` | Cond. | `NULL` | Preenchido ao concluir o onboarding | `FK curso(id) ON DELETE RESTRICT` |
 | `turma_id` | `uuid` | Cond. | `NULL` | Preenchido ao informar código de turma válido | `FK turma(id) ON DELETE RESTRICT` |
@@ -162,7 +175,7 @@ Relação entre usuário e evento, com ciclo de vida próprio. Entidade, não ta
 | `posicao_fila` | `integer` | Cond. | `NULL` | Posição na lista de espera. Obrigatório se `status = LISTA_ESPERA` | `CHECK >= 1`, `CHECK` condicional |
 | `pagamento_expira_em` | `timestamptz` | Cond. | `NULL` | Fim da janela de pagamento. Obrigatório se `status = PENDENTE_PAGAMENTO` ([RN-012](../04-regras-de-negocio.md)) | `CHECK` condicional |
 | `oferta_expira_em` | `timestamptz` | Cond. | `NULL` | Fim da janela da oferta. Obrigatório se `status = OFERTA_PENDENTE` ([RN-007](../04-regras-de-negocio.md)) | `CHECK` condicional |
-| `motivo_cancelamento` | `text` | Não | `NULL` | Enum textual: `ALUNO_DESISTIU`, `EVENTO_CANCELADO`, `VINCULO_PERDIDO`, `REMOVIDO_PELO_ORGANIZADOR` | — |
+| `motivo_cancelamento` | `motivo_cancelamento` | Não | `NULL` | Tipo enumerado, não texto livre: `ALUNO_DESISTIU`, `EVENTO_CANCELADO`, `VINCULO_PERDIDO`, `REMOVIDO_PELO_ORGANIZADOR`, `OFERTA_RECUSADA`. No CP5 só `ALUNO_DESISTIU` é escrito, por `DELETE /api/participacoes/:id` | — |
 | `cancelada_apos_prazo` | `boolean` | Sim | `false` | Cancelamento depois de `prazo_cancelamento` — sem reembolso, e visível no histórico do organizador ([RN-010](../04-regras-de-negocio.md)) | — |
 | `politica_vigente` | `jsonb` | Não | `NULL` | Política de reembolso **congelada** no momento do pagamento. Preenchido só em evento pago | — |
 | `criado_em` | `timestamptz` | Sim | `now()` | Instante de entrada — define a ordem FIFO da fila | — |
@@ -204,17 +217,39 @@ Cobrança de uma participação. Relação 1:0..1.
 | `valor_reembolsado` | `numeric(10,2)` | Sim | `0` | Total já devolvido ([RN-013](../04-regras-de-negocio.md)) | `CHECK BETWEEN 0 AND valor` |
 | `status` | `status_pagamento` | Sim | `'AGUARDANDO'` | Um dos 8 estados | — |
 | `transacao_externa_id` | `varchar(120)` | Não | `NULL` | Identificador da transação no gateway. Único dado do gateway que guardamos | Índice |
-| `chave_idempotencia` | `varchar(80)` | Sim | — | Impede processar a mesma notificação duas vezes ([RN-014](../04-regras-de-negocio.md), RNF-014) | `UK` |
+| `chave_idempotencia` | `varchar(80)` | Sim | — | Impede processar a mesma notificação duas vezes ([RN-014](../04-regras-de-negocio.md), RNF-014). Derivada por `domain/payment.ts#idempotencyKey(participacaoId, transacaoExternaId)` | `UK` |
+| `ultimos_quatro` | `varchar(4)` | Cond. | `NULL` | Últimos 4 dígitos do cartão. Nulo quando `metodo = PIX`. Reduzido **no cliente** por `domain/pix.ts#resumirCartao` | `CHECK ~ '^[0-9]{4}$'`, `CHECK` coerência com `metodo` |
+| `bandeira_cartao` | `varchar(24)` | Cond. | `NULL` | `Visa`, `Mastercard`, `Amex`, `Elo`, `Hipercard` ou `Cartão`. Derivada do prefixo, no cliente | `CHECK` coerência com `metodo` |
+| `titular_cartao` | `varchar(120)` | Cond. | `NULL` | Nome impresso no cartão, em caixa alta. **Sem** número, sem CVV, sem validade | `CHECK` coerência com `metodo` |
 | `criado_em` | `timestamptz` | Sim | `now()` | — | — |
 | `confirmado_em` | `timestamptz` | Cond. | `NULL` | Obrigatório se `status = CONFIRMADO` | `CHECK` condicional |
 
-**Campos que nunca existirão aqui:** número de cartão, CVV, validade, nome do titular,
-*token* de cartão. A captura ocorre no ambiente do gateway (RNF-022) — o Campus fica fora
-do escopo de PCI-DSS por não tocar no dado.
+**Campos que nunca existirão aqui:** número de cartão, CVV, validade e *token* de cartão. A
+captura completa ocorre no ambiente do gateway (RNF-022) — o Campus fica fora do escopo de
+PCI-DSS por não tocar no dado sensível.
+
+> **Correção do CP5.** A versão do CP4 desta nota listava também "nome do titular" entre os
+> campos que nunca existiriam. **Existe:** `domain/pix.ts#resumirCartao` devolve
+> `{ ultimosQuatro, bandeira, titular }`, e `mocks/handlersCp5.ts` grava os três em
+> `db.resumosCartao`, de onde `toPagamentoView` os lê de volta para a tela mostrar
+> "Visa •••• 4242". As três colunas acima são a forma correta disso no CP6 — ver a decisão 9
+> de [`02-diagrama-classes.md`](02-diagrama-classes.md). Documentar o que se guarda é o que
+> torna o inventário da seção 15 auditável; a nota do CP4 estava, na prática, escondendo um
+> dado pessoal do inventário.
+
+**Nenhuma coluna para o payload Pix.** O BR Code é recalculado a cada leitura por
+`gerarCobrancaPix`, determinístico sobre `(valor, referencia, expiraEm)`
+([RN-028](../04-regras-de-negocio.md)). Guardá-lo seria manter dado derivado em duas cópias,
+e a segunda passaria a discordar da primeira na alteração de preço.
 
 **`chave_idempotencia`** é `UNIQUE` e não apenas indexada: a garantia de processamento único
 vem do banco recusando o segundo `INSERT`, não de um `SELECT` prévio da aplicação (que teria
-janela de corrida).
+janela de corrida). No CP5, quem faz esse papel é a comparação de estado em
+`domain/payment.ts#planWebhook`, que devolve `IGNORAR_DUPLICADA` sem escrever nada.
+
+**No máximo uma cobrança `AGUARDANDO` por participação** ([RN-027](../04-regras-de-negocio.md)).
+Trocar de método substitui a cobrança reaproveitando o mesmo `id` e o mesmo
+`transacao_externa_id`, em vez de acumular duas.
 
 ---
 
@@ -344,6 +379,26 @@ integridade referencial aqui não se paga.
 | `metodo_checkin` | `QR_CODE`, `CODIGO_NUMERICO`, `MANUAL` | UC-005 A1, A4 |
 | `tipo_pergunta` | `TEXTO_CURTO`, `ESCOLHA_UNICA` | RF-017 |
 | `tipo_notificacao` | `NOVO_EVENTO`, `VAGA_LIBERADA`, `PAGAMENTO_CONFIRMADO`, `PAGAMENTO_EXPIRADO`, `EVENTO_ALTERADO`, `EVENTO_CANCELADO`, `CHECKIN_REALIZADO`, `EVENTO_APROVADO` | RF-039 |
+| `motivo_cancelamento` | `ALUNO_DESISTIU`, `EVENTO_CANCELADO`, `VINCULO_PERDIDO`, `REMOVIDO_PELO_ORGANIZADOR`, `OFERTA_RECUSADA` | [RN-010](../04-regras-de-negocio.md), [RN-022](../04-regras-de-negocio.md) |
+
+São **dez** tipos, e os dez existem como *union type* de mesmo nome em
+[`app/src/types/domain.ts`](../../app/src/types/domain.ts), na mesma ordem.
+`motivo_cancelamento` era `text` no CP4 e o código já o tipava como enumeração — o código
+venceu.
+
+### As cinco enumerações do código que **não** são tipos do banco
+
+| Enumeração em `types/domain.ts` | Onde aparece | Por que não é coluna |
+|---|---|---|
+| `MOTIVO_RECUSA_INSCRICAO` | campo `erro` do `409` e do `422` de `POST /api/eventos/:id/participacoes` | Recusa é dita, não guardada |
+| `MOTIVO_RECUSA_LOGIN` | campo `erro` do `401` e do `422` de `POST /api/auth/login` | idem |
+| `MOTIVO_RECUSA_ONBOARDING` | campo `erro` do `422` de `POST /api/auth/onboarding` | idem |
+| `MOTIVO_RECUSA_CHECKIN` | campo `motivo` do `200 aceito: false` de `POST /api/eventos/:id/checkin` | idem |
+| `DESFECHO_SIMULADO` | corpo de `POST /api/pagamentos/:id/simular` | É gatilho da demo, não estado. No CP6 quem chama é o gateway |
+
+O valor delas nunca é persistido. Criar `CREATE TYPE` para elas confundiria vocabulário de
+protocolo com estado — e a única consequência prática seria uma migração a cada mensagem de
+erro nova.
 
 ## 15. Inventário de dados pessoais (LGPD)
 
@@ -355,13 +410,74 @@ não aparecer aqui, o PR que o criou está incompleto.
 | Nome | `usuario.nome`, exibido em publicações e listas | Identificação | Execução de contrato (uso do app) | Enquanto a conta existir | Substituído por `Usuário removido` |
 | E-mail institucional | `usuario.email` | Identificação e vínculo | Execução de contrato | Enquanto a conta existir | Substituído por hash irreversível (mantém unicidade) |
 | Senha (hash) | `usuario.senha_hash` | Credencial | Execução de contrato | Enquanto a conta existir | Apagado |
-| Foto de perfil | `usuario.foto_url` | Identificação | Consentimento (campo opcional) | Enquanto a conta existir | Apagada |
 | Vínculo acadêmico | `usuario.faculdade_id`, `.curso_id`, `.turma_id` | Dado acadêmico | Execução de contrato | Enquanto a conta existir | Mantido apenas de forma agregada |
 | Histórico de participação | `participacao` | Comportamental | Execução de contrato | 5 anos (histórico do evento) | Anonimizado: `usuario_id` aponta para a linha anonimizada |
 | Presença em evento | `presenca` | Comportamental | Execução de contrato | 5 anos | Anonimizada, preservando a contagem |
-| Registro de pagamento | `pagamento` | Financeiro (sem dado de cartão) | Obrigação legal e contratual | 5 anos | **Retido** por obrigação fiscal/contábil |
+| Registro de pagamento | `pagamento` (`valor`, `status`, `transacao_externa_id`) | Financeiro | Obrigação legal e contratual | 5 anos | **Retido** por obrigação fiscal/contábil |
+| **Resumo do cartão** | `pagamento.ultimos_quatro`, `.bandeira_cartao`, `.titular_cartao` | Financeiro e de identificação | Execução de contrato | 5 anos, junto do registro de pagamento | `titular_cartao` anonimizado; os 4 dígitos e a bandeira são **retidos** por obrigação fiscal |
 | Fotos publicadas e comentários | `publicacao`, `comentario` | Conteúdo do titular | Consentimento | Enquanto a publicação existir | Apagados a pedido do titular |
 | Notificações | `notificacao` | Comportamental | Execução de contrato | 90 dias | Apagadas |
 
 **Não coletado, e por isso ausente do inventário:** CPF, RG, telefone, endereço, data de
-nascimento, gênero, dado de saúde, geolocalização, dado de cartão de crédito.
+nascimento, gênero, dado de saúde, geolocalização, **número de cartão, CVV e validade**.
+
+**Não é dado pessoal, e por isso também está fora:** `usuario.avatar_seed` — um número que
+escolhe a cor do avatar de iniciais. A entrada "foto de perfil" do CP4 saiu do inventário
+porque `foto_url` nunca existiu no código: não há *upload*, não há storage, não há imagem.
+
+> **Como o inventário mudou no CP5, e por quê.** Saiu uma linha que descrevia um campo
+> inexistente (`foto_url`) e entrou uma linha que descreve três campos que existem
+> (`ultimos_quatro`, `bandeira_cartao`, `titular_cartao`). O saldo é que o inventário passou
+> a ser **verificável contra o código** — que é a única propriedade que faz um inventário
+> LGPD valer algo. A regra desta seção continua a mesma: se um campo novo com dado pessoal
+> não aparecer aqui, o PR que o criou está incompleto.
+
+---
+
+## 16. Tipos que **não** são tabela
+
+`app/src/types/domain.ts` declara 45 tipos. As 13 tabelas deste dicionário são os que têm
+identidade e linha. Os 20 abaixo não têm coluna, não têm restrição e não viram `CREATE
+TABLE` — estão listados porque **a tela conversa com eles**, e porque a tentação de
+"guardar" um deles é o erro mais caro que este modelo pode sofrer.
+
+### Projeções de leitura — o que a API devolve
+
+| Tipo | Endpoint que o devolve | Por que não é tabela |
+|---|---|---|
+| `EventoView` | `GET /api/eventos`, `GET /api/eventos/:id`, `GET /api/eventos/destaque` | `extends Evento` e acrescenta 7 campos: 5 derivados (`availableSpots`, `enrollmentOpen`, `waitlistSize`, `alcanceRotulo`, e `taxaOcupacao` calculada em linha em `toEventoView` — `domain/capacity.ts#occupancyRate` existe e **não** é chamada ali) e 2 `JOIN` (`organizador`, `minhaParticipacao`) |
+| `ParticipacaoView` | `GET /api/participacoes`, `GET /api/participacoes/:id` | `extends Participacao` com `evento`, `pagamento` e `presenca` resolvidos |
+| `PagamentoView` | `GET` e `POST /api/participacoes/:id/pagamento`, `POST /api/pagamentos/:id/simular` | `extends Pagamento` com `pix` derivado, `cartao` lido das três colunas e `minutosRestantes` calculado pelo servidor |
+| `PublicacaoView` | `GET /api/feed`, `POST /api/publicacoes` | `extends Publicacao` com autor, evento e comentários já resolvidos |
+| `PresencaView` | dentro de `PainelCheckin` | `extends Presenca` com o participante resolvido |
+| `SessaoUsuario` | `GET /api/sessao`, `POST /api/auth/onboarding` | Compõe `Usuario` + `Faculdade` + `Curso` + `Turma`. É `JOIN`, não tabela |
+| `PainelCheckin` | `GET /api/eventos/:id/checkin` | Dois `COUNT` (`confirmados`, `presentes`), uma comparação de relógio (`abertoAgora`) e a janela de `checkInWindow`. Gravar isso seria gravar algo errado um segundo depois |
+| `TokenIngresso` | `GET /api/participacoes/:id/token` | `valor` é assinado a cada emissão; `codigoNumerico` e `codigoLegivel` são derivados de `participacao.id`. Guardá-los criaria uma segunda verdade sobre o mesmo ingresso |
+| `ResultadoLogin` | `POST /api/auth/login` | Token + sessão. O token vive em `sessionStorage`, no cliente |
+| `ResultadoCheckin` | `POST /api/eventos/:id/checkin` | O **veredito** de uma leitura. O que fica gravado é a `presenca`, não o veredito |
+| `ResultadoInscricao` | `POST /api/eventos/:id/participacoes` | União discriminada de 4 desfechos. O que fica gravado é a `participacao` |
+
+### Objetos-valor
+
+| Tipo | Situação |
+|---|---|
+| `PoliticaReembolso` | **Persistido**, como `participacao.politica_vigente` em `jsonb`. Objeto-valor imutável, congelado no pagamento ([RN-013](../04-regras-de-negocio.md)) |
+| `ResumoCartao` | **Persistido**, como três colunas de `pagamento`. Ver a seção 7 e a decisão 9 de [`02-diagrama-classes.md`](02-diagrama-classes.md) |
+| `CobrancaPix` | **Não persistido.** Derivado por `gerarCobrancaPix` a cada leitura ([RN-028](../04-regras-de-negocio.md)) |
+
+### Entradas de escrita e filtros — o que a tela envia
+
+| Tipo | Vai para | Validado por |
+|---|---|---|
+| `Credenciais` | `POST /api/auth/login` | `emailBemFormado`, `senhaAceitavel` no cliente; `decideLogin` no servidor |
+| `EntradaOnboarding` | `POST /api/auth/onboarding` | `normalizaCodigo` no cliente; `decideOnboarding` no servidor |
+| `NovoEvento` | `POST /api/eventos` | `eventFormSchema` (Zod, que **chama** `validateDeadlines`) no cliente; âncora do vínculo no servidor |
+| `NovoPagamento` | `POST /api/participacoes/:id/pagamento` | `luhnValido`, `validadeNoFuturo`, `cvvValido`, `resumirCartao` no cliente |
+| `NovaPublicacao` | `POST /api/publicacoes` | tamanho da legenda 2 a 500, alcance e participação no servidor |
+| `NovoComentario` | `POST /api/publicacoes/:id/comentarios` | tamanho do texto 2 a 280 no servidor |
+| `FiltroEventos` | *query string* de `GET /api/eventos` | `aplicarFiltros` em `mocks/support.ts` |
+
+E os três tipos de filtro — `FiltroAlcance`, `FiltroPreco`, `FiltroPeriodo` — que são
+uniões de literais de UI, não enumerações de domínio: `'TODOS' | 'MINHA_TURMA' | 'MEU_CURSO'
+| 'FACULDADE'` descreve **botões de filtro**, e `TODOS` não é um alcance que um evento possa
+ter. Confundi-los com `AlcanceEvento` colocaria um valor impossível na coluna `alcance`.

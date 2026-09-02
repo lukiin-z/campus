@@ -3,9 +3,18 @@
 **Responsável:** Ronaldo Veloso Filho · **Revisão técnica:** Lucas Baraldi
 **Detalhamento campo a campo:** [`dicionario-de-dados.md`](dicionario-de-dados.md)
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | 13 tabelas (o texto dizia 14), restrições `CHECK`, índice único parcial, ações referenciais, índices justificados por consulta, 9 tipos enumerados e a transação de RN-004 |
+| 2.0 | 2026-09-02 | CP5 | `USUARIO.foto_url` sai e entra `avatar_seed` — não há *upload* na v1. `PAGAMENTO` recebe as três colunas do resumo de cartão que o CP5 de fato guarda (`ultimos_quatro`, `bandeira_cartao`, `titular_cartao`), com `CHECK` de coerência com `metodo` — a justificativa está na decisão 9 de [`02-diagrama-classes.md`](02-diagrama-classes.md). `PARTICIPACAO.motivo_cancelamento` passa de `text` para o enum que o código já usa. Os tipos enumerados vão de 9 para **10**, e fica registrado por que as outras cinco enumerações do código **não** são tipos do banco |
+
 Este é o modelo lógico relacional derivado do [diagrama de classes](02-diagrama-classes.md).
 Ele é o alvo do CP6, quando a persistência real substitui o mock. No CP5 as mesmas
-entidades existem em memória com os mesmos nomes e tipos.
+entidades existem em memória com os mesmos nomes e tipos — e as invariantes que aqui são
+restrição do banco são verificadas em tempo de execução por `assertInvariants` em
+[`app/src/mocks/db.ts`](../../app/src/mocks/db.ts). Ver a seção 6.
 
 **SGBD alvo:** PostgreSQL 16 — escolhido pelas restrições `CHECK` compostas, índice único
 parcial e tipo `numeric` exato para dinheiro. Todas as três coisas são usadas aqui, e
@@ -73,8 +82,8 @@ erDiagram
         uuid id PK
         varchar nome
         varchar email UK "e-mail institucional"
-        varchar senha_hash "argon2id"
-        varchar foto_url
+        varchar senha_hash "argon2id - CP6"
+        smallint avatar_seed "semente do avatar de iniciais"
         uuid faculdade_id FK
         uuid curso_id FK
         uuid turma_id FK
@@ -117,7 +126,7 @@ erDiagram
         integer posicao_fila "nulo fora da lista de espera"
         timestamptz pagamento_expira_em
         timestamptz oferta_expira_em
-        text motivo_cancelamento
+        motivo_cancelamento motivo_cancelamento "enum, nao texto livre"
         boolean cancelada_apos_prazo
         jsonb politica_vigente "congelada no pagamento"
         timestamptz criado_em
@@ -133,6 +142,9 @@ erDiagram
         status_pagamento status
         varchar transacao_externa_id "id no gateway"
         varchar chave_idempotencia UK
+        varchar ultimos_quatro "4 digitos, nulo em Pix - RNF-022"
+        varchar bandeira_cartao "Visa Mastercard Amex Elo Hipercard"
+        varchar titular_cartao "nome impresso, sem numero nem CVV"
         timestamptz criado_em
         timestamptz confirmado_em
     }
@@ -229,8 +241,35 @@ tentativa de inserir a mesma chave falha no banco. Idempotência implementada s�
 
 **4. `USUARIO.excluido_em` implementa exclusão lógica.** Exclusão física quebraria as
 FKs de participações e publicações e apagaria dado agregado de eventos passados. A
-exclusão pedida pelo titular (RNF-021) anonimiza `nome`, `email` e `foto_url`, preenche
-`excluido_em` e mantém a linha como chave estrangeira órfã de conteúdo pessoal.
+exclusão pedida pelo titular (RNF-021) anonimiza `nome` e `email`, preenche `excluido_em` e
+mantém a linha como chave estrangeira órfã de conteúdo pessoal. `avatar_seed` não é dado
+pessoal — é um número de 1 a N que escolhe a cor do avatar de iniciais.
+
+**5. O resumo do cartão são três colunas de `PAGAMENTO`, não uma tabela — e está no modelo
+de propósito** (novo no CP5). `ultimos_quatro`, `bandeira_cartao` e `titular_cartao` são o
+que sobra de um cartão depois do formulário: `domain/pix.ts#resumirCartao` reduz os dados
+**no cliente**, e número e CVV nunca entram em requisição nenhuma (RNF-022).
+
+Três razões para figurar no modelo, e não como tabela:
+
+- É estado que **sobrevive à requisição e é lido de volta** — `toPagamentoView` o devolve
+  para a tela mostrar "Visa •••• 4242". Dado escrito, guardado e relido é dado persistido.
+- **Documentar o que se guarda é o que torna o inventário LGPD auditável.** RNF-022 não diz
+  "não guarde nada de cartão": diz que número e CVV não trafegam nem são armazenados.
+  Esconder do modelo o que de fato se guarda seria pior do que guardar.
+- Relação 1:0..1, três campos pequenos, nunca consultados isoladamente. Uma tabela
+  `resumo_cartao` existiria só para hospedar três colunas opcionais e impor um `JOIN` em
+  toda leitura de pagamento.
+
+No mock do CP5 isso vive como `db.resumosCartao`, um array paralelo — diferença de
+implementação do mock, não de modelo: acrescentar campos à interface `Pagamento` teria
+mudado o tipo que o [diagrama de classes](02-diagrama-classes.md) documenta.
+
+**6. `PAGAMENTO` não tem coluna para o payload Pix.** O BR Code é recalculado por
+`gerarCobrancaPix` a cada leitura, determinístico sobre `(valor, referencia, expiraEm)`
+([RN-028](../04-regras-de-negocio.md)). BR Code armazenado é dado derivado que passa a
+discordar da fonte na primeira alteração de preço — e quem paga, paga o valor errado com a
+bênção do banco de dados.
 
 **Uma nota sobre `politica_vigente` em `jsonb`.** É a única coluna semiestruturada do
 modelo, e é intencional: a política de reembolso é um pequeno documento imutável
@@ -282,6 +321,9 @@ CREATE UNIQUE INDEX ux_participacao_ativa
 | `PARTICIPACAO` | `status = 'PENDENTE_PAGAMENTO'` exige `pagamento_expira_em IS NOT NULL` | RN-012 |
 | `PAGAMENTO` | `valor > 0` | — |
 | `PAGAMENTO` | `valor_reembolsado BETWEEN 0 AND valor` | RN-013 |
+| `PAGAMENTO` | `metodo = 'PIX'` exige as três colunas de cartão nulas | RNF-022 |
+| `PAGAMENTO` | `ultimos_quatro ~ '^[0-9]{4}$'` quando não nulo | RNF-022 |
+| `PAGAMENTO` | no máximo **uma** linha `AGUARDANDO` por `participacao_id` | RN-027 |
 | `PERGUNTA_CUSTOMIZADA` | `ordem BETWEEN 1 AND 5` | RN-025 |
 | `PERGUNTA_CUSTOMIZADA` | `tipo = 'ESCOLHA_UNICA'` exige `array_length(opcoes,1) >= 2` | RN-025 |
 | `PUBLICACAO` | `removida = true` exige `motivo_remocao` e `removida_por_id` | RN-020 |
@@ -345,10 +387,26 @@ CREATE TYPE tipo_pergunta        AS ENUM ('TEXTO_CURTO','ESCOLHA_UNICA');
 CREATE TYPE tipo_notificacao     AS ENUM ('NOVO_EVENTO','VAGA_LIBERADA','PAGAMENTO_CONFIRMADO',
                                           'PAGAMENTO_EXPIRADO','EVENTO_ALTERADO','EVENTO_CANCELADO',
                                           'CHECKIN_REALIZADO','EVENTO_APROVADO');
+CREATE TYPE motivo_cancelamento  AS ENUM ('ALUNO_DESISTIU','EVENTO_CANCELADO','VINCULO_PERDIDO',
+                                          'REMOVIDO_PELO_ORGANIZADOR','OFERTA_RECUSADA');
 ```
 
-Os mesmos nove conjuntos existem como *union types* em
+Os mesmos **dez** conjuntos existem como *union types* em
 [`app/src/types/domain.ts`](../../app/src/types/domain.ts) — mesma ordem, mesmos nomes.
+`motivo_cancelamento` foi o décimo: no CP4 a coluna era `text`, e o código já a tipava como
+enumeração desde o começo. O código venceu.
+
+### As cinco enumerações que **não** são tipos do banco
+
+`MOTIVO_RECUSA_INSCRICAO`, `MOTIVO_RECUSA_LOGIN`, `MOTIVO_RECUSA_ONBOARDING`,
+`MOTIVO_RECUSA_CHECKIN` e `DESFECHO_SIMULADO` existem em `types/domain.ts` e **não** viram
+`CREATE TYPE`. Nenhuma é valor de coluna: elas tipam o campo `erro` do corpo de uma resposta
+recusada (`401`, `409`, `422`, ou `200` com `aceito: false`) e o gatilho da simulação de
+gateway.
+
+Criar tipos de banco para elas seria confundir vocabulário de protocolo com estado
+persistido. A recusa de um login não é guardada em lugar nenhum — ela é **dita**. A distinção
+é a mesma da seção 0 de [`02-diagrama-classes.md`](02-diagrama-classes.md).
 
 ## 6. A transação que sustenta RN-004
 
@@ -383,6 +441,40 @@ Duas requisições simultâneas para a última vaga: a segunda espera a primeira
 No CP5, sem banco, a mesma serialização é obtida por uma fila de operações de escrita na
 camada mockada — o comportamento observável é idêntico, e o mesmo teste passa nos dois
 mundos.
+
+### Como a serialização é feita no CP5, linha por linha
+
+`transaction()` em [`app/src/mocks/db.ts`](../../app/src/mocks/db.ts) encadeia cada escrita
+na promessa anterior:
+
+- `writeQueue = result.catch(() => undefined)` — a fila continua mesmo se uma transação
+  falhar; sem isso, uma exceção travaria todas as escritas seguintes.
+- `await Promise.resolve()` antes de executar o trabalho — ponto de rendição que garante que
+  duas chamadas concorrentes de fato entrem em ordem, e não sejam otimizadas para o mesmo
+  *tick*.
+- `assertInvariants(db)` ao fim de **cada** transação, e ele **estoura** em vez de gerar dado
+  inconsistente silenciosamente.
+
+As três invariantes que `assertInvariants` verifica são o equivalente em memória de três
+restrições desta página:
+
+| Invariante verificada em `db.ts` | Restrição equivalente no CP6 | Regra |
+|---|---|---|
+| `ocupadas <= capacidade` e `ocupadas >= 0` | `CHECK ck_evento_ocupadas_le_capacidade` | RN-004 |
+| `ocupadas` nunca abaixo das participações conhecidas que ocupam vaga | rotina de reconciliação | RN-004 |
+| uma participação **ativa** por `(evento_id, usuario_id)` | `CREATE UNIQUE INDEX ux_participacao_ativa` | RN-015 |
+| uma presença por `participacao_id` | `PRESENCA.participacao_id UNIQUE` | RN-018 |
+
+A verificação do contador materializado é deliberadamente frouxa em um ponto: ela checa que
+`ocupadas` nunca fica **abaixo** das participações efetivamente conhecidas, não que seja
+igual. O motivo está no seed — ele carrega números realistas (233 inscritos na Feira de
+Carreiras) sem materializar cada participação, porque fazê-lo exigiria inventar ~1.500
+usuários fictícios e tornaria o seed ilegível sem provar nada a mais. O que se quer pegar é
+erro de contabilidade **nas escritas**, e é isso que a desigualdade pega.
+
+**O teste CT-020 é a prova.** Ele dispara 50 inscrições concorrentes na última vaga e exige
+exatamente uma confirmação, contra os handlers reais — está em
+[`app/src/services/inscricao.test.ts`](../../app/src/services/inscricao.test.ts).
 
 ## 7. Volumetria estimada (premissa do grupo)
 
