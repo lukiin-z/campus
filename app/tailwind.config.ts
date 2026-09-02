@@ -164,7 +164,20 @@ const config: Config = {
       gridTemplateColumns: { 21: 'repeat(21, minmax(0, 1fr))' },
       minHeight: { touch: '2.75rem' },
       minWidth: { touch: '2.75rem' },
-      height: { topbar: '3.5rem', bottomnav: '4rem' },
+      // Alturas e larguras nomeadas dos componentes. Existem porque a escala de
+      // espaçamento acima é fechada: `h-56` não existe neste projeto, e uma
+      // classe inexistente não gera CSS — o elemento simplesmente colapsa, sem
+      // erro. Token nomeado torna a intenção explícita e verificável.
+      height: {
+        topbar: '3.5rem',
+        bottomnav: '4rem',
+        'cover-sm': '5rem',
+        'cover-md': '10rem',
+        'cover-lg': '14rem',
+        ticket: '12rem',
+        qr: '16rem',
+      },
+      width: { ticket: '16rem' },
       transitionDuration: { fast: '150ms', DEFAULT: '200ms' },
       keyframes: {
         'toast-in': {

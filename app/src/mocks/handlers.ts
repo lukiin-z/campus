@@ -155,41 +155,59 @@ function aplicarFiltros(
   fimDoMes.setHours(23, 59, 59, 999);
   const seteDias = agora + 7 * 24 * 3_600_000;
 
-  return eventos
-    .filter((e) => e.status === 'PUBLICADO' || e.status === 'CANCELADO' || e.status === 'REALIZADO')
-    .filter((e) => {
-      switch (filtros.alcance) {
-        case 'MINHA_TURMA':
-          return e.alcance === 'TURMA' && e.turmaId === usuario?.turmaId;
-        case 'MEU_CURSO':
-          return e.alcance === 'CURSO' && e.cursoId === usuario?.cursoId;
-        case 'FACULDADE':
-          return e.alcance === 'FACULDADE';
-        default:
-          return true;
-      }
-    })
-    .filter((e) => {
-      if (filtros.preco === 'GRATUITOS') return e.preco === 0;
-      if (filtros.preco === 'PAGOS') return e.preco > 0;
-      return true;
-    })
-    .filter((e) => {
-      const inicio = new Date(e.inicio).getTime();
-      if (filtros.periodo === 'ESTE_MES') return inicio <= fimDoMes.getTime();
-      if (filtros.periodo === 'PROXIMOS_7_DIAS') return inicio <= seteDias;
-      return true;
-    })
-    .filter((e) => {
-      if (!filtros.busca) return true;
-      const termo = filtros.busca.toLowerCase();
-      return (
-        e.titulo.toLowerCase().includes(termo) ||
-        e.local.toLowerCase().includes(termo) ||
-        e.descricao.toLowerCase().includes(termo)
-      );
-    })
-    .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+  return (
+    eventos
+      .filter(
+        (e) => e.status === 'PUBLICADO' || e.status === 'CANCELADO' || e.status === 'REALIZADO',
+      )
+      .filter((e) => {
+        switch (filtros.alcance) {
+          case 'MINHA_TURMA':
+            return e.alcance === 'TURMA' && e.turmaId === usuario?.turmaId;
+          case 'MEU_CURSO':
+            return e.alcance === 'CURSO' && e.cursoId === usuario?.cursoId;
+          case 'FACULDADE':
+            return e.alcance === 'FACULDADE';
+          default:
+            return true;
+        }
+      })
+      .filter((e) => {
+        if (filtros.preco === 'GRATUITOS') return e.preco === 0;
+        if (filtros.preco === 'PAGOS') return e.preco > 0;
+        return true;
+      })
+      .filter((e) => {
+        const inicio = new Date(e.inicio).getTime();
+        if (filtros.periodo === 'ESTE_MES') return inicio <= fimDoMes.getTime();
+        if (filtros.periodo === 'PROXIMOS_7_DIAS') return inicio <= seteDias;
+        return true;
+      })
+      .filter((e) => {
+        if (!filtros.busca) return true;
+        const termo = filtros.busca.toLowerCase();
+        return (
+          e.titulo.toLowerCase().includes(termo) ||
+          e.local.toLowerCase().includes(termo) ||
+          e.descricao.toLowerCase().includes(termo)
+        );
+      })
+      /*
+       * Quem abre "Eventos" quer saber o que vem, não o que passou. Então: os
+       * futuros primeiro, em ordem crescente (o mais próximo no topo); depois os
+       * encerrados, em ordem decrescente (o mais recente primeiro). Ordenar tudo
+       * por data colocaria a Semana de Recepção de agosto acima do churrasco de
+       * setembro — exatamente o contrário do que a tela serve para responder.
+       */
+      .sort((a, b) => {
+        const inicioA = new Date(a.inicio).getTime();
+        const inicioB = new Date(b.inicio).getTime();
+        const futuroA = new Date(a.fim).getTime() >= agora;
+        const futuroB = new Date(b.fim).getTime() >= agora;
+        if (futuroA !== futuroB) return futuroA ? -1 : 1;
+        return futuroA ? inicioA - inicioB : inicioB - inicioA;
+      })
+  );
 }
 
 // --------------------------------------------------------------------------

@@ -57,6 +57,12 @@ jobs:
       - name: Lint (ESLint, zero aviso tolerado)
         run: npm run lint
 
+      # Classe utilitária fora da escala fechada do projeto não gera CSS e não
+      # dá erro: o elemento colapsa em silêncio. Este passo nasceu de um defeito
+      # real (cartão de evento invisível), então ele fica antes dos testes.
+      - name: Escala de espaçamento do Tailwind
+        run: node ../scripts/check-tailwind-scale.mjs
+
       - name: Formatação (Prettier)
         run: npm run format:check
 

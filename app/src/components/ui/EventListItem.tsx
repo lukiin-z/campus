@@ -40,9 +40,11 @@ export function EventListItem({ evento, className }: { evento: EventoView; class
           <span className="font-mono text-mono-xs text-text-muted">
             {evento.status === 'CANCELADO'
               ? 'cancelado'
-              : lotado
-                ? 'lista de espera'
-                : `${evento.vagasDisponiveis} vagas livres`}
+              : evento.status === 'REALIZADO'
+                ? `realizado · ${evento.ocupadas} inscritos`
+                : lotado
+                  ? 'lista de espera'
+                  : `${evento.vagasDisponiveis} vagas livres`}
           </span>
         </div>
       </div>

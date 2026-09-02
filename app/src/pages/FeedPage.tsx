@@ -49,8 +49,8 @@ export function FeedPage() {
 
         {destaques.isPending && (
           <div className="hscroll" role="status" aria-label="Carregando eventos">
-            <Skeleton className="h-48 w-64 flex-shrink-0" />
-            <Skeleton className="h-48 w-64 flex-shrink-0" />
+            <Skeleton className="h-ticket w-ticket flex-shrink-0" />
+            <Skeleton className="h-ticket w-ticket flex-shrink-0" />
           </div>
         )}
 

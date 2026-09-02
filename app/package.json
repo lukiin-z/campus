@@ -19,7 +19,9 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "diagrams": "node ../scripts/render-diagrams.mjs",
-    "validate:docs": "node ../scripts/validate-docs.mjs"
+    "validate:docs": "node ../scripts/validate-docs.mjs",
+    "check:scale": "node ../scripts/check-tailwind-scale.mjs",
+    "check:size": "node ../scripts/check-bundle-size.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -29,7 +29,7 @@ export function IngressoPage() {
     return (
       <div role="status" aria-label="Carregando ingresso" className="space-y-4">
         <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-qr w-full" />
       </div>
     );
   }

@@ -15,14 +15,14 @@ const CAPAS = [
   'from-coral-300 to-coral-600',
   'from-teal-300 to-teal-600',
   'from-coral-200 to-teal-500',
-  'from-neutral-300 to-neutral-700',
+  'from-teal-200 to-coral-500',
   'from-coral-400 to-coral-800',
   'from-teal-200 to-teal-700',
   'from-coral-300 to-teal-600',
-  'from-neutral-400 to-coral-700',
-  'from-teal-400 to-neutral-800',
+  'from-coral-100 to-teal-600',
+  'from-teal-400 to-coral-700',
   'from-coral-200 to-coral-500',
-  'from-teal-300 to-neutral-700',
+  'from-teal-300 to-coral-600',
   'from-coral-400 to-teal-700',
 ] as const;
 
@@ -38,7 +38,7 @@ export function EventCover({
   className?: string;
 }) {
   const gradiente = CAPAS[(seed - 1) % CAPAS.length] ?? CAPAS[0];
-  const alturas = { sm: 'h-20', md: 'h-40', lg: 'h-56' } as const;
+  const alturas = { sm: 'h-cover-sm', md: 'h-cover-md', lg: 'h-cover-lg' } as const;
 
   return (
     <div

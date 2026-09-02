@@ -27,7 +27,7 @@ export function TicketCard({ evento, className }: { evento: EventoView; classNam
       data-testid={`ticket-${evento.id}`}
       aria-label={`${evento.titulo}, ${formatEventDateTime(evento.inicio)}, ${formatPrice(evento.preco)}`}
       className={cn(
-        'block w-64 flex-shrink-0 rounded-lg border border-border bg-surface p-4 transition hover:border-neutral-300',
+        'block w-ticket flex-shrink-0 rounded-lg border border-border bg-surface p-4 transition hover:border-neutral-300',
         cancelado && 'opacity-70',
         className,
       )}
