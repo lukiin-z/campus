@@ -1,0 +1,40 @@
+{
+  "name": "Campus — eventos universitários",
+  "short_name": "Campus",
+  "description": "Eventos da sua turma, do seu curso e da sua faculdade em um só lugar: inscrição com vaga garantida, lista de espera FIFO, ingresso com QR e check-in de uso único.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#FBFBFA",
+  "background_color": "#FBFBFA",
+  "categories": ["education", "social", "productivity"],
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}

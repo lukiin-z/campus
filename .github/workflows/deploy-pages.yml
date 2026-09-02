@@ -1,9 +1,11 @@
 name: Deploy GitHub Pages
 
-# Publica três coisas no mesmo site, porque as três são entregáveis avaliados:
-#   /                app React (base /campus/)
+# Publica cinco coisas no mesmo site, porque as cinco são entregáveis avaliados:
+#   /                app React (base /campus/), instalável pelo manifest
 #   /styleguide/     prova visual da identidade visual
 #   /prototipo/      protótipo estático original, preservado
+#   /slides/         deck de apoio do vídeo do CP4
+#   /slides-cp5/     deck de apoio do vídeo do CP5
 on:
   push:
     branches: [main]
@@ -62,6 +64,17 @@ jobs:
           # Deck de apoio da gravação do vídeo de 2 minutos.
           mkdir -p site/slides
           cp docs/15-video-slides.html site/slides/index.html
+
+          # Deck do CP5. A cópia é condicional porque este arquivo é escrito em
+          # paralelo com o deploy: se ele ainda não existir no commit, o site
+          # continua publicando as outras quatro entregas em vez de o job
+          # inteiro falhar em `cp: No such file or directory`.
+          if [ -f docs/20-video-cp5-slides.html ]; then
+            mkdir -p site/slides-cp5
+            cp docs/20-video-cp5-slides.html site/slides-cp5/index.html
+          else
+            echo "::warning::docs/20-video-cp5-slides.html ausente — /slides-cp5/ não foi publicado"
+          fi
 
           # O GitHub Pages serve arquivos estáticos: sem isso, o Jekyll ignora
           # diretórios que começam com underscore.

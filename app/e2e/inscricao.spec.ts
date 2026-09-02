@@ -15,13 +15,24 @@ import { expect, test } from '@playwright/test';
  * não o dev server: o artefato que vai para o GitHub Pages é o que precisa
  * funcionar.
  *
- * PENDÊNCIA CONHECIDA DO CP4: o navegador do Playwright não foi baixado nesta
- * máquina (`npx playwright install chromium`), então este teste está escrito e
- * configurado, mas ainda não foi executado. É a primeira tarefa da Sprint 2
- * (card S2-13) — ver docs/13-roadmap-cp5-cp6.md.
+ * O CP5 acrescentou guarda de sessão: sem token, toda rota protegida redireciona
+ * para `/login`. O `beforeEach` semeia o token antes de a página carregar, e um
+ * teste próprio exercita a tela de login de verdade — cobrir o login em cada
+ * caso pagaria 4× pela mesma informação.
  */
 
+/** Token que o mock reconhece: `campus.sess.<usuarioId>` (mocks/support.ts). */
+const TOKEN_MARINA = 'campus.sess.usr-001';
+
 test.describe('inscrição em evento', () => {
+  test.beforeEach(async ({ page }) => {
+    // `addInitScript` roda antes de qualquer script da página: quando a guarda
+    // de rota lê o token, ele já está lá. Semear depois do `goto` produziria um
+    // redirect para /login antes da semeadura.
+    await page.addInitScript((token) => {
+      window.sessionStorage.setItem('campus.token', token);
+    }, TOKEN_MARINA);
+  });
   test('do feed até a confirmação da inscrição', async ({ page }) => {
     // --- 1. Feed carrega com os eventos em destaque ---
     await page.goto('/');
@@ -56,13 +67,33 @@ test.describe('inscrição em evento', () => {
     // --- 4. Inscrever-se ---
     await acao.click();
 
-    // --- 5. Confirmação: toast, contador e novo estado do botão ---
+    // --- 5. Confirmação: toast e ida direta para a cobrança ---
     await expect(page.getByRole('status').filter({ hasText: /vaga reservada/i })).toBeVisible();
+
+    /*
+     * Em evento pago a participação nasce `PENDENTE_PAGAMENTO` (RN-012) e a tela
+     * **navega para a cobrança**, em vez de deixar o aluno de volta no detalhe
+     * com um botão "Pagar agora". A primeira versão deste teste esperava o
+     * segundo comportamento e falhou na primeira execução real: a janela de 60
+     * minutos começa a correr no instante da reserva, e mandar a pessoa procurar
+     * o botão gasta parte dela.
+     */
+    await expect(page).toHaveURL(/\/pagamento\/par-\d+$/);
+    await expect(page.getByText(/tempo para pagar/i)).toBeVisible();
+    await expect(page.getByText(/Torneio de Futsal Interturmas/)).toBeVisible();
+
+    // --- 6. Voltando, a vaga aparece consumida e o botão mudou ---
+    /*
+     * `goBack`, e não `goto`: o mock vive em memória dentro do service worker,
+     * então recarregar a página o reconstrói a partir do seed e a inscrição
+     * desaparece — está documentado em docs/18-ambiente-de-teste.md. A primeira
+     * versão deste passo usava `goto` e media 96 em vez de 97, provando o reset
+     * em vez do incremento.
+     */
+    await page.goBack();
+    await expect(page).toHaveURL(/\/eventos\/evt-007$/);
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '97');
-    // Em evento pago a participação nasce PENDENTE_PAGAMENTO (RN-012): o botão
-    // passa a ser "Pagar agora", com a contagem da janela.
-    await expect(acao).toContainText('Pagar agora');
-    await expect(page.getByText(/Sua vaga está reservada por \d+ min/)).toBeVisible();
+    await expect(page.getByTestId('acao-principal')).toContainText('Pagar agora');
   });
 
   test('evento lotado oferece a lista de espera em vez de recusar', async ({ page }) => {
@@ -83,6 +114,46 @@ test.describe('inscrição em evento', () => {
 
     await expect(page.getByText('Evento não encontrado')).toBeVisible();
     await expect(page.getByTestId('titulo-evento')).toHaveCount(0);
+  });
+
+  test('a tela de login autentica e leva ao feed', async ({ page }) => {
+    // O único caso que passa pela tela de login de verdade. Os outros semeiam o
+    // token: repetir o login em cada um custaria quatro vezes o mesmo caminho.
+    await page.addInitScript(() => {
+      window.sessionStorage.removeItem('campus.token');
+    });
+    await page.goto('/eventos');
+
+    // Sem token, a guarda manda para o login e guarda o destino.
+    await expect(page).toHaveURL(/\/login$/);
+
+    await page.getByLabel(/e-mail institucional/i).fill('marina.alves@fiap.com.br');
+    await page.getByLabel(/senha/i).fill('campus123');
+    await page.getByRole('button', { name: 'Entrar' }).click();
+
+    // Volta para onde a pessoa queria ir, não para a raiz.
+    await expect(page).toHaveURL(/\/eventos$/);
+    await expect(page.getByTestId('lista-eventos')).toBeVisible();
+  });
+
+  test('e-mail pessoal é recusado com o domínio aceito na mensagem', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.sessionStorage.removeItem('campus.token');
+    });
+    await page.goto('/login');
+
+    await page.getByLabel(/e-mail institucional/i).fill('marina@gmail.com');
+    await page.getByLabel(/senha/i).fill('campus123');
+    await page.getByRole('button', { name: 'Entrar' }).click();
+
+    /*
+     * RN-002: a recusa nomeia o domínio, senão a pessoa tenta de novo igual. O
+     * seletor é o `role="alert"` do campo, e não o texto solto: a própria tela
+     * lista cinco e-mails `@fiap.com.br` nos cartões de demonstração, e o
+     * primeiro seletor escrito casava com seis elementos.
+     */
+    await expect(page.getByRole('alert').filter({ hasText: /@fiap\.com\.br/ })).toBeVisible();
+    await expect(page).toHaveURL(/\/login$/);
   });
 
   test('navegação por teclado alcança a ação principal', async ({ page }) => {

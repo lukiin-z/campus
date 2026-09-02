@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"
+     role="img" aria-labelledby="campus-icone-titulo">
+  <title id="campus-icone-titulo">Campus</title>
+  <!--
+    Ícone `purpose: "any"` do manifest, declarado a 192 e a 512.
+
+    É um só arquivo para os dois tamanhos porque SVG escala: manter dois arquivos
+    com o mesmo desenho só criaria duas cópias para divergir. O que muda de
+    verdade é o ícone maskable (icon-maskable.svg), e por isso ele é separado.
+
+    O desenho é o favicon da marca (docs/06-marca/assets/favicon.svg) ampliado:
+    placa arredondada em accent-strong com o símbolo vazado em bg. Os dois valores
+    saem dos tokens de app/tailwind.config.ts.
+
+    Geometria: o símbolo original vive num viewBox de 24 e sua tinta é centrada em
+    (12, 12). scale(16) leva 24 -> 384 e translate(64) recentra em 256, mantendo a
+    mesma proporção símbolo/placa de 75% do favicon.
+  -->
+  <rect width="512" height="512" rx="112" fill="#C83A16" />
+  <g transform="translate(64 64) scale(16)">
+    <path fill="#FBFBFA" fill-rule="evenodd" d="
+      M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+      A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+      H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+      A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+      M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+      A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+  </g>
+</svg>

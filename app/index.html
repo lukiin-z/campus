@@ -3,9 +3,62 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+    <!--
+      `%BASE_URL%` é substituído pelo Vite pela base efetiva do build: '/' em dev
+      e '/campus/' quando GITHUB_PAGES=true (vite.config.ts).
+
+      Caminho relativo ('./favicon.svg') NÃO serve aqui: este é um SPA e o mesmo
+      index.html é servido em rota profunda. Em /campus/eventos/evt-001 o
+      navegador resolveria './favicon.svg' como /campus/eventos/favicon.svg — 404.
+      O placeholder produz caminho absoluto, correto em qualquer profundidade.
+    -->
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+
     <meta name="theme-color" content="#FBFBFA" />
-    <meta name="description" content="Campus — app de eventos universitários com alcance por turma, curso e faculdade." />
+    <meta
+      name="description"
+      content="Campus — app de eventos universitários com alcance por turma, curso e faculdade."
+    />
+
+    <!--
+      iOS não lê o manifest para instalar: ele depende destas metas legadas.
+      `apple-touch-icon` aponta para SVG, que o Safari ignora — a limitação está
+      registrada em docs/18-ambiente-de-teste.md. A tag fica porque é inofensiva
+      e passa a valer sozinha quando houver PNG.
+    -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Campus" />
+    <link rel="apple-touch-icon" href="%BASE_URL%icons/icon.svg" />
+
+    <!--
+      Open Graph mínimo. As URLs são absolutas de propósito: rastreador de rede
+      social não resolve caminho relativo. Elas apontam para o site do Pages, e
+      por isso só fazem sentido em produção.
+
+      A imagem é o og-image da marca servido pelo styleguide — o mesmo arquivo de
+      docs/06-marca/assets/, copiado por .github/workflows/deploy-pages.yml. Não
+      há cópia dentro de app/public/ para não criar um segundo original que possa
+      divergir do da marca.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Campus" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="Campus — eventos universitários" />
+    <meta
+      property="og:description"
+      content="Eventos da sua turma, do seu curso e da sua faculdade em um só lugar: inscrição com vaga garantida, lista de espera, ingresso com QR e check-in."
+    />
+    <meta property="og:url" content="https://lukiin-z.github.io/campus/" />
+    <meta
+      property="og:image"
+      content="https://lukiin-z.github.io/campus/styleguide/assets/og-image.svg"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,5 +70,25 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!--
+      NÃO há registro de service worker próprio aqui, e isso é decisão, não
+      esquecimento.
+
+      O MSW registra `mockServiceWorker.js` no escopo raiz da base — é o que faz
+      `fetch('/api/...')` ter resposta. Escopo de service worker admite UMA
+      registração: registrar outro script no mesmo escopo substitui o anterior.
+
+      Não dá para contornar daqui. O jeito suportado de conviver é empacotar o
+      worker do MSW no próprio SW (`importScripts`) e passar `findWorker` no
+      `worker.start()`; o padrão do MSW compara o `scriptURL` por igualdade
+      estrita (`workerUrl === mockServiceWorkerUrl`, msw 2.15.0) e, não achando o
+      dele, registra de novo — derrubando o nosso. E `worker.start()` está em
+      src/main.tsx, fora do alcance deste arquivo.
+
+      Consequência aceita: o app é instalável pelo manifest, sem cache offline
+      próprio. Registro e cache de app shell entram no CP6, junto com a saída do
+      mock. Análise completa em docs/18-ambiente-de-teste.md.
+    -->
   </body>
 </html>

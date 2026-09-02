@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"
+     role="img" aria-labelledby="campus-icone-maskable-titulo">
+  <title id="campus-icone-maskable-titulo">Campus</title>
+  <!--
+    Ícone `purpose: "maskable"`. Existe separado do icon.svg por duas exigências
+    do Android que o ícone normal não atende:
+
+    1. Sangria total. A plataforma recorta o ícone na forma do sistema (círculo,
+       squircle, teardrop). Placa arredondada com canto transparente apareceria
+       como quatro falhas no recorte, então aqui o coral vai de borda a borda,
+       sem `rx`.
+    2. Zona segura. Só o círculo central de 80% do lado (raio 204,8 em 512) é
+       garantido visível. Com scale(13) a tinta do símbolo mede 260 x 208, meia
+       diagonal 166,5 — dentro do raio com folga, e o recorte nunca corta o "C".
+
+    Cores: accent-strong (#C83A16) e bg (#FBFBFA) de app/tailwind.config.ts.
+  -->
+  <rect width="512" height="512" fill="#C83A16" />
+  <g transform="translate(100 100) scale(13)">
+    <path fill="#FBFBFA" fill-rule="evenodd" d="
+      M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+      A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+      H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+      A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+      M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+      A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+  </g>
+</svg>

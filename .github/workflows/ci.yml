@@ -48,6 +48,36 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
+      # Antes do `npm ci` de propósito: só precisa da stdlib do Node, então é a
+      # verificação mais rápida possível do job. Manifest quebrado ou ícone
+      # ausente não aparece em lint, teste nem build — só no navegador de quem
+      # tenta instalar o app, quando já é tarde.
+      #
+      # O verificador é inline, e não um arquivo em scripts/, porque cabe em uma
+      # tela e não tem outro chamador.
+      - name: Manifest do PWA (JSON válido e ícones existentes)
+        run: |
+          node -e "
+          const fs=require('node:fs'), p=require('node:path');
+          const dir='public';
+          const m=JSON.parse(fs.readFileSync(p.join(dir,'manifest.webmanifest'),'utf8'));
+          const falhas=[];
+          for (const chave of ['name','short_name','description','start_url','scope','display','theme_color','background_color','icons','lang'])
+            if (m[chave]===undefined) falhas.push('campo ausente: '+chave);
+          const tamanhos=new Set(), finalidades=new Set();
+          for (const icone of m.icons ?? []) {
+            const alvo=p.join(dir, icone.src.replace(/^\.\//,''));
+            if (!fs.existsSync(alvo)) falhas.push('ícone inexistente: '+icone.src+' -> '+alvo);
+            for (const t of String(icone.sizes ?? '').split(/\s+/)) tamanhos.add(t);
+            for (const f of String(icone.purpose ?? 'any').split(/\s+/)) finalidades.add(f);
+          }
+          for (const t of ['192x192','512x512']) if (!tamanhos.has(t)) falhas.push('nenhum ícone declarado em '+t);
+          if (!finalidades.has('maskable')) falhas.push('nenhum ícone com purpose maskable');
+          if (!fs.readFileSync('index.html','utf8').includes('rel=\"manifest\"')) falhas.push('index.html não referencia o manifest');
+          if (falhas.length) { console.error('manifest inválido:\n  '+falhas.join('\n  ')); process.exit(1); }
+          console.log('manifest ok: '+m.icons.length+' ícones, todos presentes; tamanhos '+[...tamanhos].join(', ')+'; purposes '+[...finalidades].join(', '));
+          "
+
       - name: Instala dependências
         run: npm ci
 
@@ -80,4 +110,49 @@ jobs:
         with:
           name: app-dist
           path: app/dist
+          retention-days: 7
+
+  # Job separado do de aplicação de propósito: o E2E baixa um navegador (~120 MB)
+  # e leva dezenas de segundos. Separá-lo faz lint e teste unitário continuarem
+  # devolvendo resultado em menos de dois minutos, e o E2E não bloqueia a leitura
+  # do que falhou antes dele.
+  #
+  # Este job fecha a pendência 6.1 de docs/13-roadmap-cp5-cp6.md: o E2E existia
+  # escrito e configurado desde o CP4 e nunca havia sido executado. Enquanto a
+  # execução dependia da máquina de alguém, nenhuma afirmação sobre ele era
+  # verificável.
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instala dependências
+        run: npm ci
+
+      # Só o Chromium: os três projetos do Playwright pesariam 4× por uma
+      # informação que o alvo do produto (web mobile) não precisa.
+      - name: Instala o Chromium
+        run: npx playwright install --with-deps chromium
+
+      # O `webServer` do playwright.config.ts roda `npm run build` e serve o
+      # preview: o alvo é o artefato de produção, não o dev server.
+      - name: Roda o E2E
+        run: npm run test:e2e
+
+      - name: Guarda o relatório quando falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: app/playwright-report
           retention-days: 7
