@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { ParticipacaoView } from '../types/domain';
-import { formatDayMonth, formatTime } from '../domain/format';
+import type { EventoView, ParticipacaoView } from '../types/domain';
+import { formatDayMonth, formatEventDateTime, formatTime } from '../domain/format';
 import { formatPrice } from '../domain/payment';
 import {
   mensagemDeErro,
+  useEventos,
   useMarcarNotificacaoLida,
   useMinhasParticipacoes,
   useNotificacoes,
 } from '../hooks/useCampusData';
+import { useSair } from '../hooks/useAuth';
 import { useSessionStore } from '../store/session';
 import { Avatar } from '../components/ui/Avatar';
-import { StatusBadge } from '../components/ui/Badge';
+import { EventStatusBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState, SkeletonLista } from '../components/ui/Feedback';
 import { Tabs } from '../components/ui/Tabs';
@@ -28,6 +30,8 @@ type AbaPerfil = 'participando' | 'criados' | 'anteriores';
 export function PerfilPage() {
   const sessao = useSessionStore((s) => s.sessao);
   const [aba, setAba] = useState<AbaPerfil>('participando');
+  const sair = useSair();
+  const eventos = useEventos();
   const participacoes = useMinhasParticipacoes();
   const notificacoes = useNotificacoes();
   const marcarLida = useMarcarNotificacaoLida();
@@ -45,6 +49,16 @@ export function PerfilPage() {
   );
 
   const naoLidas = (notificacoes.data ?? []).filter((n) => !n.lida);
+
+  /*
+   * Rascunho aparece aqui e em nenhum outro lugar: `GET /api/eventos` devolve
+   * o rascunho ao próprio autor (é o que `canSee` permite), mas a lista de
+   * eventos filtra por status publicado. O perfil é onde o organizador
+   * reencontra o que começou e não publicou.
+   */
+  const organizados = (eventos.data ?? []).filter(
+    (evento) => evento.organizadorId === sessao?.usuario.id,
+  );
 
   return (
     <div>
@@ -129,15 +143,12 @@ export function PerfilPage() {
           />
         )}
 
-        {participacoes.data && aba === 'criados' && (
-          <EmptyState
-            titulo="Painel do organizador chega no CP5"
-            descricao="A visão de quem organiza — inscritos, pagamentos e lista de presença — é a entrega da Sprint 2. Até lá, o evento criado aparece na lista de eventos."
-            acao={
-              <Link to="/criar">
-                <Button variant="ghost">Criar evento</Button>
-              </Link>
-            }
+        {aba === 'criados' && (
+          <ListaOrganizados
+            eventos={organizados}
+            carregando={eventos.isPending}
+            erro={eventos.isError ? mensagemDeErro(eventos.error) : null}
+            onTentarDeNovo={() => void eventos.refetch()}
           />
         )}
 
@@ -151,7 +162,100 @@ export function PerfilPage() {
           />
         )}
       </div>
+
+      <section aria-labelledby="sessao-titulo" className="mt-10 border-t border-border pt-6">
+        <h2 id="sessao-titulo" className="font-display text-display-sm font-bold text-text">
+          Sessão
+        </h2>
+        <p className="mt-1 text-body-sm text-text-muted">
+          Entrou como {sessao?.usuario.email ?? 'você'}. A sessão termina quando você fecha a aba —
+          é o comportamento certo em computador compartilhado.
+        </p>
+        <Button
+          variant="ghost"
+          className="mt-4"
+          disabled={sair.isPending}
+          onClick={() => sair.mutate()}
+        >
+          {sair.isPending ? 'Saindo…' : 'Sair da conta'}
+        </Button>
+      </section>
     </div>
+  );
+}
+
+/**
+ * Eventos que a pessoa organiza (RF-007).
+ *
+ * A lista sai de `useEventos()` filtrada por organizador, não de um endpoint
+ * próprio: o que o organizador vê é o mesmo evento que todos veem, com dois
+ * caminhos a mais — o detalhe e a porta (check-in). Um endpoint separado
+ * duplicaria a projeção e a verificação de alcance.
+ */
+function ListaOrganizados({
+  eventos,
+  carregando,
+  erro,
+  onTentarDeNovo,
+}: {
+  eventos: EventoView[];
+  carregando: boolean;
+  erro: string | null;
+  onTentarDeNovo: () => void;
+}) {
+  if (carregando) return <SkeletonLista itens={2} />;
+  if (erro) return <ErrorState mensagem={erro} onTentarDeNovo={onTentarDeNovo} />;
+
+  if (eventos.length === 0) {
+    return (
+      <EmptyState
+        titulo="Você ainda não organizou nada"
+        descricao="Quem organiza define alcance, capacidade e prazo — e valida o check-in na porta."
+        acao={
+          <Link to="/criar">
+            <Button variant="ghost">Criar evento</Button>
+          </Link>
+        }
+      />
+    );
+  }
+
+  return (
+    <ul className="space-y-3">
+      {eventos.map((evento) => (
+        <li key={evento.id}>
+          <div className="rounded-lg border border-border bg-surface p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Link
+                  to={`/eventos/${evento.id}`}
+                  className="font-display text-display-sm font-bold text-text hover:text-accent-strong"
+                >
+                  {evento.titulo}
+                </Link>
+                <p className="mt-1 text-body-sm text-text-muted">
+                  {formatEventDateTime(evento.inicio)} · {evento.alcanceRotulo}
+                </p>
+              </div>
+              <EventStatusBadge status={evento.status} />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-4">
+              <p className="font-mono text-mono-xs text-text-muted">
+                {evento.ocupadas}/{evento.capacidade} vagas
+                {evento.totalListaEspera > 0 && ` · ${evento.totalListaEspera} na fila`}
+              </p>
+              <Link
+                to={`/eventos/${evento.id}/checkin`}
+                className="font-display text-body-sm font-bold text-accent-strong hover:underline"
+              >
+                Abrir check-in
+              </Link>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 

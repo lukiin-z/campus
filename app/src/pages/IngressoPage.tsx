@@ -1,29 +1,43 @@
 import { Link, useParams } from 'react-router-dom';
 import { numericCheckInCode, ticketCode } from '../domain/checkin';
-import { checkInWindow } from '../domain/deadlines';
-import { formatEventDateTime, formatEventRange } from '../domain/format';
-import { formatPrice } from '../domain/payment';
+import { checkInOpen, checkInWindow } from '../domain/deadlines';
+import {
+  formatEventDateTime,
+  formatEventRange,
+  formatFullDate,
+  formatTime,
+} from '../domain/format';
+import { formatPrice, minutesLeftToPay } from '../domain/payment';
 import { mensagemDeErro, useParticipacao } from '../hooks/useCampusData';
+import { useTokenIngresso } from '../hooks/useCheckin';
 import { useSessionStore } from '../store/session';
 import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/Feedback';
 import { QrCode } from '../components/ui/QrCode';
+import { cn } from '../lib/cn';
 
 /**
- * Ingresso com QR Code (RF-033).
+ * Ingresso com QR Code (RF-031 a RF-033).
  *
  * Esta é a tela que o aluno abre na porta do evento, então ela é deliberadamente
  * densa em uma coisa só: o código. Nada de menu, nada de rolagem para achar o QR.
  *
- * O QR é gerado a partir do identificador da participação; o token assinado por
- * HMAC (RN-017) é responsabilidade do servidor e entra no CP6 — até lá o código
- * alfanumérico impresso abaixo é o que identifica o ingresso.
+ * O conteúdo do QR é o token assinado emitido pelo servidor
+ * (`useTokenIngresso`), e não um identificador montado no cliente: é ele que o
+ * leitor de RF-034 verifica. Abaixo dele ficam as duas contingências de UC-005
+ * A1 — o código de 8 dígitos e o código impresso —, ambas deriváveis do id da
+ * participação e, por isso, legíveis mesmo quando o token não chega.
  */
 export function IngressoPage() {
   const { id } = useParams<{ id: string }>();
   const sessao = useSessionStore((s) => s.sessao);
   const { data: participacao, isPending, isError, error, refetch } = useParticipacao(id);
+
+  // O token só é emitido para inscrição confirmada: pedir antes disso ganharia um
+  // 409 do servidor e um erro na tela que não diz nada de útil ao aluno.
+  const emitido = participacao?.status === 'CONFIRMADA' || participacao?.status === 'PRESENTE';
+  const token = useTokenIngresso(id, emitido);
 
   if (isPending) {
     return (
@@ -52,10 +66,15 @@ export function IngressoPage() {
     );
   }
 
-  const emitido = participacao.status === 'CONFIRMADA' || participacao.status === 'PRESENTE';
   const turmaOuSigla = sessao?.turma?.nome ?? sessao?.faculdade.sigla ?? 'CMP';
-  const codigo = ticketCode(turmaOuSigla, participacao.id);
+  const codigoLegivel = token.data?.codigoLegivel ?? ticketCode(turmaOuSigla, participacao.id);
+  const codigoNumerico = token.data?.codigoNumerico ?? numericCheckInCode(participacao.id);
   const { opensAt, closesAt } = checkInWindow(participacao.evento);
+  const abreIso = new Date(opensAt).toISOString();
+  const fechaIso = new Date(closesAt).toISOString();
+  const janelaAberta = checkInOpen(participacao.evento, new Date());
+  const presenca = participacao.presenca;
+  const minutosParaPagar = minutesLeftToPay(participacao, new Date());
 
   return (
     <article>
@@ -108,31 +127,51 @@ export function IngressoPage() {
 
         {emitido ? (
           <div>
-            <div className="mx-auto max-w-full">
-              <QrCode codigo={codigo} />
+            {presenca && (
+              <p
+                role="status"
+                className="mb-4 rounded-md border border-accent-2 bg-accent-2-soft px-4 py-3 text-center text-body-sm font-medium text-teal-700"
+              >
+                Ingresso utilizado às {formatTime(presenca.checkinEm)}. Cada ingresso vale uma
+                entrada: este QR não abre a porta de novo.
+              </p>
+            )}
+
+            {/*
+              Utilizado, o QR fica esmaecido em vez de sumir: o aluno ainda pode
+              precisar mostrar o código para conferência do organizador, e
+              esconder informação já registrada não desfaz o check-in.
+            */}
+            <div className={cn(presenca ? 'opacity-60' : null)}>
+              {token.isPending ? (
+                <Skeleton className="h-qr w-full" />
+              ) : (
+                <div className="mx-auto w-ticket max-w-full">
+                  <QrCode codigo={token.data?.valor ?? codigoLegivel} />
+                </div>
+              )}
             </div>
+
+            {token.isError && (
+              <p className="mt-3 text-center text-body-xs text-text-muted">
+                Não conseguimos emitir o token assinado agora. Use os códigos abaixo na portaria: os
+                dois identificam este ingresso do mesmo jeito.
+              </p>
+            )}
+
             <p className="mt-4 text-center font-display text-display-sm font-bold tracking-tight text-text">
-              {codigo}
+              {codigoLegivel}
             </p>
             <p className="mt-1 text-center font-mono text-mono-sm text-text-muted">
-              código numérico: {numericCheckInCode(participacao.id)}
+              código numérico: {codigoNumerico}
             </p>
+
             <p className="mt-4 text-center text-body-xs text-text-muted">
-              Check-in aceito entre{' '}
-              {new Date(opensAt).toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}{' '}
-              e{' '}
-              {new Date(closesAt).toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-              . Cada ingresso vale uma entrada.
+              {janelaAberta
+                ? `O check-in está aberto e encerra em ${formatEventDateTime(fechaIso)}. Cada ingresso vale uma entrada.`
+                : Date.now() < opensAt
+                  ? `O check-in abre às ${formatTime(abreIso)} de ${formatFullDate(abreIso)}. Cada ingresso vale uma entrada.`
+                  : `O check-in encerrou em ${formatEventDateTime(fechaIso)}.`}
             </p>
           </div>
         ) : (
@@ -142,27 +181,28 @@ export function IngressoPage() {
             </p>
             <p className="mx-auto mt-2 max-w-content text-body-sm text-text-muted">
               {participacao.status === 'PENDENTE_PAGAMENTO'
-                ? 'O QR Code é liberado quando o pagamento é confirmado.'
+                ? minutosParaPagar == null || minutosParaPagar === 0
+                  ? 'O prazo para pagar terminou e a vaga voltou para a fila.'
+                  : `O QR Code é liberado quando o pagamento é confirmado. Faltam ${minutosParaPagar} min para o fim do prazo.`
                 : participacao.status === 'LISTA_ESPERA'
                   ? `Você está na lista de espera${participacao.posicaoFila ? ` (${participacao.posicaoFila}º)` : ''}. O ingresso é emitido se uma vaga abrir e você confirmar.`
                   : 'Só participação confirmada gera ingresso.'}
             </p>
+
+            {participacao.status === 'PENDENTE_PAGAMENTO' && (
+              <div className="mt-5">
+                <Link to={`/pagamento/${participacao.id}`}>
+                  <Button larguraTotal size="lg">
+                    {minutosParaPagar == null || minutosParaPagar === 0
+                      ? 'Ver a cobrança'
+                      : `Pagar agora · ${minutosParaPagar} min`}
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {participacao.presenca && (
-        <p className="mt-4 text-center text-body-sm text-accent-2">
-          Check-in registrado em{' '}
-          {new Date(participacao.presenca.checkinEm).toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-          .
-        </p>
-      )}
 
       <div className="mt-6 flex flex-col gap-3">
         <Link to={`/eventos/${participacao.evento.id}`}>

@@ -74,8 +74,21 @@ module.exports = {
 
   overrides: [
     {
-      // Telas e componentes não conhecem a origem dos dados nem o mock.
-      files: ['src/pages/**/*.tsx', 'src/components/**/*.tsx'],
+      /*
+       * Telas, componentes e features não conhecem a origem dos dados nem o mock.
+       *
+       * `src/features/**` entrou nesta lista depois de a camada nascer fora dela:
+       * o CP5 criou `features/auth`, `features/pagamento`, `features/checkin`,
+       * `features/feed` e `features/participacao`, e por um intervalo qualquer
+       * uma delas podia importar `mocks/` com o lint passando. A barreira só
+       * vale enquanto cobre o código que existe.
+       */
+      files: [
+        'src/pages/**/*.tsx',
+        'src/components/**/*.tsx',
+        'src/features/**/*.ts',
+        'src/features/**/*.tsx',
+      ],
       rules: {
         'no-restricted-imports': [
           'error',
@@ -105,7 +118,10 @@ module.exports = {
           {
             patterns: [
               {
-                group: ['**/services/**', '**/store/**', '**/hooks/use*Query*', '**/mocks/**'],
+                // O padrão anterior era `hooks/use*Query*`, que não casava com
+                // nenhum arquivo do projeto — os hooks se chamam `useCampusData`,
+                // `useAuth`, `usePagamento`. A regra existia sem proibir nada.
+                group: ['**/services/**', '**/store/**', '**/hooks/**', '**/mocks/**'],
                 message:
                   'Componente de design system não busca dado nem lê store. Receba por props.',
               },

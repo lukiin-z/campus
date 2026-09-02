@@ -1,23 +1,29 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useDestaques, useFeed, mensagemDeErro } from '../hooks/useCampusData';
 import { useSessionStore } from '../store/session';
+import { Composer } from '../features/feed/Composer';
+import { PublicacaoCard } from '../features/feed/PublicacaoCard';
 import { TicketCard } from '../components/ui/TicketCard';
-import { PostCard } from '../components/ui/PostCard';
 import { EmptyState, ErrorState, Skeleton, SkeletonLista } from '../components/ui/Feedback';
 import { Button } from '../components/ui/Button';
 
 /**
- * Feed — tela inicial (RF-036).
+ * Feed — tela inicial (RF-036 a RF-038).
  *
- * Ordem deliberada: saudação, faixa de ingressos em destaque, e só então as
- * publicações. A persona Marina decide em menos de um minuto na fila do
- * bandejão: o que é acionável (evento com vaga) vem antes do que é memória
- * (foto de evento passado).
+ * Ordem deliberada: saudação, faixa de ingressos em destaque, publicação, e só
+ * então as publicações dos outros. A persona Marina decide em menos de um minuto
+ * na fila do bandejão: o que é acionável (evento com vaga) vem antes do que é
+ * memória (foto de evento passado), e escrever vem antes de ler porque quem abre
+ * o feed logo depois do evento vem para publicar.
  */
 export function FeedPage() {
   const sessao = useSessionStore((s) => s.sessao);
   const destaques = useDestaques();
   const feed = useFeed();
+
+  // `/?evento=<id>` é o caminho de quem tocou em "Publicar foto" no detalhe do
+  // evento: a tela chega com o evento já escolhido.
+  const [parametros] = useSearchParams();
 
   const primeiroNome = sessao?.usuario.nome.split(' ')[0] ?? '';
 
@@ -82,6 +88,8 @@ export function FeedPage() {
         )}
       </section>
 
+      <Composer eventoInicial={parametros.get('evento')} />
+
       <section aria-labelledby="feed-titulo">
         <h2 id="feed-titulo" className="mb-4 font-display text-display-sm font-bold text-text">
           Do seu campus
@@ -99,12 +107,12 @@ export function FeedPage() {
         {feed.data && feed.data.length === 0 && (
           <EmptyState
             titulo="Nada por aqui ainda"
-            descricao="Quando alguém da sua turma publicar a foto de um evento, aparece aqui."
+            descricao="Quando alguém da sua turma publicar a foto de um evento, aparece aqui. Se você já foi a algum, a primeira foto pode ser sua."
           />
         )}
 
         {feed.data?.map((publicacao) => (
-          <PostCard key={publicacao.id} publicacao={publicacao} />
+          <PublicacaoCard key={publicacao.id} publicacao={publicacao} />
         ))}
       </section>
     </div>
