@@ -1,7 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import type {
   Evento,
-  EventoView,
   FiltroAlcance,
   FiltroPeriodo,
   FiltroPreco,
@@ -12,7 +11,7 @@ import type {
   ResultadoInscricao,
   SessaoUsuario,
 } from '../types/domain';
-import { availableSpots, isFull, occupiesSpot } from '../domain/capacity';
+import { isFull, occupiesSpot } from '../domain/capacity';
 import { enrollmentOpen, withinCancellationWindow } from '../domain/deadlines';
 import { paymentDeadline } from '../domain/payment';
 import { currentPolicy } from '../domain/refund';
@@ -23,7 +22,7 @@ import {
   recomputePositions,
   waitlistSize,
 } from '../domain/waitlist';
-import { alcanceRotulo, canSee } from '../domain/visibility';
+import { canSee } from '../domain/visibility';
 import { requiresApproval } from '../domain/permissions';
 import { POLICY } from '../domain/policy';
 import {
@@ -32,13 +31,20 @@ import {
   findUsuario,
   getDb,
   nextId,
-  pagamentoDaParticipacao,
-  participacoesDoEvento,
   participacoesDoUsuario,
-  presencaDaParticipacao,
   transaction,
 } from './db';
-import { USUARIO_ATUAL_ID } from './seed';
+import {
+  BASE,
+  aplicarFiltros,
+  erro,
+  eventosVisiveis,
+  abrirRequisicao,
+  toEventoView,
+  toParticipacaoView,
+  usuarioAtual,
+} from './support';
+import { handlersCp5 } from './handlersCp5';
 
 /**
  * "API" do CP5.
@@ -48,178 +54,18 @@ import { USUARIO_ATUAL_ID } from './seed';
  * status e as mesmas formas de erro descritas no contrato de
  * docs/08-arquitetura.md. É isso que faz o app já exercitar carregamento, erro e
  * conflito desde agora (ADR-0003, RNF-016).
- */
-
-const BASE = '/api';
-
-/** Latência simulada: sem ela, nenhum estado de carregamento seria exercitado. */
-const LATENCIA_MS = 180;
-
-async function latencia(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, LATENCIA_MS));
-}
-
-/**
- * Usuário autenticado.
  *
- * No CP5 não há login (RF-003 é da Sprint 2): a sessão é o usuário fixo do seed.
- * O cabeçalho `x-usuario-id` existe como afordância de teste do mock — é o que
- * permite exercitar cenário multiusuário (concorrência pela última vaga, CT-020)
- * antes de existir autenticação. Quando o login entrar, este cabeçalho sai e o
- * usuário passa a vir do token.
+ * Os endpoints de autenticação, pagamento, check-in e escrita no feed ficam em
+ * `handlersCp5.ts` — o arquivo passou de 750 linhas e a fronteira natural é a
+ * que separa o que existia no CP4 do que o CP5 acrescentou.
  */
-function usuarioAtual(request?: Request) {
-  const id = request?.headers.get('x-usuario-id') ?? USUARIO_ATUAL_ID;
-  const usuario = findUsuario(id);
-  if (!usuario) throw new Error(`usuário ${id} não encontrado`);
-  return usuario;
-}
 
-function erro(status: number, codigo: string, mensagem: string, extra: object = {}) {
-  return HttpResponse.json({ erro: codigo, mensagem, ...extra }, { status });
-}
-
-// --------------------------------------------------------------------------
-// Projeções (o que a API devolve para a tela)
-// --------------------------------------------------------------------------
-
-function toEventoView(evento: Evento, usuarioId: string): EventoView {
-  const db = getDb();
-  const organizador = findUsuario(evento.organizadorId);
-  const participacoes = participacoesDoEvento(evento.id);
-  const minha = findActiveParticipation(participacoes, usuarioId);
-
-  return {
-    ...evento,
-    organizador: {
-      id: organizador?.id ?? 'desconhecido',
-      nome: organizador?.nome ?? 'Organizador',
-      avatarSeed: organizador?.avatarSeed ?? 1,
-    },
-    alcanceRotulo: alcanceRotulo(evento, {
-      turmas: db.turmas,
-      cursos: db.cursos,
-      faculdade: db.faculdade,
-    }),
-    vagasDisponiveis: availableSpots(evento),
-    taxaOcupacao: evento.capacidade > 0 ? evento.ocupadas / evento.capacidade : 0,
-    inscricoesAbertas: enrollmentOpen(evento, new Date()),
-    totalListaEspera: waitlistSize(participacoes),
-    minhaParticipacao: minha,
-  };
-}
-
-function toParticipacaoView(participacao: Participacao): ParticipacaoView | null {
-  const evento = findEvento(participacao.eventoId);
-  if (!evento) return null;
-  return {
-    ...participacao,
-    evento: {
-      id: evento.id,
-      titulo: evento.titulo,
-      inicio: evento.inicio,
-      fim: evento.fim,
-      local: evento.local,
-      preco: evento.preco,
-      alcance: evento.alcance,
-      status: evento.status,
-      capaSeed: evento.capaSeed,
-    },
-    pagamento: pagamentoDaParticipacao(participacao.id) ?? null,
-    presenca: presencaDaParticipacao(participacao.id) ?? null,
-  };
-}
-
-function eventosVisiveis(usuarioId: string): Evento[] {
-  const db = getDb();
-  const usuario = findUsuario(usuarioId);
-  if (!usuario) return [];
-  const minhas = participacoesDoUsuario(usuarioId);
-
-  return db.eventos.filter((evento) =>
-    canSee(usuario, evento, {
-      temParticipacaoAtiva: minhas.some((p) => p.eventoId === evento.id && isActive(p.status)),
-    }),
-  );
-}
-
-function aplicarFiltros(
-  eventos: Evento[],
-  usuarioId: string,
-  filtros: { alcance: FiltroAlcance; preco: FiltroPreco; periodo: FiltroPeriodo; busca: string },
-): Evento[] {
-  const usuario = findUsuario(usuarioId);
-  const agora = Date.now();
-  const fimDoMes = new Date();
-  fimDoMes.setMonth(fimDoMes.getMonth() + 1, 0);
-  fimDoMes.setHours(23, 59, 59, 999);
-  const seteDias = agora + 7 * 24 * 3_600_000;
-
-  return (
-    eventos
-      .filter(
-        (e) => e.status === 'PUBLICADO' || e.status === 'CANCELADO' || e.status === 'REALIZADO',
-      )
-      .filter((e) => {
-        switch (filtros.alcance) {
-          case 'MINHA_TURMA':
-            return e.alcance === 'TURMA' && e.turmaId === usuario?.turmaId;
-          case 'MEU_CURSO':
-            return e.alcance === 'CURSO' && e.cursoId === usuario?.cursoId;
-          case 'FACULDADE':
-            return e.alcance === 'FACULDADE';
-          default:
-            return true;
-        }
-      })
-      .filter((e) => {
-        if (filtros.preco === 'GRATUITOS') return e.preco === 0;
-        if (filtros.preco === 'PAGOS') return e.preco > 0;
-        return true;
-      })
-      .filter((e) => {
-        const inicio = new Date(e.inicio).getTime();
-        if (filtros.periodo === 'ESTE_MES') return inicio <= fimDoMes.getTime();
-        if (filtros.periodo === 'PROXIMOS_7_DIAS') return inicio <= seteDias;
-        return true;
-      })
-      .filter((e) => {
-        if (!filtros.busca) return true;
-        const termo = filtros.busca.toLowerCase();
-        return (
-          e.titulo.toLowerCase().includes(termo) ||
-          e.local.toLowerCase().includes(termo) ||
-          e.descricao.toLowerCase().includes(termo)
-        );
-      })
-      /*
-       * Quem abre "Eventos" quer saber o que vem, não o que passou. Então: os
-       * futuros primeiro, em ordem crescente (o mais próximo no topo); depois os
-       * encerrados, em ordem decrescente (o mais recente primeiro). Ordenar tudo
-       * por data colocaria a Semana de Recepção de agosto acima do churrasco de
-       * setembro — exatamente o contrário do que a tela serve para responder.
-       */
-      .sort((a, b) => {
-        const inicioA = new Date(a.inicio).getTime();
-        const inicioB = new Date(b.inicio).getTime();
-        const futuroA = new Date(a.fim).getTime() >= agora;
-        const futuroB = new Date(b.fim).getTime() >= agora;
-        if (futuroA !== futuroB) return futuroA ? -1 : 1;
-        return futuroA ? inicioA - inicioB : inicioB - inicioA;
-      })
-  );
-}
-
-// --------------------------------------------------------------------------
-// Handlers
-// --------------------------------------------------------------------------
-
-export const handlers = [
+const handlersBase = [
   /** Sessão do usuário autenticado, com o vínculo acadêmico resolvido. */
-  http.get(`${BASE}/sessao`, async () => {
-    await latencia();
+  http.get(`${BASE}/sessao`, async ({ request }) => {
+    await abrirRequisicao();
     const db = getDb();
-    const usuario = usuarioAtual();
+    const usuario = usuarioAtual(request);
     const sessao: SessaoUsuario = {
       usuario,
       faculdade: db.faculdade,
@@ -231,9 +77,9 @@ export const handlers = [
 
   /** RF-015 — lista de eventos visíveis, filtrada e ordenada por data. */
   http.get(`${BASE}/eventos`, async ({ request }) => {
-    await latencia();
+    await abrirRequisicao();
     const url = new URL(request.url);
-    const usuario = usuarioAtual();
+    const usuario = usuarioAtual(request);
     const visiveis = eventosVisiveis(usuario.id);
     const filtrados = aplicarFiltros(visiveis, usuario.id, {
       alcance: (url.searchParams.get('alcance') as FiltroAlcance) ?? 'TODOS',
@@ -245,9 +91,9 @@ export const handlers = [
   }),
 
   /** Eventos em destaque no feed: os 4 mais próximos com inscrição aberta. */
-  http.get(`${BASE}/eventos/destaque`, async () => {
-    await latencia();
-    const usuario = usuarioAtual();
+  http.get(`${BASE}/eventos/destaque`, async ({ request }) => {
+    await abrirRequisicao();
+    const usuario = usuarioAtual(request);
     const agora = new Date();
     const destaque = eventosVisiveis(usuario.id)
       .filter((e) => e.status === 'PUBLICADO' && new Date(e.inicio) > agora)
@@ -260,9 +106,9 @@ export const handlers = [
    * RF-016 — detalhe do evento. RN-001: fora do alcance devolve 404 e não
    * revela a existência do evento, mesmo por ID direto (RNF-012).
    */
-  http.get(`${BASE}/eventos/:id`, async ({ params }) => {
-    await latencia();
-    const usuario = usuarioAtual();
+  http.get(`${BASE}/eventos/:id`, async ({ params, request }) => {
+    await abrirRequisicao();
+    const usuario = usuarioAtual(request);
     const id = String(params.id);
     const evento = findEvento(id);
     if (!evento) {
@@ -280,8 +126,8 @@ export const handlers = [
 
   /** RF-010 a RF-012 — criação de evento. */
   http.post(`${BASE}/eventos`, async ({ request }) => {
-    await latencia();
-    const usuario = usuarioAtual();
+    await abrirRequisicao();
+    const usuario = usuarioAtual(request);
     const body = (await request.json()) as {
       titulo: string;
       descricao: string;
@@ -355,7 +201,7 @@ export const handlers = [
    * (RN-004, RNF-013).
    */
   http.post(`${BASE}/eventos/:id/participacoes`, async ({ params, request }) => {
-    await latencia();
+    await abrirRequisicao();
     const usuario = usuarioAtual(request);
     const eventoId = String(params.id);
 
@@ -466,7 +312,7 @@ export const handlers = [
 
   /** RF-024 — entrar na lista de espera (RN-006). */
   http.post(`${BASE}/eventos/:id/lista-espera`, async ({ params, request }) => {
-    await latencia();
+    await abrirRequisicao();
     const usuario = usuarioAtual(request);
     const eventoId = String(params.id);
 
@@ -529,7 +375,7 @@ export const handlers = [
    * uma janela em que a vaga está livre e ninguém foi avisado.
    */
   http.delete(`${BASE}/participacoes/:id`, async ({ params, request }) => {
-    await latencia();
+    await abrirRequisicao();
     const usuario = usuarioAtual(request);
     const participacaoId = String(params.id);
 
@@ -620,9 +466,9 @@ export const handlers = [
   }),
 
   /** RF-025 — confirmar a vaga oferecida pela lista de espera (RN-007). */
-  http.post(`${BASE}/participacoes/:id/confirmar`, async ({ params }) => {
-    await latencia();
-    const usuario = usuarioAtual();
+  http.post(`${BASE}/participacoes/:id/confirmar`, async ({ params, request }) => {
+    await abrirRequisicao();
+    const usuario = usuarioAtual(request);
     const participacaoId = String(params.id);
 
     const resultado = await transaction((db) => {
@@ -663,9 +509,9 @@ export const handlers = [
   }),
 
   /** RF-007 — minhas participações, para as abas do perfil. */
-  http.get(`${BASE}/participacoes`, async () => {
-    await latencia();
-    const usuario = usuarioAtual();
+  http.get(`${BASE}/participacoes`, async ({ request }) => {
+    await abrirRequisicao();
+    const usuario = usuarioAtual(request);
     const views = participacoesDoUsuario(usuario.id)
       .map(toParticipacaoView)
       .filter((v): v is ParticipacaoView => v !== null)
@@ -674,9 +520,9 @@ export const handlers = [
   }),
 
   /** RF-033 — ingresso com QR Code. */
-  http.get(`${BASE}/participacoes/:id`, async ({ params }) => {
-    await latencia();
-    const usuario = usuarioAtual();
+  http.get(`${BASE}/participacoes/:id`, async ({ params, request }) => {
+    await abrirRequisicao();
+    const usuario = usuarioAtual(request);
     const participacao = findParticipacao(String(params.id));
     if (!participacao || participacao.usuarioId !== usuario.id) {
       return erro(404, 'NAO_ENCONTRADO', 'Ingresso não encontrado.');
@@ -687,10 +533,10 @@ export const handlers = [
   }),
 
   /** RF-036 — feed segmentado pelo alcance dos eventos (RN-001, RN-019). */
-  http.get(`${BASE}/feed`, async () => {
-    await latencia();
+  http.get(`${BASE}/feed`, async ({ request }) => {
+    await abrirRequisicao();
     const db = getDb();
-    const usuario = usuarioAtual();
+    const usuario = usuarioAtual(request);
     const idsVisiveis = new Set(eventosVisiveis(usuario.id).map((e) => e.id));
 
     const views: PublicacaoView[] = db.publicacoes
@@ -731,10 +577,10 @@ export const handlers = [
   }),
 
   /** RF-040 — central de notificações. */
-  http.get(`${BASE}/notificacoes`, async () => {
-    await latencia();
+  http.get(`${BASE}/notificacoes`, async ({ request }) => {
+    await abrirRequisicao();
     const db = getDb();
-    const usuario = usuarioAtual();
+    const usuario = usuarioAtual(request);
     const lista: Notificacao[] = db.notificacoes
       .filter((n) => n.destinatarioId === usuario.id)
       .sort((a, b) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime());
@@ -742,7 +588,7 @@ export const handlers = [
   }),
 
   http.post(`${BASE}/notificacoes/:id/lida`, async ({ params }) => {
-    await latencia();
+    await abrirRequisicao();
     const id = String(params.id);
     await transaction((db) => {
       const notificacao = db.notificacoes.find((n) => n.id === id);
@@ -751,3 +597,5 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 ];
+
+export const handlers = [...handlersBase, ...handlersCp5];

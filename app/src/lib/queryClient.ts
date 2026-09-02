@@ -34,5 +34,12 @@ export const queryKeys = {
   minhasParticipacoes: ['participacoes', 'minhas'] as const,
   participacao: (id: string) => ['participacao', id] as const,
   feed: ['feed'] as const,
+  eventosPublicaveis: ['feed', 'eventos-publicaveis'] as const,
   notificacoes: ['notificacoes'] as const,
+  faculdade: ['faculdade'] as const,
+  cursos: ['cursos'] as const,
+  turmas: (cursoId: string) => ['turmas', cursoId] as const,
+  pagamento: (participacaoId: string) => ['pagamento', participacaoId] as const,
+  tokenIngresso: (participacaoId: string) => ['token-ingresso', participacaoId] as const,
+  painelCheckin: (eventoId: string) => ['painel-checkin', eventoId] as const,
 };

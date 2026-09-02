@@ -1,15 +1,30 @@
 import { MOTIVO_RECUSA_INSCRICAO } from '../../types/domain';
 import type {
+  Comentario,
+  Credenciais,
+  Curso,
+  DesfechoSimulado,
+  EntradaOnboarding,
   EventoView,
+  Faculdade,
   FiltroEventos,
   Notificacao,
+  NovoComentario,
   NovoEvento,
+  NovoPagamento,
+  NovaPublicacao,
   MotivoRecusaInscricao,
+  PagamentoView,
+  PainelCheckin,
   Participacao,
   ParticipacaoView,
   PublicacaoView,
+  ResultadoCheckin,
   ResultadoInscricao,
+  ResultadoLogin,
   SessaoUsuario,
+  TokenIngresso,
+  Turma,
 } from '../../types/domain';
 import { ApiError, type Repositories } from '../index';
 
@@ -23,6 +38,40 @@ import { ApiError, type Repositories } from '../index';
 
 const BASE_URL = '/api';
 
+const CHAVE_TOKEN = 'campus.token';
+
+/**
+ * Token da sessão.
+ *
+ * Guardado em `sessionStorage` (não em `localStorage`): fechar a aba encerra a
+ * sessão, que é o comportamento certo para app usado em computador de laboratório
+ * compartilhado — o cenário real das personas (RNF-020).
+ */
+let tokenAtual: string | null = lerTokenGuardado();
+
+function lerTokenGuardado(): string | null {
+  try {
+    return globalThis.sessionStorage?.getItem(CHAVE_TOKEN) ?? null;
+  } catch {
+    // Modo privado e iframe bloqueiam storage. Sessão em memória ainda funciona.
+    return null;
+  }
+}
+
+export function definirToken(token: string | null): void {
+  tokenAtual = token;
+  try {
+    if (token) globalThis.sessionStorage?.setItem(CHAVE_TOKEN, token);
+    else globalThis.sessionStorage?.removeItem(CHAVE_TOKEN);
+  } catch {
+    // Ignora: o token em memória basta até a aba fechar.
+  }
+}
+
+export function obterToken(): string | null {
+  return tokenAtual;
+}
+
 interface ErroApi {
   erro?: string;
   mensagem?: string;
@@ -31,8 +80,12 @@ interface ErroApi {
 
 async function request<T>(caminho: string, init?: RequestInit): Promise<T> {
   const resposta = await fetch(`${BASE_URL}${caminho}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(tokenAtual ? { Authorization: `Bearer ${tokenAtual}` } : {}),
+      ...init?.headers,
+    },
   });
 
   if (resposta.status === 204) return undefined as T;
@@ -67,6 +120,90 @@ function queryDeFiltros(filtros?: FiltroEventos): string {
 export const httpRepositories: Repositories = {
   auth: {
     obterSessao: () => request<SessaoUsuario>('/sessao'),
+
+    /**
+     * Guardar o token é responsabilidade desta camada, não da tela: quem chama
+     * `entrar` recebe a sessão pronta e não precisa saber que existe cabeçalho
+     * `Authorization`.
+     */
+    entrar: async (credenciais: Credenciais) => {
+      const resultado = await request<ResultadoLogin>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credenciais),
+      });
+      definirToken(resultado.token);
+      return resultado;
+    },
+
+    sair: async () => {
+      try {
+        await request<void>('/auth/logout', { method: 'POST' });
+      } finally {
+        // Sai da sessão local mesmo se o servidor não responder: manter o token
+        // depois de um "sair" é pior do que uma sessão órfã no servidor.
+        definirToken(null);
+      }
+    },
+
+    concluirOnboarding: (entrada: EntradaOnboarding) =>
+      request<SessaoUsuario>('/auth/onboarding', {
+        method: 'POST',
+        body: JSON.stringify(entrada),
+      }),
+
+    obterFaculdade: () => request<Faculdade>('/faculdade'),
+
+    listarCursos: () => request<Curso[]>('/cursos'),
+
+    listarTurmas: (cursoId: string) => request<Turma[]>(`/cursos/${cursoId}/turmas`),
+  },
+
+  payments: {
+    iniciar: (participacaoId: string, entrada: NovoPagamento) =>
+      request<PagamentoView>(`/participacoes/${participacaoId}/pagamento`, {
+        method: 'POST',
+        body: JSON.stringify(entrada),
+      }),
+
+    obter: async (participacaoId: string) => {
+      try {
+        return await request<PagamentoView>(`/participacoes/${participacaoId}/pagamento`);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    simularDesfecho: (pagamentoId: string, desfecho: DesfechoSimulado) =>
+      request<PagamentoView>(`/pagamentos/${pagamentoId}/simular`, {
+        method: 'POST',
+        body: JSON.stringify({ desfecho }),
+      }),
+  },
+
+  checkin: {
+    obterTokenDoIngresso: (participacaoId: string) =>
+      request<TokenIngresso>(`/participacoes/${participacaoId}/token`),
+
+    /**
+     * Recusa de check-in vem como `200` com `aceito: false`, não como erro HTTP.
+     * Na porta do evento, "ingresso já usado" é uma resposta legítima do sistema
+     * e o operador precisa lê-la — não um erro para o console.
+     */
+    validar: (eventoId: string, leitura: string) =>
+      request<ResultadoCheckin>(`/eventos/${eventoId}/checkin`, {
+        method: 'POST',
+        body: JSON.stringify({ leitura }),
+      }),
+
+    obterPainel: async (eventoId: string) => {
+      try {
+        return await request<PainelCheckin>(`/eventos/${eventoId}/checkin`);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }
+    },
   },
 
   events: {
@@ -160,10 +297,26 @@ export const httpRepositories: Repositories = {
 
   feed: {
     listar: () => request<PublicacaoView[]>('/feed'),
+
+    publicar: (entrada: NovaPublicacao) =>
+      request<PublicacaoView>('/publicacoes', {
+        method: 'POST',
+        body: JSON.stringify(entrada),
+      }),
+
+    comentar: (publicacaoId: string, entrada: NovoComentario) =>
+      request<Comentario>(`/publicacoes/${publicacaoId}/comentarios`, {
+        method: 'POST',
+        body: JSON.stringify(entrada),
+      }),
+
+    eventosPublicaveis: () =>
+      request<Array<{ id: string; titulo: string }>>('/feed/eventos-publicaveis'),
   },
 
   notifications: {
     listar: () => request<Notificacao[]>('/notificacoes'),
     marcarComoLida: (id) => request<void>(`/notificacoes/${id}/lida`, { method: 'POST' }),
+    marcarTodasComoLidas: () => request<void>('/notificacoes/lidas', { method: 'POST' }),
   },
 };

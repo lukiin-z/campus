@@ -72,7 +72,7 @@ describe('canTransition — as oito transições PROIBIDAS do diagrama de estado
     ['CANCELADA', 'CONFIRMADA', 'burlaria a fila'],
     ['AUSENTE', 'PRESENTE', 'correção cria nova presença (RN-018)'],
     ['PRESENTE', 'CANCELADA', 'presença é fato imutável (RN-022)'],
-    ['PENDENTE_PAGAMENTO', 'PRESENTE', 'entrar sem pagar (RN-017, condição 4)'],
+    ['PENDENTE_PAGAMENTO', 'PRESENTE', 'entrar sem pagar (RN-017, condição 7)'],
     ['LISTA_ESPERA', 'PRESENTE', 'check-in sem vaga confirmada'],
   ];
 

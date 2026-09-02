@@ -1,4 +1,4 @@
-import type { Evento, Participacao, Presenca } from '../types/domain';
+import type { Evento, MotivoRecusaCheckin, Participacao, Presenca } from '../types/domain';
 import { checkInOpen, checkInWindow } from './deadlines';
 
 /**
@@ -10,15 +10,12 @@ import { checkInOpen, checkInWindow } from './deadlines';
  * próximo ou o segurança.
  */
 
-export type CheckInRejection =
-  | 'TOKEN_INVALIDO'
-  | 'OUTRO_EVENTO'
-  | 'AINDA_NAO_ABRIU'
-  | 'JA_ENCERROU'
-  | 'JA_UTILIZADO'
-  | 'NAO_CONFIRMADA'
-  | 'SEM_PERMISSAO'
-  | 'EVENTO_CANCELADO';
+/**
+ * A união dos motivos vive em types/domain.ts porque a API a devolve no corpo do
+ * `409` e as duas pontas precisam do mesmo conjunto. Aqui fica o apelido usado
+ * pelo domínio.
+ */
+export type CheckInRejection = MotivoRecusaCheckin;
 
 export interface CheckInDecision {
   aceito: boolean;
@@ -36,7 +33,7 @@ export interface CheckInTokenPayload {
 }
 
 /**
- * As 6 condições de RN-017, verificadas na ordem em que ficam mais baratas e
+ * As 7 condições de RN-017, verificadas na ordem em que ficam mais baratas e
  * mais informativas. A unicidade (condição 5) é a única que, no CP6, também é
  * garantida pelo banco (índice único em `presenca.participacao_id`) — aqui a
  * verificação existe para dar a mensagem certa antes de tentar escrever.
@@ -109,14 +106,20 @@ export function decideCheckIn(input: {
     };
   }
 
-  if (participacao.status !== 'CONFIRMADA') {
-    return {
-      aceito: false,
-      motivo: 'NAO_CONFIRMADA',
-      mensagem: mensagemPorStatus(participacao.status),
-    };
-  }
-
+  /*
+   * A unicidade vem ANTES do status, e a ordem foi corrigida por causa de um
+   * defeito real observado na porta simulada: um check-in aceito muda a
+   * participação para `PRESENTE`, então a segunda leitura do mesmo ingresso
+   * caía na verificação de status e devolvia `NAO_CONFIRMADA`. A mensagem saía
+   * certa por acaso ("Check-in já registrado"), mas o CÓDIGO estava errado — e
+   * `JA_UTILIZADO`, que é a recusa que RN-018 existe para produzir, ficava
+   * inalcançável para quem consome a API.
+   *
+   * A troca é segura: a presença tem relação 1:1 com a participação, então
+   * existir presença já implica que a entrada aconteceu. E `PRESENTE` sem linha
+   * de presença — que o banco do CP6 impede — continua caindo na verificação de
+   * status logo abaixo.
+   */
   if (presencaExistente) {
     return {
       aceito: false,
@@ -125,10 +128,18 @@ export function decideCheckIn(input: {
     };
   }
 
+  if (participacao.status !== 'CONFIRMADA') {
+    return {
+      aceito: false,
+      motivo: 'NAO_CONFIRMADA',
+      mensagem: mensagemPorStatus(participacao.status),
+    };
+  }
+
   return { aceito: true, mensagem: 'Check-in confirmado.' };
 }
 
-/** RN-017, condição 4 — cada estado tem sua mensagem, nunca um erro genérico. */
+/** RN-017, condição 7 — cada estado tem sua mensagem, nunca um erro genérico. */
 function mensagemPorStatus(status: Participacao['status']): string {
   switch (status) {
     case 'PENDENTE_PAGAMENTO':

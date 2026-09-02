@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import type { FiltroEventos, NovoEvento } from '../types/domain';
-import { ApiError, repositories } from '../services';
+import { ApiError, obterToken, repositories } from '../services';
 import { queryKeys } from '../lib/queryClient';
 import { useSessionStore } from '../store/session';
 import { useUiStore } from '../store/ui';
@@ -14,17 +14,32 @@ import { useUiStore } from '../store/ui';
  * exige revisar cada página (RNF-016).
  */
 
+/**
+ * Carrega a sessão do token guardado.
+ *
+ * `enabled` depende do token: sem token não há o que carregar, e disparar a
+ * requisição só para receber a sessão do usuário padrão do mock faria a guarda
+ * de rota deixar entrar quem nunca fez login.
+ *
+ * `marcarResolvida` separa "ainda não sei" de "sei que não há sessão" — sem essa
+ * distinção, o F5 em `/eventos` pisca a tela de login antes de renderizar.
+ */
 export function useSessao() {
   const definirSessao = useSessionStore((s) => s.definirSessao);
+  const marcarResolvida = useSessionStore((s) => s.marcarResolvida);
+  const temToken = Boolean(obterToken());
+
   const query = useQuery({
     queryKey: queryKeys.sessao,
     queryFn: () => repositories.auth.obterSessao(),
     staleTime: Infinity,
+    enabled: temToken,
   });
 
   useEffect(() => {
     if (query.data) definirSessao(query.data);
-  }, [query.data, definirSessao]);
+    else if (!temToken || query.isError) marcarResolvida();
+  }, [query.data, query.isError, temToken, definirSessao, marcarResolvida]);
 
   return query;
 }

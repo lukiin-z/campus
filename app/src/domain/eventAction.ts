@@ -7,7 +7,7 @@ import { minutesLeftToPay } from './payment';
  * Ação principal do detalhe do evento.
  *
  * Este módulo é a implementação do segundo diagrama de atividades
- * (docs/05-modelagem/05-diagrama-atividades.md): nove estados de botão, cada um
+ * (docs/05-modelagem/05-diagrama-atividades.md): onze estados de botão, cada um
  * com rótulo próprio. O ganho é direto: o aluno nunca toca em um botão para
  * descobrir que não podia.
  */

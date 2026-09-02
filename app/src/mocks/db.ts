@@ -1,6 +1,7 @@
 import type {
   Comentario,
   Curso,
+  ResumoCartao,
   Evento,
   Faculdade,
   Notificacao,
@@ -46,6 +47,12 @@ export interface Database {
   publicacoes: Publicacao[];
   comentarios: Comentario[];
   notificacoes: Notificacao[];
+  /**
+   * O que sobra de um cartão depois do formulário: quatro dígitos, bandeira e
+   * titular (RNF-022). Número e CVV não entram aqui nem em nenhuma requisição —
+   * `domain/pix.ts#resumirCartao` reduz os dados antes de sair da tela.
+   */
+  resumosCartao: Array<{ pagamentoId: string } & ResumoCartao>;
 }
 
 function clone<T>(value: T): T {
@@ -66,6 +73,7 @@ function freshDatabase(): Database {
     publicacoes: clone(seed.publicacoes),
     comentarios: clone(seed.comentarios),
     notificacoes: clone(seed.notificacoes),
+    resumosCartao: [],
   };
 }
 

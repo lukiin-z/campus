@@ -51,6 +51,18 @@ function hoursBefore(iso: string, horas: number): string {
   return new Date(new Date(iso).getTime() - horas * 3_600_000).toISOString();
 }
 
+/**
+ * Deslocamento em horas a partir de AGORA, não da meia-noite.
+ *
+ * Existe para o evento em andamento (`evt-013`): a janela de check-in vai de 4 h
+ * antes do início a 2 h depois do fim (RN-017), e um horário cravado no seed só
+ * cairia dentro dela se a demonstração fosse feita naquela hora do dia. Com esta
+ * função, o evento está sempre acontecendo — em qualquer dia e a qualquer hora.
+ */
+function horasDeAgora(horas: number): string {
+  return new Date(Date.now() + horas * 3_600_000).toISOString();
+}
+
 // ---------------------------------------------------------------------------
 // Estrutura acadêmica — 1 faculdade, 3 cursos, 4 turmas
 // ---------------------------------------------------------------------------
@@ -130,8 +142,14 @@ function aluno(
   id: string,
   nome: string,
   emailLocal: string,
-  turmaId: string,
-  cursoId: string,
+  /**
+   * `null` nos dois é o estado entre a verificação do e-mail e a conclusão do
+   * onboarding (RF-004, RF-005). Existe um usuário assim no seed de propósito:
+   * sem ele, a tela de vínculo só apareceria para quem criasse uma conta nova, e
+   * o fluxo não seria demonstrável.
+   */
+  turmaId: string | null,
+  cursoId: string | null,
   avatarSeed: number,
   papeis: Usuario['papeis'] = ['ALUNO'],
 ): Usuario {
@@ -172,14 +190,18 @@ export const usuarios: Usuario[] = [
   ]),
   aluno('usr-011', 'João Pedro Alencar', 'joao.alencar', 'tur-003', 'cur-002', 11),
   aluno('usr-012', 'Karen Yamada', 'karen.yamada', 'tur-002', 'cur-001', 12),
+  // Conta nova: e-mail verificado, vínculo pendente. É por ela que se demonstra
+  // o onboarding — o código da 3ESPX é `3ESPX-26` (tur-001).
+  aluno('usr-013', 'Lucas Tavares', 'lucas.tavares', null, null, 5),
 ];
 
 /** Usuário autenticado no protótipo (o login é simulado no CP5). */
 export const USUARIO_ATUAL_ID = 'usr-001';
 
 // ---------------------------------------------------------------------------
-// Eventos — 11, com estados variados: lotado, gratuito, pago, cancelado,
-// realizado, rascunho e com lista de espera ativa
+// Eventos — 13, com estados variados: lotado, gratuito, pago, cancelado,
+// realizado, rascunho, com lista de espera ativa, com oferta de vaga em curso e
+// um EM ANDAMENTO, para o check-in poder ser exercitado
 // ---------------------------------------------------------------------------
 
 interface SeedEvento {
@@ -192,6 +214,11 @@ interface SeedEvento {
   diasDeHoje: number;
   hora: number;
   minuto?: number;
+  /**
+   * Início em horas a partir de agora, sobrepondo `diasDeHoje`/`hora`. Só o
+   * evento em andamento usa: ver `horasDeAgora`.
+   */
+  inicioEmHorasDeAgora?: number;
   duracaoHoras: number;
   local: string;
   capacidade: number;
@@ -404,10 +431,52 @@ const seedEventos: SeedEvento[] = [
     status: 'RASCUNHO',
     capaSeed: 10,
   },
+  {
+    id: 'evt-012',
+    organizadorId: 'usr-002',
+    titulo: 'Visita técnica à fábrica da Bosch',
+    descricao:
+      'Visita guiada à linha de produção e ao laboratório de testes, com engenheiros da própria planta. Ônibus sai do Campus 2 às 7h em ponto e volta às 14h. Vagas limitadas pelo ônibus, não pela fábrica — por isso a fila de espera anda rápido quando alguém desiste. Levar documento com foto e sapato fechado.',
+    alcance: 'TURMA',
+    ancora: 'tur-001',
+    diasDeHoje: 9,
+    hora: 7,
+    duracaoHoras: 7,
+    local: 'Saída do Campus 2',
+    capacidade: 25,
+    ocupadas: 25,
+    preco: 0,
+    status: 'PUBLICADO',
+    capaSeed: 11,
+  },
+  {
+    id: 'evt-013',
+    organizadorId: 'usr-002',
+    titulo: 'Maratona de estudos para a prova de Algoritmos',
+    descricao:
+      'Sala reservada, café por conta do rateio e três monitores do 5º semestre resolvendo exercício com quem chegar. Entrada por check-in no app: a coordenação exige lista de presença para liberar a sala fora do horário.',
+    alcance: 'TURMA',
+    ancora: 'tur-001',
+    // Começou 1 h atrás e termina em 3 h: dentro da janela de check-in de
+    // RN-017 em qualquer momento em que a demonstração seja feita.
+    diasDeHoje: 0,
+    hora: 0,
+    inicioEmHorasDeAgora: -1,
+    duracaoHoras: 4,
+    local: 'Laboratório 2',
+    capacidade: 20,
+    ocupadas: 12,
+    preco: 0,
+    status: 'PUBLICADO',
+    capaSeed: 7,
+  },
 ];
 
 export const eventos: Evento[] = seedEventos.map((s) => {
-  const inicio = at(s.diasDeHoje, s.hora, s.minuto ?? 0);
+  const inicio =
+    s.inicioEmHorasDeAgora === undefined
+      ? at(s.diasDeHoje, s.hora, s.minuto ?? 0)
+      : horasDeAgora(s.inicioEmHorasDeAgora);
   const fim = new Date(new Date(inicio).getTime() + s.duracaoHoras * 3_600_000).toISOString();
   return {
     id: s.id,
@@ -606,6 +675,18 @@ const seedParticipacoes: SeedParticipacao[] = [
   { id: 'par-070', eventoId: 'evt-007', usuarioId: 'usr-002', status: 'CONFIRMADA', diasAtras: 4 },
   { id: 'par-071', eventoId: 'evt-007', usuarioId: 'usr-004', status: 'CONFIRMADA', diasAtras: 4 },
 
+  // evt-005 — a inscrição de Marina aguardando pagamento, para a tela de
+  // cobrança abrir com dado real em vez de exigir uma inscrição antes.
+  // Fica em evt-005 (R$ 45) e não em evt-007 porque `services/inscricao.test.ts`
+  // usa evt-007 justamente como o evento em que Marina AINDA não está inscrita.
+  {
+    id: 'par-052',
+    eventoId: 'evt-005',
+    usuarioId: 'usr-001',
+    status: 'PENDENTE_PAGAMENTO',
+    diasAtras: 0,
+  },
+
   // evt-008 — cancelado: participações em cascata (RN-022)
   {
     id: 'par-080',
@@ -630,6 +711,59 @@ const seedParticipacoes: SeedParticipacao[] = [
   // evt-010 — realizado
   { id: 'par-100', eventoId: 'evt-010', usuarioId: 'usr-001', status: 'PRESENTE', diasAtras: 26 },
   { id: 'par-101', eventoId: 'evt-010', usuarioId: 'usr-002', status: 'PRESENTE', diasAtras: 26 },
+
+  /*
+   * evt-012 — visita técnica lotada, com uma oferta de vaga EM CURSO.
+   *
+   * A história é a de RN-007 e RN-008: Gabriela desistiu (`par-121`), a vaga foi
+   * oferecida ao primeiro da fila — Marina — e a oferta expira em 18 h
+   * (`ofertaExpiraEm` é calculado a partir de agora). Caio continua na fila, na
+   * posição 1, porque Marina saiu dela ao receber a oferta.
+   *
+   * A fila tem uma pessoa só porque a 3ESPX tem quatro alunos no seed e os
+   * outros três já têm papel neste evento. Fila longa é demonstrada em evt-002,
+   * que é de alcance FACULDADE e tem sete. Pôr aqui alguém de outra turma seria
+   * criar participação fora de alcance — foi o defeito que o teste de
+   * integridade do seed pegou na primeira tentativa.
+   *
+   * `ocupadas` continua 25: a vaga que Gabriela liberou é a que Marina segura
+   * agora, e OFERTA_PENDENTE ocupa vaga (RN-004).
+   *
+   * Este bloco existe para que "vaga liberada → oferta com prazo → confirmação"
+   * seja demonstrável abrindo o app, sem provocar um cancelamento antes.
+   */
+  { id: 'par-120', eventoId: 'evt-012', usuarioId: 'usr-002', status: 'CONFIRMADA', diasAtras: 8 },
+  { id: 'par-121', eventoId: 'evt-012', usuarioId: 'usr-008', status: 'CANCELADA', diasAtras: 1 },
+  {
+    id: 'par-122',
+    eventoId: 'evt-012',
+    usuarioId: 'usr-001',
+    status: 'OFERTA_PENDENTE',
+    diasAtras: 0,
+  },
+  {
+    id: 'par-123',
+    eventoId: 'evt-012',
+    usuarioId: 'usr-004',
+    status: 'LISTA_ESPERA',
+    posicaoFila: 1,
+    diasAtras: 3,
+  },
+
+  /*
+   * evt-013 — acontecendo agora, com a porta aberta.
+   *
+   * Quatro confirmados que ainda não entraram (é o que a lista `aguardando` do
+   * painel mostra, com o código de 8 dígitos de cada um) e um que já entrou,
+   * para a recusa por uso único (RN-018) ser demonstrável sem precisar validar
+   * duas vezes na frente de quem avalia.
+   *
+   * `usr-002` organiza: é por ele que se entra no painel de check-in.
+   */
+  { id: 'par-130', eventoId: 'evt-013', usuarioId: 'usr-001', status: 'CONFIRMADA', diasAtras: 3 },
+  { id: 'par-131', eventoId: 'evt-013', usuarioId: 'usr-004', status: 'CONFIRMADA', diasAtras: 3 },
+  { id: 'par-132', eventoId: 'evt-013', usuarioId: 'usr-008', status: 'CONFIRMADA', diasAtras: 2 },
+  { id: 'par-133', eventoId: 'evt-013', usuarioId: 'usr-002', status: 'PRESENTE', diasAtras: 4 },
 ];
 
 export const participacoes: Participacao[] = seedParticipacoes.map((s) => {
@@ -643,7 +777,12 @@ export const participacoes: Participacao[] = seedParticipacoes.map((s) => {
     posicaoFila: s.posicaoFila ?? null,
     pagamentoExpiraEm:
       s.status === 'PENDENTE_PAGAMENTO' ? new Date(Date.now() + 42 * 60_000).toISOString() : null,
-    ofertaExpiraEm: null,
+    /*
+     * RN-008 — a janela de 24 h da oferta. Calculada a partir de agora para que
+     * a oferta esteja sempre viva na demonstração, em qualquer data.
+     */
+    ofertaExpiraEm:
+      s.status === 'OFERTA_PENDENTE' ? new Date(Date.now() + 18 * 3_600_000).toISOString() : null,
     motivoCancelamento:
       s.status === 'CANCELADA'
         ? evento?.status === 'CANCELADO'
@@ -737,6 +876,17 @@ export const pagamentos: Pagamento[] = [
 // ---------------------------------------------------------------------------
 
 export const presencas: Presenca[] = [
+  {
+    id: 'pre-010',
+    participacaoId: 'par-133',
+    registradoPorId: 'usr-002',
+    metodo: 'QR_CODE',
+    // Meia hora atrás: dentro do evento em andamento, e é o registro que faz a
+    // segunda validação do mesmo ingresso ser recusada por RN-018.
+    checkinEm: horasDeAgora(-0.5),
+    motivoCorrecao: null,
+    sincronizado: true,
+  },
   {
     id: 'pre-001',
     participacaoId: 'par-090',
@@ -899,7 +1049,10 @@ export const notificacoes: Notificacao[] = [
     tipo: 'PAGAMENTO_CONFIRMADO',
     titulo: 'Pagamento confirmado',
     mensagem: 'Sua inscrição no Churrasco de encerramento do semestre está confirmada.',
-    referenciaId: 'evt-001',
+    // Aponta para a PARTICIPAÇÃO, não para o evento: quem lê este aviso quer
+    // abrir o ingresso. O handler do webhook grava assim, e o seed divergia —
+    // o que fazia o mesmo tipo de notificação levar a telas diferentes.
+    referenciaId: 'par-001',
     lida: false,
     criadoEm: at(-4, 10, 3),
   },

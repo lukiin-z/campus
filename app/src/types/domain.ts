@@ -382,3 +382,161 @@ export const MOTIVO_RECUSA_INSCRICAO = [
   'EVENTO_NAO_PUBLICADO',
 ] as const;
 export type MotivoRecusaInscricao = (typeof MOTIVO_RECUSA_INSCRICAO)[number];
+
+// ---------------------------------------------------------------------------
+// Autenticação e onboarding (RF-001 a RF-005) — CP5
+// ---------------------------------------------------------------------------
+
+export interface Credenciais {
+  email: string;
+  senha: string;
+}
+
+/**
+ * O token existe desde o CP5 mesmo com o mock: é ele que a store guarda e o
+ * cliente HTTP envia. No CP6 o valor passa a ser um JWT real assinado pela API,
+ * e nada acima desta camada muda (ADR-0003).
+ */
+export interface ResultadoLogin {
+  token: string;
+  sessao: SessaoUsuario;
+}
+
+/** RF-004 e RF-005 — o aluno escolhe o curso e prova a turma pelo código. */
+export interface EntradaOnboarding {
+  cursoId: string;
+  codigoConvite: string;
+}
+
+export const MOTIVO_RECUSA_LOGIN = [
+  'DOMINIO_NAO_INSTITUCIONAL',
+  'CREDENCIAL_INVALIDA',
+  'EMAIL_NAO_VERIFICADO',
+] as const;
+export type MotivoRecusaLogin = (typeof MOTIVO_RECUSA_LOGIN)[number];
+
+export const MOTIVO_RECUSA_ONBOARDING = [
+  'CURSO_INEXISTENTE',
+  'CODIGO_INVALIDO',
+  'CODIGO_INATIVO',
+  'CODIGO_DE_OUTRO_CURSO',
+] as const;
+export type MotivoRecusaOnboarding = (typeof MOTIVO_RECUSA_ONBOARDING)[number];
+
+// ---------------------------------------------------------------------------
+// Pagamento simulado (RF-026 a RF-030) — CP5
+// ---------------------------------------------------------------------------
+
+/**
+ * Cobrança Pix. `brCode` tem o formato de um payload EMV de verdade, mas é
+ * gerado localmente e não corresponde a nenhuma conta: o CP5 simula o gateway
+ * (ADR-0007). Nenhum dado de cartão trafega ou é guardado (RNF-022).
+ */
+export interface CobrancaPix {
+  chave: string;
+  brCode: string;
+  expiraEm: IsoDateTime;
+}
+
+/** Só os últimos 4 dígitos sobrevivem à tela — o resto nunca sai do formulário. */
+export interface ResumoCartao {
+  ultimosQuatro: string;
+  bandeira: string;
+  titular: string;
+}
+
+export interface NovoPagamento {
+  metodo: MetodoPagamento;
+  /** Presente apenas em cartão; a API recebe o resumo, nunca o número. */
+  cartao?: ResumoCartao;
+}
+
+export interface PagamentoView extends Pagamento {
+  pix: CobrancaPix | null;
+  cartao: ResumoCartao | null;
+  /** Minutos restantes da janela de RN-012, calculado pelo servidor. */
+  minutosRestantes: number | null;
+}
+
+/** Gatilho da simulação do gateway: é o que o botão "simular" da demo chama. */
+export const DESFECHO_SIMULADO = ['CONFIRMAR', 'RECUSAR', 'DUPLICAR'] as const;
+export type DesfechoSimulado = (typeof DESFECHO_SIMULADO)[number];
+
+// ---------------------------------------------------------------------------
+// Check-in (RF-031 a RF-035) — CP5
+// ---------------------------------------------------------------------------
+
+export const MOTIVO_RECUSA_CHECKIN = [
+  'TOKEN_INVALIDO',
+  'OUTRO_EVENTO',
+  'AINDA_NAO_ABRIU',
+  'JA_ENCERROU',
+  'JA_UTILIZADO',
+  'NAO_CONFIRMADA',
+  'SEM_PERMISSAO',
+  'EVENTO_CANCELADO',
+] as const;
+export type MotivoRecusaCheckin = (typeof MOTIVO_RECUSA_CHECKIN)[number];
+
+/** O que o ingresso mostra e o que o leitor consome. */
+export interface TokenIngresso {
+  /** Conteúdo do QR: payload assinado, opaco para a tela. */
+  valor: string;
+  /** Contingência de UC-005 A1, digitável quando a câmera falha. */
+  codigoNumerico: string;
+  /** Código legível impresso no ingresso, ex.: `CMP-3ESPX-0184`. */
+  codigoLegivel: string;
+  emitidoEm: IsoDateTime;
+}
+
+export interface ResultadoCheckin {
+  aceito: boolean;
+  motivo: MotivoRecusaCheckin | null;
+  mensagem: string;
+  /** Quem passou pela porta — o operador precisa ver o nome, não só "ok". */
+  participante: { nome: string; turma: string | null } | null;
+  registradoEm: IsoDateTime | null;
+}
+
+export interface PresencaView extends Presenca {
+  participante: Pick<Usuario, 'id' | 'nome' | 'avatarSeed'>;
+}
+
+export interface PainelCheckin {
+  evento: Pick<Evento, 'id' | 'titulo' | 'inicio' | 'fim' | 'status'>;
+  abertoAgora: boolean;
+  abreEm: IsoDateTime;
+  fechaEm: IsoDateTime;
+  confirmados: number;
+  presentes: number;
+  presencas: PresencaView[];
+  /**
+   * Quem ainda não entrou, com o código de contingência de cada um.
+   *
+   * Só o organizador do evento recebe esta lista — é ele quem opera a porta e
+   * quem digita o código quando a câmera falha (UC-005 A1). O token completo
+   * NÃO vem aqui: ele é do dono do ingresso, e o painel não precisa dele para
+   * validar por código.
+   */
+  aguardando: Array<{
+    participacaoId: string;
+    nome: string;
+    turma: string | null;
+    codigoNumerico: string;
+  }>;
+}
+
+// ---------------------------------------------------------------------------
+// Feed social (RF-036 a RF-040) — CP5
+// ---------------------------------------------------------------------------
+
+export interface NovaPublicacao {
+  eventoId: string;
+  legenda: string;
+  /** 1..24. Ausente = o servidor sorteia (não há upload de arquivo na v1). */
+  imagemSeed?: number;
+}
+
+export interface NovoComentario {
+  texto: string;
+}
