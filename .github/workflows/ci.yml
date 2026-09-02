@@ -1,0 +1,77 @@
+name: CI
+
+# Roda em todo push e em todo pull request. É o que define "verde" para a
+# Definition of Done do time (CONTRIBUTING.md, seção 5).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Um PR que recebe push novo cancela a execução anterior: fila de CI parada é
+# fila que ninguém olha.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  documentacao:
+    name: Documentação
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # Sem dependências: o validador usa só a stdlib do Node, de propósito —
+      # documentação não deve depender de npm install para ser verificada.
+      - name: Valida links, blocos Mermaid e SVGs
+        run: node scripts/validate-docs.mjs
+
+  aplicacao:
+    name: Aplicação (lint, teste, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instala dependências
+        run: npm ci
+
+      # A ordem não é acidental: lint falha em segundos, teste em dezenas,
+      # build em minutos. Falhar cedo devolve o resultado mais rápido a quem
+      # abriu o PR.
+      - name: Lint (ESLint, zero aviso tolerado)
+        run: npm run lint
+
+      - name: Formatação (Prettier)
+        run: npm run format:check
+
+      - name: Testes com cobertura (limite de 60% no domínio — RNF-015)
+        run: npm run test:coverage
+
+      - name: Build de produção
+        run: npm run build
+
+      - name: Orçamento de tamanho do pacote (RNF-007)
+        run: node ../scripts/check-bundle-size.mjs
+
+      - name: Guarda o build
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dist
+          path: app/dist
+          retention-days: 7

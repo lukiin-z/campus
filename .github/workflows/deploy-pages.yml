@@ -1,0 +1,92 @@
+name: Deploy GitHub Pages
+
+# Publica três coisas no mesmo site, porque as três são entregáveis avaliados:
+#   /                app React (base /campus/)
+#   /styleguide/     prova visual da identidade visual
+#   /prototipo/      protótipo estático original, preservado
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Um deploy por vez, sem cancelar o que já começou: publicação interrompida no
+# meio deixaria o site em estado indeterminado.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Monta o site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instala dependências
+        working-directory: app
+        run: npm ci
+
+      # GITHUB_PAGES=true faz o Vite usar base '/campus/'. Sem isso, os assets
+      # e o roteador quebram, porque o site não fica na raiz do domínio.
+      - name: Build do app
+        working-directory: app
+        env:
+          GITHUB_PAGES: 'true'
+        run: npm run build
+
+      - name: Monta a árvore do site
+        run: |
+          mkdir -p site
+          cp -r app/dist/. site/
+
+          # Styleguide: página única e autossuficiente da marca.
+          mkdir -p site/styleguide
+          cp docs/06-marca/styleguide.html site/styleguide/index.html
+          cp -r docs/06-marca/assets site/styleguide/assets
+
+          # Protótipo estático original, preservado como referência visual.
+          mkdir -p site/prototipo
+          cp prototype/legacy/index.html site/prototipo/index.html
+
+          # Deck de apoio da gravação do vídeo de 2 minutos.
+          mkdir -p site/slides
+          cp docs/15-video-slides.html site/slides/index.html
+
+          # O GitHub Pages serve arquivos estáticos: sem isso, o Jekyll ignora
+          # diretórios que começam com underscore.
+          touch site/.nojekyll
+
+          # SPA com React Router: qualquer rota profunda precisa cair no
+          # index.html. O 404.html do Pages é o jeito suportado de fazer isso.
+          cp app/dist/index.html site/404.html
+
+      - name: Configura o Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empacota o artefato
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Publica
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publica no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

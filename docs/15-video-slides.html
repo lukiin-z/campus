@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus — slides de apoio do vídeo do CP4</title>
+<meta name="description" content="Deck estático de 8 slides para compartilhar a tela durante a gravação do vídeo de 2 minutos do Checkpoint 4 do projeto Campus.">
+<link rel="icon" href="06-marca/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* ==========================================================================
+   Campus — deck de apoio do vídeo do CP4
+   Arquivo único e autossuficiente. Único recurso externo: Google Fonts.
+   Todos os valores de cor vivem em :root. Os HEX que aparecem fora daqui
+   são TEXTO DE CONTEÚDO no slide 5 (auditoria de contraste), não estilo.
+   ========================================================================== */
+
+:root {
+  /* --- escala coral ---------------------------------------------------- */
+  --coral-50:  #FAF4F2;
+  --coral-100: #F7E6E1;
+  --coral-200: #F3CBC1;
+  --coral-300: #F0A693;
+  --coral-400: #EE7D60;
+  --coral-500: #E8542E;
+  --coral-600: #C83A16;
+  --coral-700: #9B2E13;
+  --coral-800: #6F2411;
+  --coral-900: #491A0E;
+
+  /* --- escala teal ----------------------------------------------------- */
+  --teal-50:  #F2F8F7;
+  --teal-100: #DEEFED;
+  --teal-200: #BDE5E0;
+  --teal-300: #82D9CF;
+  --teal-400: #27BFAE;
+  --teal-500: #0F7A6E;
+  --teal-600: #0C6258;
+  --teal-700: #094D46;
+  --teal-800: #093A34;
+  --teal-900: #072723;
+
+  /* --- escala neutral -------------------------------------------------- */
+  --neutral-50:  #FBFBFA;
+  --neutral-100: #F2F1EE;
+  --neutral-200: #E7E5E0;
+  --neutral-300: #D6D3CC;
+  --neutral-400: #A9A5A0;
+  --neutral-500: #767D85;
+  --neutral-600: #5C6269;
+  --neutral-700: #43484E;
+  --neutral-800: #2A2E33;
+  --neutral-900: #14181C;
+  --white: #FFFFFF;
+
+  /* --- tokens semânticos ----------------------------------------------- */
+  --bg:             var(--neutral-50);
+  --surface:        var(--white);
+  --surface-2:      var(--neutral-100);
+  --border:         var(--neutral-200);
+  --border-strong:  var(--neutral-500);
+  --text:           var(--neutral-900);
+  --text-muted:     var(--neutral-600);
+  --text-subtle:    var(--neutral-500);
+  --text-disabled:  var(--neutral-400);
+  --accent:         var(--coral-500);
+  --accent-strong:  var(--coral-600);
+  --accent-hover:   var(--coral-700);
+  --accent-soft:    var(--coral-100);
+  --accent-2:       var(--teal-500);
+  --accent-2-hover: var(--teal-600);
+  --accent-2-soft:  var(--teal-100);
+  --danger:         var(--coral-800);
+  --on-accent:      var(--white);
+
+  /* --- tipografia ------------------------------------------------------ */
+  --font-display: 'Space Grotesk', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body:    'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Mono', 'Consolas', ui-monospace, 'Courier New', monospace;
+
+  /* escala do design system (px de referência sobre base 16) */
+  --mono-xs:      0.6875rem; /* 11 */
+  --mono-sm:      0.75rem;   /* 12 */
+  --body-xs:      0.75rem;   /* 12 */
+  --body-sm:      0.8125rem; /* 13 */
+  --body-md:      0.875rem;  /* 14 */
+  --display-sm:   1rem;      /* 16 */
+  --display-md:   1.25rem;   /* 20 */
+  --display-lg:   1.5rem;    /* 24 */
+  --display-xl:   1.75rem;   /* 28 */
+  --display-2xl:  2.25rem;   /* 36 */
+  /* passos exclusivos de projeção, derivados da escala */
+  --deck-title:   3rem;
+  --deck-hero:    4.5rem;
+  --deck-lead:    1.125rem;
+
+  /* --- espaçamento (base 4px) ------------------------------------------ */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- raios ------------------------------------------------------------ */
+  --radius-sm:   0.5rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.25rem;
+  --radius-full: 999px;
+
+  /* --- sombras ---------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(20, 24, 28, .05);
+  --shadow-md: 0 4px 12px rgba(20, 24, 28, .08);
+  --shadow-lg: 0 12px 32px rgba(20, 24, 28, .12);
+
+  /* --- deck ------------------------------------------------------------- */
+  --hairline: 1.5px;
+  --notch: 1.5rem;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Tipografia proporcional ao menor eixo útil: enche 1920×1080 e encolhe
+   junto quando a janela é menor ou mais baixa, sem gerar rolagem. */
+html {
+  font-size: clamp(10px, min(0.95vw, 1.68vh), 20px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--body-md);
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.08; }
+p, dl, dd, dt, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+b, strong { font-weight: 600; }
+
+.mono { font-family: var(--font-mono); font-variant-ligatures: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================ estrutura do deck ========================== */
+
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.deck__progress {
+  position: absolute; inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--border);
+  z-index: 40;
+}
+.deck__progress b {
+  display: block; height: 100%;
+  width: var(--progress, 12.5%);
+  background: var(--accent-strong);
+  transition: width .32s var(--ease);
+}
+
+.deck__stage { position: absolute; inset: 0; }
+
+/* lâminas de clique nas laterais — decorativas, o teclado usa o HUD */
+.deck__edge {
+  position: absolute; top: 0; bottom: 0;
+  width: 12%;
+  border: 0; padding: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 30;
+}
+.deck__edge--prev { left: 0; }
+.deck__edge--next { right: 0; }
+
+.deck__hud {
+  position: absolute;
+  right: var(--space-10); bottom: var(--space-8);
+  display: flex; align-items: center; gap: var(--space-3);
+  z-index: 50;
+}
+.deck__counter {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  min-width: 4.5em; text-align: center;
+}
+.deck__btn {
+  width: 2.4rem; height: 2.4rem;
+  display: grid; place-items: center;
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-family: var(--font-body);
+  font-size: var(--display-sm);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background .16s var(--ease), border-color .16s var(--ease);
+}
+.deck__btn:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent-strong); }
+.deck__btn:disabled { color: var(--text-disabled); cursor: default; box-shadow: none; }
+
+/* ============================== slide =================================== */
+
+.slide {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-6);
+  padding: var(--space-10) var(--space-16) var(--space-6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition: opacity .3s var(--ease), transform .3s var(--ease), visibility .3s step-end;
+}
+.slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s;
+}
+
+.slide__head { display: flex; flex-direction: column; gap: var(--space-2); }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+.slide__title { font-size: var(--deck-title); font-weight: 700; letter-spacing: -.02em; max-width: 26ch; }
+.slide__lead { font-size: var(--deck-lead); color: var(--text-muted); max-width: 72ch; }
+
+.slide__body { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+
+.slide__foot {
+  display: flex; align-items: baseline; gap: var(--space-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+  padding-right: 14rem; /* deixa o canto livre para o HUD */
+}
+.cue-time {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  color: var(--accent-strong);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--radius-sm);
+  background: var(--coral-50);
+}
+.cue-who { font-size: var(--body-sm); color: var(--text-muted); }
+.cue-who b { color: var(--text); }
+
+.mark { position: absolute; top: var(--space-8); right: var(--space-16); width: 2.2rem; height: 2.2rem; }
+.mark svg { display: block; width: 100%; height: 100%; }
+
+/* ============================== slide 1 ================================= */
+
+.cover { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--space-16); align-items: center; height: 100%; }
+.cover__logo { display: flex; align-items: center; gap: var(--space-5); }
+.cover__logo svg { width: 5.5rem; height: 5.5rem; display: block; }
+.cover__word { font-family: var(--font-display); font-size: var(--deck-hero); font-weight: 700; letter-spacing: -.035em; }
+.cover__one { font-size: var(--display-md); color: var(--text-muted); max-width: 34ch; margin-top: var(--space-5); }
+.cover__course { font-size: var(--body-md); color: var(--text-muted); margin-top: var(--space-6); max-width: 46ch; }
+.cover__cp {
+  display: inline-block; margin-top: var(--space-5);
+  font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--accent-strong);
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-full);
+}
+.cover__hint { margin-top: var(--space-5); font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--text-muted); }
+
+.team { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.team li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+.team__name { font-family: var(--font-display); font-size: var(--display-sm); font-weight: 500; }
+.team__rm { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--accent-strong); display: block; margin-top: var(--space-1); }
+.team__role { font-size: var(--body-xs); color: var(--text-muted); display: block; }
+
+/* ============================== slide 2 ================================= */
+
+.pains { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
+.pain {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.pain__n {
+  font-family: var(--font-mono); font-weight: 500;
+  font-size: var(--display-2xl);
+  color: var(--accent-strong);
+  line-height: 1;
+}
+.pain__t { font-size: var(--display-md); font-weight: 500; }
+.pain__d { font-size: var(--body-md); color: var(--text-muted); }
+
+/* ============================== slide 3 ================================= */
+
+.personas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); }
+.persona {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.persona__top { display: flex; align-items: center; gap: var(--space-4); }
+.avatar {
+  width: 3.4rem; height: 3.4rem; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  font-family: var(--font-display); font-weight: 700; font-size: var(--display-md);
+}
+.persona--org .avatar { background: var(--accent-2-soft); color: var(--teal-700); }
+.persona__name { font-size: var(--display-lg); font-weight: 500; }
+.persona__id { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--text-muted); display: block; margin-top: var(--space-1); }
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft); color: var(--accent-hover);
+}
+.persona--org .tag { background: var(--accent-2-soft); color: var(--teal-700); }
+.persona__pain { font-size: var(--body-md); color: var(--text-muted); }
+.persona__pain b { color: var(--text); font-weight: 600; }
+.persona__quote {
+  font-family: var(--font-display); font-size: var(--display-md); font-weight: 500;
+  border-left: 3px solid var(--accent); padding-left: var(--space-4);
+  margin: 0; line-height: 1.3;
+}
+.persona--org .persona__quote { border-left-color: var(--accent-2); }
+
+/* ============================== slide 4 ================================= */
+
+.solution { display: grid; grid-template-columns: 1.05fr .95fr; gap: var(--space-12); align-items: center; }
+
+.reach__ring {
+  border-radius: var(--radius-lg);
+  border: var(--hairline) solid var(--border);
+  background: var(--surface-2);
+  padding: var(--space-5);
+}
+.reach__ring--2 { background: var(--accent-2-soft); border-color: var(--teal-300); margin-top: var(--space-4); }
+.reach__ring--1 { background: var(--accent-soft); border-color: var(--accent); margin-top: var(--space-4); }
+.reach__label { display: block; }
+.reach__k {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+}
+.reach__ring--2 > .reach__label .reach__k { color: var(--teal-700); }
+.reach__ring--1 > .reach__label .reach__k { color: var(--accent-hover); }
+.reach__v { display: block; font-family: var(--font-display); font-size: var(--display-md); font-weight: 500; }
+.reach__note { margin-top: var(--space-5); font-size: var(--body-md); color: var(--text-muted); }
+.reach__note code { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--accent-strong); }
+
+/* cartão-ingresso picotado — elemento de assinatura da marca */
+.ticket {
+  position: relative;
+  margin: 0;
+  background: var(--surface);
+  border: var(--hairline) dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 26rem;
+}
+.ticket__main { padding: var(--space-6) var(--space-6) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.ticket__scope { display: flex; align-items: center; gap: var(--space-2); }
+.ticket__scope .mono { font-size: var(--mono-sm); color: var(--text-muted); }
+.ticket__title { font-size: var(--display-lg); font-weight: 500; }
+.ticket__meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.ticket__meta dt {
+  font-family: var(--font-mono); font-size: var(--mono-xs);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+}
+.ticket__meta dd { font-size: var(--body-md); margin-top: var(--space-1); }
+.ticket__stub {
+  position: relative;
+  border-top: var(--hairline) dashed var(--border-strong);
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+/* os dois recortes circulares laterais */
+.ticket__stub::before,
+.ticket__stub::after {
+  content: "";
+  position: absolute; top: 0;
+  width: var(--notch); height: var(--notch);
+  border-radius: var(--radius-full);
+  background: var(--bg);
+}
+.ticket__stub::before { left: 0; transform: translate(-50%, -50%); }
+.ticket__stub::after  { right: 0; transform: translate(50%, -50%); }
+
+.ticket__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.ticket__price { font-family: var(--font-mono); font-weight: 500; font-size: var(--display-xl); color: var(--accent-strong); }
+.ticket__seats { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--text-muted); }
+.ticket__seats b { color: var(--text); }
+.bar { height: 6px; border-radius: var(--radius-full); background: var(--surface-2); overflow: hidden; }
+.bar > span { display: block; height: 100%; width: var(--fill, 0%); background: var(--accent-strong); border-radius: var(--radius-full); }
+.ticket__code {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .14em; color: var(--text-muted);
+}
+
+/* ============================== slide 5 ================================= */
+
+.ds { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: var(--space-6) var(--space-10); }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+.panel__h {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: var(--space-4);
+}
+.ds__fix { grid-column: 1 / -1; }
+
+.ramp { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-3); }
+.ramp__name { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--text-muted); width: 5rem; flex: none; }
+.ramp__steps { display: flex; flex: 1; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); }
+.ramp__steps i { display: block; flex: 1; height: 1.5rem; }
+
+.faces { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.face { border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); }
+.face__aa { font-size: var(--display-2xl); line-height: 1; display: block; }
+.face--display .face__aa { font-family: var(--font-display); font-weight: 700; }
+.face--body .face__aa { font-family: var(--font-body); font-weight: 600; }
+.face--mono .face__aa { font-family: var(--font-mono); font-weight: 500; }
+.face__n { font-size: var(--body-sm); font-weight: 600; display: block; margin-top: var(--space-2); }
+.face__u { font-size: var(--body-xs); color: var(--text-muted); }
+
+.fix { display: grid; gap: var(--space-3); }
+.fix__row { display: grid; grid-template-columns: 14rem 1fr auto 1fr; align-items: center; gap: var(--space-4); }
+.fix__what { font-size: var(--body-md); font-weight: 600; }
+.chip-c { display: flex; align-items: center; gap: var(--space-3); font-family: var(--font-mono); font-size: var(--mono-sm); }
+.chip-c i { width: 1.5rem; height: 1.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); flex: none; }
+.sw-500n { background: var(--neutral-500); }
+.sw-600n { background: var(--neutral-600); }
+.sw-500c { background: var(--coral-500); }
+.sw-600c { background: var(--coral-600); }
+.ratio { font-weight: 500; }
+.verdict { font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500; letter-spacing: .08em; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); }
+.verdict--bad { background: var(--accent-soft); color: var(--danger); }
+.verdict--ok { background: var(--accent-2-soft); color: var(--teal-700); }
+.fix__arrow { font-family: var(--font-mono); color: var(--text-muted); font-size: var(--display-md); }
+
+/* ============================== slide 6 ================================= */
+
+.model { display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--space-10); }
+.stat { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-5); }
+.stat__n { font-family: var(--font-mono); font-weight: 500; font-size: var(--display-2xl); color: var(--accent-strong); line-height: 1; }
+.stat__l { font-size: var(--body-md); color: var(--text-muted); }
+
+.dlist { display: grid; gap: var(--space-2); }
+.dlist li {
+  display: grid; grid-template-columns: 1.6rem 1fr auto; align-items: baseline; gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--body-md);
+}
+.dlist li:last-child { border-bottom: 0; }
+.dlist__i { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--text-muted); }
+.dlist__t { font-weight: 600; }
+.dlist__q { color: var(--text-muted); font-weight: 400; }
+.dlist__c { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--accent-strong); }
+
+.calls { display: grid; gap: var(--space-4); align-content: start; }
+.call {
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.call__t { font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500; color: var(--teal-700); }
+.call__d { font-size: var(--body-md); margin-top: var(--space-2); }
+
+/* ============================== slide 7 ================================= */
+
+.arch { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-10); align-items: center; }
+.layers { display: grid; gap: var(--space-2); }
+.layer {
+  display: grid; grid-template-columns: 3.2rem 1fr auto; align-items: center; gap: var(--space-4);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.layer__k { font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500; color: var(--accent-strong); }
+.layer__t { font-size: var(--display-sm); font-weight: 600; }
+.layer__p { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--text-muted); }
+.layer--mock { background: var(--surface-2); }
+.frontier {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin: var(--space-2) 0;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--accent-hover);
+}
+.frontier::before, .frontier::after { content: ""; flex: 1; height: 0; border-top: var(--hairline) dashed var(--accent); }
+
+.arch__key { font-family: var(--font-display); font-size: var(--display-xl); font-weight: 500; line-height: 1.25; }
+.arch__key b { color: var(--accent-strong); font-weight: 700; }
+.rnf {
+  display: inline-block; margin-top: var(--space-4);
+  font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500;
+  color: var(--on-accent); background: var(--accent-strong);
+  padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm);
+}
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
+.chips li {
+  font-family: var(--font-mono); font-size: var(--mono-xs);
+  border: 1px solid var(--border); border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface); color: var(--text-muted);
+}
+
+/* ============================== slide 8 ================================= */
+
+.close { display: grid; grid-template-rows: auto 1fr; gap: var(--space-8); }
+.cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+.kv { display: grid; gap: var(--space-2); }
+.kv li { display: flex; align-items: baseline; gap: var(--space-3); font-size: var(--body-md); }
+.kv .mono { font-size: var(--mono-sm); color: var(--accent-strong); font-weight: 500; }
+.roles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-4); }
+.roles li { display: block; font-size: var(--body-sm); }
+.roles b { display: block; font-weight: 600; }
+.roles span { color: var(--text-muted); font-size: var(--body-xs); }
+
+.pitch {
+  align-self: center;
+  border-top: var(--hairline) solid var(--accent);
+  padding-top: var(--space-8);
+}
+.pitch p {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: var(--deck-title); line-height: 1.1; letter-spacing: -.02em;
+  max-width: 46ch;
+}
+.pitch b { color: var(--accent-strong); }
+
+/* ============================ degradação ================================= */
+
+@media (max-width: 1180px) {
+  .slide { padding: var(--space-8) var(--space-8) var(--space-5); }
+  .mark { right: var(--space-8); }
+  .deck__hud { right: var(--space-6); }
+  .pains { grid-template-columns: repeat(2, 1fr); }
+  .fix__row { grid-template-columns: 10rem 1fr auto 1fr; }
+}
+
+@media (max-width: 860px) {
+  html { font-size: clamp(12px, 2.6vw, 16px); }
+  .slide { grid-template-rows: auto auto auto; padding: var(--space-6) var(--space-5) var(--space-3); }
+  /* overflow-x explícito: só overflow-y faria o eixo x virar auto (RNF-018) */
+  .slide__body { display: block; overflow-y: auto; overflow-x: hidden; }
+  /* reserva a faixa do HUD, que aqui fica centralizado no rodapé */
+  .slide__foot { padding-right: 0; padding-bottom: 3.4rem; flex-wrap: wrap; }
+  .deck__hud { right: 50%; transform: translateX(50%); bottom: var(--space-3); }
+  .deck__edge { width: 8%; }
+  .cover, .personas, .solution, .ds, .model, .arch, .cols, .faces, .team { grid-template-columns: 1fr; }
+  .pains { grid-template-columns: 1fr; }
+  .fix__row { grid-template-columns: 1fr; }
+  .slide__title { font-size: var(--display-2xl); }
+  .cover__word { font-size: var(--display-2xl); }
+  .pitch p { font-size: var(--display-2xl); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide, .deck__progress b, .deck__btn { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="deck__progress" aria-hidden="true"><b id="deck-bar"></b></div>
+
+  <main class="deck__stage" id="deck-stage">
+
+    <!-- ================================ 1 ================================ -->
+    <section class="slide is-active" id="slide-capa" role="group"
+             aria-roledescription="slide" aria-label="Slide 1 de 8: capa">
+      <div class="slide__head">
+        <p class="eyebrow">Checkpoint 4 · vídeo de apresentação</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="cover">
+          <div>
+            <div class="cover__logo">
+              <!-- símbolo Campus: cópia fiel de docs/06-marca/assets/logo-simbolo.svg -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-labelledby="campus-simbolo-titulo">
+                <title id="campus-simbolo-titulo">Campus — símbolo</title>
+                <path fill="var(--accent-strong)" fill-rule="evenodd" d="
+                  M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+                  A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+                  H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+                  A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+                  M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+                  A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+              </svg>
+              <h1 class="cover__word">Campus</h1>
+            </div>
+            <p class="cover__one">Eventos universitários com alcance por turma, curso ou faculdade.</p>
+            <p class="cover__course">Engenharia de Software · FIAP · Engenharia de Computação · 3º ano · Prof. Hercules Ramos</p>
+            <p><span class="cover__cp">Checkpoint 4</span></p>
+            <p class="cover__hint">← → navega · Home volta ao início</p>
+          </div>
+
+          <ul class="team">
+            <li><span class="team__name">Ana Luiza Dourado</span><span class="team__rm">RM558793</span><span class="team__role">UX/UI Designer</span></li>
+            <li><span class="team__name">João Viviani Baldini</span><span class="team__rm">RM558596</span><span class="team__role">Product Owner</span></li>
+            <li><span class="team__name">Lucas Baraldi</span><span class="team__rm">RM555407</span><span class="team__role">Tech Lead / Arquiteto</span></li>
+            <li><span class="team__name">Lucas Zolla</span><span class="team__rm">RM557952</span><span class="team__role">Analista de Requisitos</span></li>
+            <li><span class="team__name">Ronaldo Veloso Filho</span><span class="team__rm">RM556445</span><span class="team__role">Modelagem / Analista UML</span></li>
+            <li><span class="team__name">Vitor Pantarotto</span><span class="team__rm">RM554961</span><span class="team__role">Scrum Master / QA</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:00–0:15</span>
+        <span class="cue-who">fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 2 ================================ -->
+    <section class="slide" id="slide-problema" role="group"
+             aria-roledescription="slide" aria-label="Slide 2 de 8: o problema" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">O problema</p>
+        <h2 class="slide__title">WhatsApp, story e lista de papel</h2>
+      </div>
+
+      <div class="slide__body">
+        <ul class="pains">
+          <li class="pain">
+            <span class="pain__n">01</span>
+            <h3 class="pain__t">Alcance errado</h3>
+            <p class="pain__d">O grupo fecha demais; o story abre demais.</p>
+          </li>
+          <li class="pain">
+            <span class="pain__n">02</span>
+            <h3 class="pain__t">Vagas na mão</h3>
+            <p class="pain__d">Planilha, papel e contagem na porta.</p>
+          </li>
+          <li class="pain">
+            <span class="pain__n">03</span>
+            <h3 class="pain__t">Cobrança informal</h3>
+            <p class="pain__d">Pix na conta pessoal de um aluno.</p>
+          </li>
+          <li class="pain">
+            <span class="pain__n">04</span>
+            <h3 class="pain__t">Nenhuma memória</h3>
+            <p class="pain__d">Acabou o evento, acabou o registro.</p>
+          </li>
+        </ul>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:15–0:40</span>
+        <span class="cue-who">fala: <b>Lucas Zolla</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 3 ================================ -->
+    <section class="slide" id="slide-persona" role="group"
+             aria-roledescription="slide" aria-label="Slide 3 de 8: as personas" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Para quem</p>
+        <h2 class="slide__title">Os dois lados do mesmo churrasco</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="personas">
+          <article class="persona">
+            <div class="persona__top">
+              <span class="avatar" aria-hidden="true">MA</span>
+              <div>
+                <h3 class="persona__name">Marina Alves</h3>
+                <span class="persona__id">21 anos · ECOMP · 3ESPX</span>
+              </div>
+              <span class="tag">participante</span>
+            </div>
+            <p class="persona__pain"><b>Dor:</b> descobre tarde e paga sem recibo.</p>
+            <blockquote class="persona__quote">“Eu quero saber se ainda tem vaga e quanto custa, sem perguntar para ninguém.”</blockquote>
+          </article>
+
+          <article class="persona persona--org">
+            <div class="persona__top">
+              <span class="avatar" aria-hidden="true">RS</span>
+              <div>
+                <h3 class="persona__name">Rafael Souza</h3>
+                <span class="persona__id">23 anos · ECOMP · 3ESPX</span>
+              </div>
+              <span class="tag">organizador</span>
+            </div>
+            <p class="persona__pain"><b>Dor:</b> vaga vazia por desistência e prejuízo com no-show.</p>
+            <blockquote class="persona__quote">“Eu não quero ser tesoureiro nem porteiro. Eu só quero marcar o churrasco.”</blockquote>
+          </article>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:15–0:40</span>
+        <span class="cue-who">fala: <b>Lucas Zolla</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 4 ================================ -->
+    <section class="slide" id="slide-solucao" role="group"
+             aria-roledescription="slide" aria-label="Slide 4 de 8: a solução" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">A solução</p>
+        <h2 class="slide__title">Alcance é regra, não campo de texto</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="solution">
+          <div>
+            <div class="reach__ring reach__ring--3">
+              <span class="reach__label">
+                <span class="reach__k">Faculdade</span>
+                <span class="reach__v">FIAP — Campus Paulista</span>
+              </span>
+              <div class="reach__ring reach__ring--2">
+                <span class="reach__label">
+                  <span class="reach__k">Curso</span>
+                  <span class="reach__v">Engenharia de Computação</span>
+                </span>
+                <div class="reach__ring reach__ring--1">
+                  <span class="reach__label">
+                    <span class="reach__k">Turma</span>
+                    <span class="reach__v">3ESPX</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p class="reach__note">O alcance é escolhido na criação e nunca aumenta depois <code>RN-002</code>.</p>
+          </div>
+
+          <figure class="ticket">
+            <div class="ticket__main">
+              <p class="ticket__scope"><span class="tag">Minha turma</span><span class="mono">3ESPX</span></p>
+              <h3 class="ticket__title">Churrasco de encerramento do semestre</h3>
+              <dl class="ticket__meta">
+                <div><dt>Quando</dt><dd class="mono">Sáb 12 set · 13h</dd></div>
+                <div><dt>Onde</dt><dd>Quadra do Campus 2</dd></div>
+              </dl>
+            </div>
+            <div class="ticket__stub">
+              <div class="ticket__row">
+                <p class="ticket__price">R$ 25,00</p>
+                <p class="ticket__seats"><b>18/40</b> vagas</p>
+              </div>
+              <div class="bar" style="--fill: 45%" role="img" aria-label="18 de 40 vagas ocupadas"><span></span></div>
+              <p class="ticket__code">CMP-3ESPX-0184</p>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:40–1:10</span>
+        <span class="cue-who">fala: <b>Ana Luiza Dourado</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 5 ================================ -->
+    <section class="slide" id="slide-design-system" role="group"
+             aria-roledescription="slide" aria-label="Slide 5 de 8: do protótipo ao design system" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Identidade visual</p>
+        <h2 class="slide__title">Do protótipo ao design system</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="ds">
+          <section class="panel">
+            <h3 class="panel__h">Paleta · 3 escalas de 10 passos</h3>
+            <div class="ramp">
+              <span class="ramp__name">coral</span>
+              <span class="ramp__steps" aria-hidden="true">
+                <i style="background: var(--coral-50)"></i><i style="background: var(--coral-100)"></i><i style="background: var(--coral-200)"></i><i style="background: var(--coral-300)"></i><i style="background: var(--coral-400)"></i><i style="background: var(--coral-500)"></i><i style="background: var(--coral-600)"></i><i style="background: var(--coral-700)"></i><i style="background: var(--coral-800)"></i><i style="background: var(--coral-900)"></i>
+              </span>
+            </div>
+            <div class="ramp">
+              <span class="ramp__name">teal</span>
+              <span class="ramp__steps" aria-hidden="true">
+                <i style="background: var(--teal-50)"></i><i style="background: var(--teal-100)"></i><i style="background: var(--teal-200)"></i><i style="background: var(--teal-300)"></i><i style="background: var(--teal-400)"></i><i style="background: var(--teal-500)"></i><i style="background: var(--teal-600)"></i><i style="background: var(--teal-700)"></i><i style="background: var(--teal-800)"></i><i style="background: var(--teal-900)"></i>
+              </span>
+            </div>
+            <div class="ramp">
+              <span class="ramp__name">neutral</span>
+              <span class="ramp__steps" aria-hidden="true">
+                <i style="background: var(--neutral-50)"></i><i style="background: var(--neutral-100)"></i><i style="background: var(--neutral-200)"></i><i style="background: var(--neutral-300)"></i><i style="background: var(--neutral-400)"></i><i style="background: var(--neutral-500)"></i><i style="background: var(--neutral-600)"></i><i style="background: var(--neutral-700)"></i><i style="background: var(--neutral-800)"></i><i style="background: var(--neutral-900)"></i>
+              </span>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h3 class="panel__h">Tipografia · 3 famílias, 1 função cada</h3>
+            <div class="faces">
+              <div class="face face--display">
+                <span class="face__aa" aria-hidden="true">Aa</span>
+                <span class="face__n">Space Grotesk</span>
+                <span class="face__u">títulos</span>
+              </div>
+              <div class="face face--body">
+                <span class="face__aa" aria-hidden="true">Aa</span>
+                <span class="face__n">Inter</span>
+                <span class="face__u">corpo</span>
+              </div>
+              <div class="face face--mono">
+                <span class="face__aa" aria-hidden="true">Aa</span>
+                <span class="face__n">JetBrains Mono</span>
+                <span class="face__u">dados e números</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel ds__fix">
+            <h3 class="panel__h">Auditoria de contraste · 2 valores herdados do protótipo, corrigidos</h3>
+            <div class="fix">
+              <div class="fix__row">
+                <span class="fix__what">Texto secundário</span>
+                <span class="chip-c"><i class="sw-500n"></i>#767D85 <span class="ratio">4,02:1</span> <span class="verdict verdict--bad">reprova</span></span>
+                <span class="fix__arrow" aria-hidden="true">→</span>
+                <span class="chip-c"><i class="sw-600n"></i>#5C6269 <span class="ratio">5,95:1</span> <span class="verdict verdict--ok">AA</span></span>
+              </div>
+              <div class="fix__row">
+                <span class="fix__what">Botão primário</span>
+                <span class="chip-c"><i class="sw-500c"></i>#E8542E <span class="ratio">3,66:1</span> <span class="verdict verdict--bad">reprova</span></span>
+                <span class="fix__arrow" aria-hidden="true">→</span>
+                <span class="chip-c"><i class="sw-600c"></i>#C83A16 <span class="ratio">5,16:1</span> <span class="verdict verdict--ok">AA</span></span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:40–1:10</span>
+        <span class="cue-who">fala: <b>Ana Luiza Dourado</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 6 ================================ -->
+    <section class="slide" id="slide-modelagem" role="group"
+             aria-roledescription="slide" aria-label="Slide 6 de 8: modelagem UML" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Modelagem UML</p>
+        <h2 class="slide__title">Cada diagrama responde uma pergunta</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="model">
+          <div>
+            <p class="stat"><span class="stat__n">12</span><span class="stat__l">diagramas Mermaid em 7 tipos</span></p>
+            <ul class="dlist">
+              <li><span class="dlist__i">1</span><span><span class="dlist__t">Casos de uso</span> <span class="dlist__q">— quem faz o quê</span></span><span class="dlist__c">23 UC</span></li>
+              <li><span class="dlist__i">2</span><span><span class="dlist__t">Classes</span> <span class="dlist__q">— que coisas existem</span></span><span class="dlist__c">14 classes</span></li>
+              <li><span class="dlist__i">3</span><span><span class="dlist__t">Modelo ER</span> <span class="dlist__q">— como isso persiste</span></span><span class="dlist__c">14 tabelas</span></li>
+              <li><span class="dlist__i">4</span><span><span class="dlist__t">Sequência</span> <span class="dlist__q">— em que ordem</span></span><span class="dlist__c">×3</span></li>
+              <li><span class="dlist__i">5</span><span><span class="dlist__t">Atividades</span> <span class="dlist__q">— por quais decisões</span></span><span class="dlist__c">×2</span></li>
+              <li><span class="dlist__i">6</span><span><span class="dlist__t">Estados</span> <span class="dlist__q">— como muda no tempo</span></span><span class="dlist__c">×2</span></li>
+              <li><span class="dlist__i">7</span><span><span class="dlist__t">Componentes</span> <span class="dlist__q">— onde o código mora</span></span><span class="dlist__c">5 camadas</span></li>
+            </ul>
+          </div>
+
+          <div class="calls">
+            <h3 class="panel__h">As 3 decisões que sustentam as regras</h3>
+            <article class="call">
+              <p class="call__t">Participacao é entidade própria</p>
+              <p class="call__d">Não é campo em Evento: tem estado, prazo e histórico.</p>
+            </article>
+            <article class="call">
+              <p class="call__t">Alcance = enum + âncora condicional</p>
+              <p class="call__d">O CHECK garante que TURMA aponte turma, e CURSO aponte curso.</p>
+            </article>
+            <article class="call">
+              <p class="call__t">Presenca 1:1 com índice único</p>
+              <p class="call__d">É isso que impede check-in duplo, não código de tela.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">1:10–1:35</span>
+        <span class="cue-who">fala: <b>Ronaldo Veloso Filho</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 7 ================================ -->
+    <section class="slide" id="slide-arquitetura" role="group"
+             aria-roledescription="slide" aria-label="Slide 7 de 8: arquitetura" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Arquitetura do front</p>
+        <h2 class="slide__title">Cinco camadas, uma fronteira</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="arch">
+          <div class="layers">
+            <div class="layer">
+              <span class="layer__k">L1</span>
+              <span class="layer__t">Apresentação</span>
+              <span class="layer__p">pages · components/ui</span>
+            </div>
+            <div class="layer">
+              <span class="layer__k">L2</span>
+              <span class="layer__t">Estado</span>
+              <span class="layer__p">store · hooks</span>
+            </div>
+            <div class="layer">
+              <span class="layer__k">L3</span>
+              <span class="layer__t">Domínio</span>
+              <span class="layer__p">domain · policy.ts</span>
+            </div>
+            <div class="layer">
+              <span class="layer__k">L4</span>
+              <span class="layer__t">Repositórios</span>
+              <span class="layer__p">services (interfaces)</span>
+            </div>
+            <p class="frontier">fronteira mock → API</p>
+            <div class="layer layer--mock">
+              <span class="layer__k">L5</span>
+              <span class="layer__t">Mock</span>
+              <span class="layer__p">MSW · seed em memória</span>
+            </div>
+          </div>
+
+          <div>
+            <p class="arch__key">Trocar o mock pela API real no CP6 muda <b>só quem responde ao HTTP</b>. Nenhuma tela é tocada.</p>
+            <p><span class="rnf">RNF-016</span></p>
+            <ul class="chips">
+              <li>Vite</li><li>React 18</li><li>TypeScript strict</li><li>Tailwind</li>
+              <li>React Router</li><li>Zustand</li><li>TanStack Query</li><li>MSW</li>
+              <li>Zod</li><li>Vitest</li><li>Playwright</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">1:10–1:35</span>
+        <span class="cue-who">fala: <b>Lucas Baraldi</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 8 ================================ -->
+    <section class="slide" id="slide-fecho" role="group"
+             aria-roledescription="slide" aria-label="Slide 8 de 8: organização e fecho" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Organização</p>
+        <h2 class="slide__title">Como o time trabalhou</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="close">
+          <div class="cols">
+            <section class="panel">
+              <h3 class="panel__h">Trello</h3>
+              <ul class="kv">
+                <li><span class="mono">7</span> listas do fluxo</li>
+                <li><span class="mono">3</span> sprints até o CP6</li>
+                <li><span class="mono">32+</span> cards distribuídos</li>
+              </ul>
+            </section>
+            <section class="panel">
+              <h3 class="panel__h">GitHub</h3>
+              <ul class="kv">
+                <li><span class="mono">·</span> README como porta de entrada</li>
+                <li><span class="mono">·</span> CI verde e Pages publicado</li>
+                <li><span class="mono">·</span> Conventional Commits</li>
+              </ul>
+            </section>
+            <section class="panel">
+              <h3 class="panel__h">Papéis</h3>
+              <ul class="roles">
+                <li><b>Ana Luiza</b><span>UX/UI</span></li>
+                <li><b>João Viviani</b><span>Product Owner</span></li>
+                <li><b>Lucas Baraldi</b><span>Tech Lead</span></li>
+                <li><b>Lucas Zolla</b><span>Requisitos</span></li>
+                <li><b>Ronaldo</b><span>Modelagem UML</span></li>
+                <li><b>Vitor</b><span>Scrum Master / QA</span></li>
+              </ul>
+            </section>
+          </div>
+
+          <div class="pitch">
+            <p>Turma, curso e faculdade não são um campo de texto: são a <b>regra de visibilidade</b> do evento.</p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">1:35–2:00</span>
+        <span class="cue-who">fala: <b>Vitor Pantarotto</b>, fecho com <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+  </main>
+
+  <button class="deck__edge deck__edge--prev" id="deck-edge-prev" tabindex="-1" aria-hidden="true"></button>
+  <button class="deck__edge deck__edge--next" id="deck-edge-next" tabindex="-1" aria-hidden="true"></button>
+
+  <div class="deck__hud">
+    <button class="deck__btn" id="deck-prev" type="button">
+      <span aria-hidden="true">‹</span><span class="sr-only">Slide anterior</span>
+    </button>
+    <p class="deck__counter" id="deck-counter" aria-live="polite" aria-atomic="true">1 / 8</p>
+    <button class="deck__btn" id="deck-next" type="button">
+      <span aria-hidden="true">›</span><span class="sr-only">Próximo slide</span>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var slides  = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total   = slides.length;
+  var bar     = document.getElementById('deck-bar');
+  var counter = document.getElementById('deck-counter');
+  var prevBtn = document.getElementById('deck-prev');
+  var nextBtn = document.getElementById('deck-next');
+  var index   = 0;
+
+  function render() {
+    for (var i = 0; i < total; i++) {
+      var on = (i === index);
+      slides[i].classList.toggle('is-active', on);
+      slides[i].setAttribute('aria-hidden', on ? 'false' : 'true');
+    }
+    counter.textContent = (index + 1) + ' / ' + total;
+    bar.style.setProperty('--progress', ((index + 1) / total * 100) + '%');
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === total - 1);
+    if (window.history && history.replaceState) {
+      history.replaceState(null, '', '#' + slides[index].id);
+    }
+  }
+
+  function go(target) {
+    var next = Math.min(Math.max(target, 0), total - 1);
+    if (next !== index) { index = next; render(); }
+  }
+
+  prevBtn.addEventListener('click', function () { go(index - 1); });
+  nextBtn.addEventListener('click', function () { go(index + 1); });
+  document.getElementById('deck-edge-prev').addEventListener('click', function () { go(index - 1); });
+  document.getElementById('deck-edge-next').addEventListener('click', function () { go(index + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) { return; }
+    var k = e.key;
+    // Espaço com foco num botão é o próprio botão: não duplicar o avanço.
+    if ((k === ' ' || k === 'Spacebar') && e.target && e.target.closest && e.target.closest('button')) { return; }
+
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Spacebar') { go(index + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { go(index - 1); }
+    else if (k === 'Home') { go(0); }
+    else if (k === 'End') { go(total - 1); }
+    else { return; }
+    e.preventDefault();
+  });
+
+  // Abrir direto num slide: docs/15-video-slides.html#slide-arquitetura
+  var hash = window.location.hash.replace('#', '');
+  if (hash) {
+    for (var j = 0; j < total; j++) {
+      if (slides[j].id === hash) { index = j; break; }
+    }
+  }
+
+  render();
+}());
+</script>
+
+</body>
+</html>

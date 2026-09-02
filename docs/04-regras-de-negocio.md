@@ -117,9 +117,15 @@ ocupadas <= capacidade    (invariante que nunca pode ser violado)
 vagasDisponiveis = capacidade - ocupadas
 ```
 
-**Estados que ocupam vaga:** `PENDENTE_PAGAMENTO`, `CONFIRMADA`, `PRESENTE`.
-**Estados que não ocupam:** `LISTA_ESPERA`, `OFERTA_PENDENTE`, `CANCELADA`, `EXPIRADA`,
-`AUSENTE`.
+**Estados que ocupam vaga:** `PENDENTE_PAGAMENTO`, `CONFIRMADA`, `OFERTA_PENDENTE`,
+`PRESENTE`.
+**Estados que não ocupam:** `LISTA_ESPERA`, `CANCELADA`, `EXPIRADA`, `AUSENTE`.
+
+`OFERTA_PENDENTE` ocupa vaga porque a vaga fica **reservada** para quem recebeu a oferta
+durante toda a janela de confirmação (RN-007, item 3). Se não ocupasse, a vaga voltaria ao
+pool e alguém poderia tomá-la antes de o primeiro da fila responder — recriando exatamente
+o overbooking que esta regra proíbe. Implementado em `occupiesSpot()` de
+`app/src/domain/capacity.ts`.
 
 `PENDENTE_PAGAMENTO` ocupa vaga de propósito: reservar sem segurar a vaga permitiria
 vender a mesma vaga duas vezes. O custo dessa escolha é a vaga presa até expirar, que a

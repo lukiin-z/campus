@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Foco visível em todo o app: RNF-003 exige indicador com contraste >= 3:1.
+   * `:focus-visible` (e não `:focus`) evita o anel em clique de mouse, mantendo-o
+   * para navegação por teclado — que é o caso que a regra protege.
+   */
+  *:focus-visible {
+    outline: 2px solid theme('colors.accent-strong');
+    outline-offset: 2px;
+    border-radius: theme('borderRadius.sm');
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg font-body text-body-md text-text antialiased;
+    /* RNF-018: nada de rolagem horizontal no corpo da página. */
+    overflow-x: hidden;
+  }
+
+  /* Respeita quem pediu menos movimento no sistema operacional. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Divisória picotada do cartão-ingresso — o elemento de assinatura da marca.
+   * Borda tracejada + dois recortes circulares laterais na cor do fundo, que é o
+   * que imita o ingresso destacável. Ver docs/06-marca/design-system.md.
+   */
+  .ticket-divider {
+    @apply relative my-3 border-t-2 border-dashed border-neutral-300;
+  }
+
+  .ticket-divider::before,
+  .ticket-divider::after {
+    content: '';
+    @apply absolute h-5 w-5 rounded-full bg-bg;
+    top: -0.625rem;
+  }
+
+  .ticket-divider::before {
+    left: -1.625rem;
+  }
+
+  .ticket-divider::after {
+    right: -1.625rem;
+  }
+
+  /* Faixa com rolagem horizontal: permitida só em ingressos e filtros. */
+  .hscroll {
+    @apply flex gap-4 overflow-x-auto pb-2;
+    scrollbar-width: none;
+  }
+
+  .hscroll::-webkit-scrollbar {
+    display: none;
+  }
+}

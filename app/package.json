@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Campus - app de eventos universitarios (base do CP5)",
-  "engines": { "node": ">=22.0.0" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -39,7 +41,7 @@
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/coverage-v8": "^3.2.7",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -52,7 +54,11 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
-    "vitest": "^2.1.8"
+    "vitest": "^3.2.7"
   },
-  "msw": { "workerDirectory": ["public"] }
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
 }
