@@ -2,12 +2,7 @@ import { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { EventoView, Participacao } from '../types/domain';
 import { resolvePrimaryAction } from '../domain/eventAction';
-import { withinCancellationWindow } from '../domain/deadlines';
 import { formatEventRange, formatFullDate, formatRelative } from '../domain/format';
-import { formatPrice } from '../domain/payment';
-import { canValidateCheckIn } from '../domain/permissions';
-import { POLICY } from '../domain/policy';
-import { computeRefund, policySummary } from '../domain/refund';
 import {
   mensagemDeErro,
   useCancelarParticipacao,
@@ -26,6 +21,14 @@ import { EventCover } from '../components/ui/EventCover';
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/Feedback';
 import { Modal } from '../components/ui/Modal';
 import { ProgressBar } from '../components/ui/ProgressBar';
+import {
+  POLICY,
+  canValidateCheckIn,
+  computeRefund,
+  formatPrice,
+  policySummary,
+  withinCancellationWindow,
+} from '@campus/shared';
 
 /**
  * Detalhe do evento (RF-016 a RF-025) — a tela onde a decisão acontece.

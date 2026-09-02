@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { desfechoDeterministico } from '../../domain/pix';
-import { bandeiraDoCartao, cvvValido, luhnValido, validadeNoFuturo } from '../../domain/pix';
+import type { desfechoDeterministico } from '@campus/shared';
+import { bandeiraDoCartao, cvvValido, luhnValido, validadeNoFuturo } from '@campus/shared';
 
 /**
  * Validação do formulário de cartão (RF-029).

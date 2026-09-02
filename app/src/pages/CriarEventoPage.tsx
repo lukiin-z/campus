@@ -3,13 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import type { AlcanceEvento } from '../types/domain';
 import { combinarDataHora, eventFormSchema, type EventFormValues } from '../domain/eventSchema';
-import { defaultDeadlines } from '../domain/deadlines';
-import { POLICY } from '../domain/policy';
 import { useCriarEvento } from '../hooks/useCampusData';
 import { useSessionStore } from '../store/session';
 import { Button } from '../components/ui/Button';
 import { Input, Textarea } from '../components/ui/Field';
 import { cn } from '../lib/cn';
+import { POLICY, defaultDeadlines } from '@campus/shared';
 
 /**
  * Criação de evento (RF-010 a RF-012).

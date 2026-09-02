@@ -1,6 +1,6 @@
 import type { AlcanceEvento, StatusEvento, StatusParticipacao } from '../../types/domain';
-import { STATUS_PARTICIPACAO_ROTULO } from '../../domain/participation';
 import { cn } from '../../lib/cn';
+import { STATUS_PARTICIPACAO_ROTULO } from '@campus/shared';
 
 /**
  * Badge de alcance — o rótulo TEM texto, não só cor: é o que faz a interface

@@ -13,13 +13,6 @@ import type {
   SessaoUsuario,
   TokenIngresso,
 } from '../types/domain';
-import { decideLogin, decideOnboarding } from '../domain/auth';
-import { decideCheckIn, numericCheckInCode, ticketCode } from '../domain/checkin';
-import { checkInWindow } from '../domain/deadlines';
-import { canPostToEvent, canValidateCheckIn } from '../domain/permissions';
-import { gerarCobrancaPix } from '../domain/pix';
-import { idempotencyKey, minutesLeftToPay, paymentDeadline, planWebhook } from '../domain/payment';
-import { classificarLeitura, emitirToken, lerToken } from '../domain/ticketToken';
 import {
   findEvento,
   findParticipacao,
@@ -41,6 +34,24 @@ import {
   tokenDeSessao,
   usuarioAtual,
 } from './support';
+import {
+  canPostToEvent,
+  canValidateCheckIn,
+  checkInWindow,
+  classificarLeitura,
+  decideCheckIn,
+  decideLogin,
+  decideOnboarding,
+  emitirToken,
+  gerarCobrancaPix,
+  idempotencyKey,
+  lerToken,
+  minutesLeftToPay,
+  numericCheckInCode,
+  paymentDeadline,
+  planWebhook,
+  ticketCode,
+} from '@campus/shared';
 
 /**
  * Endpoints que o CP5 acrescentou: autenticação, onboarding, pagamento simulado,

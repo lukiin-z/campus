@@ -1,4 +1,4 @@
-import type { Evento, Participacao } from '../types/domain';
+import type { Evento, Participacao } from '../types';
 import { HOUR_MS, MINUTE_MS, POLICY, toMs } from './policy';
 
 /**

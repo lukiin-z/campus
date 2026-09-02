@@ -15,9 +15,9 @@ import { PagamentoPage } from './pages/PagamentoPage';
 import { PerfilPage } from './pages/PerfilPage';
 import { SkeletonLista } from './components/ui/Feedback';
 import { obterToken } from './services';
-import { onboardingPendente } from './domain/auth';
 import { useSessao } from './hooks/useCampusData';
 import { useSessionStore } from './store/session';
+import { onboardingPendente } from '@campus/shared';
 
 /**
  * Rotas do app — 12 no CP5.

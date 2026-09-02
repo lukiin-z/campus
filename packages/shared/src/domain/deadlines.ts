@@ -1,4 +1,4 @@
-import type { Evento } from '../types/domain';
+import type { Evento } from '../types';
 import { HOUR_MS, POLICY, toMs } from './policy';
 
 /**

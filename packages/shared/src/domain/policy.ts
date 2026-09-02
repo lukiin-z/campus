@@ -30,6 +30,15 @@ export const POLICY = {
   /** RN-004 / RN-011 — faixa de capacidade. */
   MIN_CAPACITY: 2,
   MAX_CAPACITY: 2000,
+  /**
+   * Teto do preço de inscrição.
+   *
+   * Entrou na política no CP6 porque o número estava escrito à mão em DOIS
+   * schemas — o do formulário (`app/src/domain/eventSchema.ts`) e o do corpo da
+   * API (`schemas.ts`). Dois literais iguais hoje são dois literais diferentes
+   * depois da primeira mudança feita só de um lado.
+   */
+  MAX_PRICE: 5000,
   /** RN-011 — duração máxima de um evento. */
   MAX_EVENT_DURATION_DAYS: 7,
   /** RN-009 — padrão do prazo de inscrição, se o organizador não informar. */

@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+playwright-report
+test-results
+
+# Gerado pelo MSW: reescrever quebraria o worker.
+app/public/mockServiceWorker.js
+
+# Gerado pelo Prisma a partir do schema.
+api/prisma/migrations

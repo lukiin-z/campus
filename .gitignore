@@ -48,3 +48,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# --- CP6: monorepo, API e Prisma ---
+/packages/*/dist/
+/api/dist/
+# Cliente do Prisma: gerado a partir do schema por `npm run prisma:generate`.
+/api/generated/
+# Segredos locais. `.env.example` é versionado; `.env` nunca.
+.env
+.env.local
+.env.*.local

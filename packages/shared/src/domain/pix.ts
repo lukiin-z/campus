@@ -1,4 +1,4 @@
-import type { CobrancaPix, ResumoCartao } from '../types/domain';
+import type { CobrancaPix, ResumoCartao } from '../types';
 
 /**
  * Cobrança simulada — RF-027, RF-028 e ADR-0007.

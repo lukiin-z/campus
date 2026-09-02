@@ -4,7 +4,7 @@ import {
   dominioInstitucional,
   emailBemFormado,
   senhaAceitavel,
-} from '../../domain/auth';
+} from '@campus/shared';
 
 /**
  * Validação do formulário de login (RF-002, RF-003, RN-002).

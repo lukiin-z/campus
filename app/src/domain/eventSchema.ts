@@ -1,7 +1,6 @@
 import { z } from 'zod';
-import { POLICY } from './policy';
-import { validateDeadlines } from './deadlines';
 import { ALCANCE_EVENTO } from '../types/domain';
+import { POLICY, validateDeadlines } from '@campus/shared';
 
 /**
  * Validação do formulário de criação de evento (RF-010, RN-011).
@@ -43,7 +42,7 @@ export const eventFormSchema = z
     preco: z.coerce
       .number({ invalid_type_error: 'Informe o valor da inscrição.' })
       .min(0, 'O valor não pode ser negativo.')
-      .max(5000, 'Valor acima do permitido para evento universitário.')
+      .max(POLICY.MAX_PRICE, 'Valor acima do permitido para evento universitário.')
       .default(0),
   })
   .superRefine((valores, ctx) => {

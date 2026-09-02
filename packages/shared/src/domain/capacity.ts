@@ -1,4 +1,4 @@
-import type { Evento, StatusParticipacao } from '../types/domain';
+import type { Evento, StatusParticipacao } from '../types';
 import { POLICY } from './policy';
 
 /**

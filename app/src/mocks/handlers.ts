@@ -11,20 +11,6 @@ import type {
   ResultadoInscricao,
   SessaoUsuario,
 } from '../types/domain';
-import { isFull, occupiesSpot } from '../domain/capacity';
-import { enrollmentOpen, withinCancellationWindow } from '../domain/deadlines';
-import { paymentDeadline } from '../domain/payment';
-import { currentPolicy } from '../domain/refund';
-import { findActiveParticipation, isActive } from '../domain/participation';
-import {
-  nextWaitlistPosition,
-  planPromotion,
-  recomputePositions,
-  waitlistSize,
-} from '../domain/waitlist';
-import { canSee } from '../domain/visibility';
-import { requiresApproval } from '../domain/permissions';
-import { POLICY } from '../domain/policy';
 import {
   findEvento,
   findParticipacao,
@@ -45,6 +31,23 @@ import {
   usuarioAtual,
 } from './support';
 import { handlersCp5 } from './handlersCp5';
+import {
+  POLICY,
+  canSee,
+  currentPolicy,
+  enrollmentOpen,
+  findActiveParticipation,
+  isActive,
+  isFull,
+  nextWaitlistPosition,
+  occupiesSpot,
+  paymentDeadline,
+  planPromotion,
+  recomputePositions,
+  requiresApproval,
+  waitlistSize,
+  withinCancellationWindow,
+} from '@campus/shared';
 
 /**
  * "API" do CP5.

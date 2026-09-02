@@ -12,7 +12,7 @@ import type {
   Turma,
   Usuario,
 } from '../types/domain';
-import { POLICY } from '../domain/policy';
+import { POLICY } from '@campus/shared';
 
 /**
  * Seed do Campus — os MESMOS dados usados no protótipo Figma, no styleguide e nos

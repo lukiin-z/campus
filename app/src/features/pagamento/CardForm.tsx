@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { MetodoPagamento, ResumoCartao } from '../../types/domain';
-import { bandeiraDoCartao, desfechoDeterministico, resumirCartao } from '../../domain/pix';
 import type { CardFormValues, GatewayPrediction } from './cardSchema';
 import { TEST_CARDS, cardSchema, formatCardNumber, formatExpiry } from './cardSchema';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Field';
 import { cn } from '../../lib/cn';
+import { bandeiraDoCartao, desfechoDeterministico, resumirCartao } from '@campus/shared';
 
 /**
  * Formulário de cartão (RF-029, RNF-022).

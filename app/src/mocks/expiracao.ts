@@ -1,9 +1,5 @@
 import type { Database } from './db';
 import { getDb, nextId, transaction } from './db';
-import { occupiesSpot } from '../domain/capacity';
-import { paymentExpired } from '../domain/payment';
-import { offerExpired, planPromotion, recomputePositions } from '../domain/waitlist';
-import { POLICY } from '../domain/policy';
 
 /**
  * Expiração de prazos — RN-012 (janela de pagamento) e RN-008 (janela da oferta).
@@ -44,6 +40,14 @@ const NADA_EXPIROU: ResultadoExpiracao = {
   ofertasExpiradas: 0,
   promovidos: 0,
 };
+import {
+  POLICY,
+  occupiesSpot,
+  offerExpired,
+  paymentExpired,
+  planPromotion,
+  recomputePositions,
+} from '@campus/shared';
 
 /** Uma varredura de leitura decide se vale abrir transação. */
 function existePrazoVencido(agora: Date): boolean {

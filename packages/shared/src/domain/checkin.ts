@@ -1,4 +1,4 @@
-import type { Evento, MotivoRecusaCheckin, Participacao, Presenca } from '../types/domain';
+import type { Evento, MotivoRecusaCheckin, Participacao, Presenca } from '../types';
 import { checkInOpen, checkInWindow } from './deadlines';
 
 /**

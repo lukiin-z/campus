@@ -1,0 +1,593 @@
+// Modelo de dados do Campus.
+//
+// Espelha, tabela por tabela e enum por enum, o modelo ER de
+// docs/05-modelagem/03-modelo-dados-er.md — que por sua vez espelha o diagrama
+// de classes. Divergência entre os três é defeito, não detalhe: mudou aqui,
+// atualize o diagrama no mesmo PR (regra do CONTRIBUTING.md), e há verificação
+// (`npm run check:contrato`).
+//
+// ## O que o Prisma NÃO expressa, e onde isso mora
+//
+// Três garantias do modelo não têm sintaxe no schema, e todas são centrais:
+//
+// | Garantia | Onde vive |
+// |---|---|
+// | `CHECK` (ex.: `ocupadas <= capacidade`, RN-004) | SQL da migration `0001_init` |
+// | Índice único **parcial** (uma participação ativa por aluno/evento, RN-015) | idem |
+// | Índice parcial (`WHERE status='PUBLICADO'`) | idem |
+//
+// Elas não são decoração. O `CHECK` de `ocupadas` é a última linha de defesa
+// contra overbooking: se a transação da aplicação tiver um furo, o banco recusa
+// a escrita em vez de gravar dado impossível. Por isso a migration inicial é
+// escrita à mão sobre o SQL que o Prisma gera, e não apenas gerada.
+//
+// ## Nomes
+//
+// Modelo e campo em camelCase (o cliente Prisma é consumido por TypeScript);
+// tabela e coluna em snake_case via `@@map`/`@map`, porque é a convenção do
+// PostgreSQL e é assim que o ER as nomeia. O vocabulário do domínio segue em
+// português, os campos em inglês — igual ao resto do projeto (docs/14-glossario.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enumerações
+//
+// Dez tipos ENUM, os mesmos da seção 5 do ER e na mesma ordem. As outras cinco
+// enumerações de `@campus/shared` (motivos de recusa de login, onboarding e
+// check-in, e o desfecho simulado) NÃO são tipos do banco: descrevem resposta
+// de API, não estado persistido.
+// ---------------------------------------------------------------------------
+
+enum AlcanceEvento {
+  TURMA
+  CURSO
+  FACULDADE
+
+  @@map("alcance_evento")
+}
+
+enum StatusEvento {
+  RASCUNHO
+  EM_APROVACAO
+  PUBLICADO
+  CANCELADO
+  REALIZADO
+
+  @@map("status_evento")
+}
+
+enum StatusParticipacao {
+  PENDENTE_PAGAMENTO
+  CONFIRMADA
+  LISTA_ESPERA
+  OFERTA_PENDENTE
+  PRESENTE
+  AUSENTE
+  CANCELADA
+  EXPIRADA
+
+  @@map("status_participacao")
+}
+
+enum StatusPagamento {
+  AGUARDANDO
+  CONFIRMADO
+  RECUSADO
+  EM_ANALISE
+  REEMBOLSO_SOLICITADO
+  REEMBOLSADO
+  REEMBOLSADO_PARCIAL
+  ESTORNADO
+
+  @@map("status_pagamento")
+}
+
+enum MetodoPagamento {
+  PIX
+  CARTAO_CREDITO
+  CARTAO_DEBITO
+
+  @@map("metodo_pagamento")
+}
+
+enum PapelUsuario {
+  ALUNO
+  ADMIN_CURSO
+  ADMIN_FACULDADE
+
+  @@map("papel_usuario")
+}
+
+enum MetodoCheckin {
+  QR_CODE
+  CODIGO_NUMERICO
+  MANUAL
+
+  @@map("metodo_checkin")
+}
+
+enum TipoPergunta {
+  TEXTO_CURTO
+  ESCOLHA_UNICA
+
+  @@map("tipo_pergunta")
+}
+
+enum TipoNotificacao {
+  NOVO_EVENTO
+  VAGA_LIBERADA
+  PAGAMENTO_CONFIRMADO
+  PAGAMENTO_EXPIRADO
+  EVENTO_ALTERADO
+  EVENTO_CANCELADO
+  CHECKIN_REALIZADO
+  EVENTO_APROVADO
+
+  @@map("tipo_notificacao")
+}
+
+enum MotivoCancelamento {
+  ALUNO_DESISTIU
+  EVENTO_CANCELADO
+  VINCULO_PERDIDO
+  REMOVIDO_PELO_ORGANIZADOR
+  OFERTA_RECUSADA
+
+  @@map("motivo_cancelamento")
+}
+
+// ---------------------------------------------------------------------------
+// Estrutura acadêmica
+// ---------------------------------------------------------------------------
+
+model Faculdade {
+  id    String @id @default(uuid()) @db.Uuid
+  nome  String @db.VarChar(200)
+  sigla String @unique @db.VarChar(20)
+
+  /// Domínios aceitos no cadastro, sem `@`. Base de RN-002. É dado da
+  /// instituição, e não constante do código: uma segunda faculdade não exige
+  /// deploy.
+  dominiosEmail String[] @map("dominios_email")
+
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  cursos   Curso[]
+  usuarios Usuario[]
+  eventos  Evento[]
+
+  @@map("faculdade")
+}
+
+model Curso {
+  id          String @id @default(uuid()) @db.Uuid
+  faculdadeId String @map("faculdade_id") @db.Uuid
+  nome        String @db.VarChar(200)
+  codigo      String @unique @db.VarChar(20)
+
+  duracaoSemestres Int @map("duracao_semestres")
+
+  // Composição: curso não existe sem faculdade.
+  faculdade Faculdade @relation(fields: [faculdadeId], references: [id], onDelete: Cascade)
+
+  turmas   Turma[]
+  usuarios Usuario[]
+  eventos  Evento[]
+
+  @@index([faculdadeId])
+  @@map("curso")
+}
+
+model Turma {
+  id      String @id @default(uuid()) @db.Uuid
+  cursoId String @map("curso_id") @db.Uuid
+
+  /// Ex.: `3ESPX`.
+  nome String @db.VarChar(40)
+
+  /// Ano e semestre, ex.: `2026.1`.
+  periodo String @db.VarChar(10)
+
+  /// Código de convite que vincula o aluno à turma (RF-005). Único no sistema:
+  /// é ele que o aluno digita, sem dizer de qual curso é.
+  codigoConvite String  @unique @map("codigo_convite") @db.VarChar(24)
+  codigoAtivo   Boolean @default(true) @map("codigo_ativo")
+
+  curso Curso @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+
+  usuarios Usuario[]
+  eventos  Evento[]
+
+  @@index([cursoId])
+  @@map("turma")
+}
+
+// ---------------------------------------------------------------------------
+// Pessoas
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id   String @id @default(uuid()) @db.Uuid
+  nome String @db.VarChar(120)
+
+  /// E-mail institucional: identidade da conta e prova de vínculo (RN-002).
+  email String @unique @db.VarChar(200)
+
+  /// Hash Argon2id. **Nunca** a senha (RNF-019). O campo é `select: false` por
+  /// convenção do repositório: nenhuma projeção de leitura o inclui, e o único
+  /// lugar que o lê é a verificação de credencial.
+  senhaHash String @map("senha_hash") @db.VarChar(255)
+
+  /// Semente da cor do avatar de iniciais. Não é dado pessoal e não há upload
+  /// de foto na v1 — foi por isso que `foto_url` saiu do modelo no CP5.
+  avatarSeed Int @map("avatar_seed")
+
+  faculdadeId String @map("faculdade_id") @db.Uuid
+
+  /// Nulos entre a verificação do e-mail e a conclusão do onboarding (RF-005).
+  cursoId String? @map("curso_id") @db.Uuid
+  turmaId String? @map("turma_id") @db.Uuid
+
+  papeis          PapelUsuario[] @default([ALUNO])
+  emailVerificado Boolean        @default(false) @map("email_verificado")
+
+  /// Opt-out de aparecer na lista pública de confirmados (RF-009).
+  visivelEntreConfirmados Boolean @default(true) @map("visivel_entre_confirmados")
+
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm DateTime @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+
+  // Agregação: não se apaga faculdade, curso ou turma com aluno vinculado.
+  faculdade Faculdade @relation(fields: [faculdadeId], references: [id], onDelete: Restrict)
+  curso     Curso?    @relation(fields: [cursoId], references: [id], onDelete: Restrict)
+  turma     Turma?    @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+
+  eventosOrganizados   Evento[]      @relation("organizador")
+  participacoes        Participacao[]
+  presencasRegistradas Presenca[]    @relation("registrouPresenca")
+  publicacoes          Publicacao[]  @relation("autorPublicacao")
+  publicacoesRemovidas Publicacao[]  @relation("removeuPublicacao")
+  comentarios          Comentario[]
+  notificacoes         Notificacao[]
+  sessoes              Sessao[]
+
+  @@index([faculdadeId])
+  @@index([turmaId])
+  @@index([cursoId])
+  @@map("usuario")
+}
+
+/// Sessão de refresh (RNF-020).
+///
+/// Não existia no modelo do CP4 porque o CP5 não tinha servidor: o token era
+/// opaco e a sessão morria com a aba. Com JWT + refresh, o refresh precisa ser
+/// **revogável** — e token revogável exige estado no servidor. Guardamos o hash,
+/// nunca o token: um vazamento do banco não dá sessão a ninguém.
+model Sessao {
+  id          String @id @default(uuid()) @db.Uuid
+  usuarioId   String @map("usuario_id") @db.Uuid
+  refreshHash String @unique @map("refresh_hash") @db.VarChar(255)
+
+  /// Para a pessoa reconhecer a sessão numa lista de dispositivos ativos.
+  userAgent String? @map("user_agent") @db.VarChar(400)
+
+  expiraEm   DateTime  @map("expira_em") @db.Timestamptz(3)
+  revogadaEm DateTime? @map("revogada_em") @db.Timestamptz(3)
+  criadoEm   DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, expiraEm])
+  @@map("sessao")
+}
+
+// ---------------------------------------------------------------------------
+// Evento
+// ---------------------------------------------------------------------------
+
+model Evento {
+  id            String @id @default(uuid()) @db.Uuid
+  organizadorId String @map("organizador_id") @db.Uuid
+
+  titulo    String @db.VarChar(120)
+  descricao String @db.Text
+
+  alcance AlcanceEvento
+
+  /// Âncora do alcance: exatamente UMA das três é preenchida, coerente com
+  /// `alcance` (RN-001). O `CHECK` composto que garante isso está na migration
+  /// — o Prisma não tem sintaxe para ele, e é a restrição que impede alcance
+  /// indefinido.
+  turmaId     String? @map("turma_id") @db.Uuid
+  cursoId     String? @map("curso_id") @db.Uuid
+  faculdadeId String? @map("faculdade_id") @db.Uuid
+
+  inicio DateTime @db.Timestamptz(3)
+  fim    DateTime @db.Timestamptz(3)
+  local  String   @db.VarChar(160)
+
+  capacidade Int
+
+  /// Contagem materializada das participações que ocupam vaga (RN-004).
+  ///
+  /// É denormalização deliberada: a alternativa é `COUNT(*)` a cada leitura de
+  /// lista, e a lista é a consulta mais frequente do produto. O preço é ter de
+  /// manter o número certo — pago com o `CHECK` de faixa no banco e com a
+  /// transação que a atualiza junto com a participação.
+  ocupadas Int @default(0)
+
+  /// Em reais, com centavos. `0` = gratuito.
+  preco Decimal @db.Decimal(10, 2)
+
+  status              StatusEvento @default(RASCUNHO)
+  motivoCancelamento  String?      @map("motivo_cancelamento") @db.VarChar(400)
+
+  prazoInscricao    DateTime @map("prazo_inscricao") @db.Timestamptz(3)
+  prazoCancelamento DateTime @map("prazo_cancelamento") @db.Timestamptz(3)
+
+  /// Semente 1..12 da capa gerada em SVG. Sem upload, sem storage.
+  capaSeed Int @map("capa_seed")
+
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm DateTime @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+
+  organizador Usuario    @relation("organizador", fields: [organizadorId], references: [id], onDelete: Restrict)
+  turma       Turma?     @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+  curso       Curso?     @relation(fields: [cursoId], references: [id], onDelete: Restrict)
+  faculdade   Faculdade? @relation(fields: [faculdadeId], references: [id], onDelete: Restrict)
+
+  participacoes Participacao[]
+  perguntas     PerguntaCustomizada[]
+  publicacoes   Publicacao[]
+
+  // Os índices parciais (`WHERE status='PUBLICADO'`) estão na migration: o
+  // Prisma declara o índice, o SQL acrescenta o predicado.
+  @@index([turmaId, inicio])
+  @@index([cursoId, inicio])
+  @@index([faculdadeId, inicio])
+  @@index([organizadorId, criadoEm(sort: Desc)])
+  @@map("evento")
+}
+
+model PerguntaCustomizada {
+  id       String @id @default(uuid()) @db.Uuid
+  eventoId String @map("evento_id") @db.Uuid
+
+  enunciado String       @db.VarChar(160)
+  tipo      TipoPergunta
+
+  /// Preenchido só em `ESCOLHA_UNICA`, com pelo menos duas opções (RN-025).
+  opcoes String[]
+
+  obrigatoria Boolean @default(false)
+
+  /// 1 a 5 (`MAX_CUSTOM_QUESTIONS`).
+  ordem Int
+
+  evento    Evento             @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  respostas RespostaPergunta[]
+
+  @@unique([eventoId, ordem])
+  @@map("pergunta_customizada")
+}
+
+// ---------------------------------------------------------------------------
+// Participação e derivados
+// ---------------------------------------------------------------------------
+
+model Participacao {
+  /// É também o identificador do ingresso (`/ingresso/:id`).
+  id        String @id @default(uuid()) @db.Uuid
+  eventoId  String @map("evento_id") @db.Uuid
+  usuarioId String @map("usuario_id") @db.Uuid
+
+  status StatusParticipacao
+
+  /// Posição na fila, >= 1. Nulo fora de `LISTA_ESPERA` (RN-006).
+  posicaoFila Int? @map("posicao_fila")
+
+  pagamentoExpiraEm DateTime? @map("pagamento_expira_em") @db.Timestamptz(3)
+  ofertaExpiraEm    DateTime? @map("oferta_expira_em") @db.Timestamptz(3)
+
+  motivoCancelamento MotivoCancelamento? @map("motivo_cancelamento")
+
+  /// Cancelamento depois do prazo: sem reembolso, e visível ao organizador
+  /// (RN-010).
+  canceladaAposPrazo Boolean @default(false) @map("cancelada_apos_prazo")
+
+  /// Política de reembolso **congelada** no momento do pagamento (RN-013).
+  ///
+  /// Guardada como JSON e não como colunas: é um retrato de parâmetros que
+  /// podem mudar de forma, e o que importa é reproduzir a decisão daquele dia.
+  /// Normalizá-la em colunas convidaria a "atualizar" a política de uma
+  /// participação passada — exatamente o que RN-013 proíbe.
+  politicaVigente Json? @map("politica_vigente")
+
+  /// Instante de entrada — define a ordem FIFO da fila (RN-006).
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm DateTime @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+
+  evento  Evento  @relation(fields: [eventoId], references: [id], onDelete: Restrict)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  pagamentos Pagamento[]
+  presenca   Presenca?
+  respostas  RespostaPergunta[]
+
+  // O único parcial de RN-015 (`(evento_id, usuario_id)` onde o status é ativo)
+  // está na migration: o Prisma não expressa `WHERE` em índice único.
+  @@index([usuarioId, criadoEm(sort: Desc)])
+  @@index([eventoId, posicaoFila])
+  @@index([pagamentoExpiraEm])
+  @@index([ofertaExpiraEm])
+  @@map("participacao")
+}
+
+model Pagamento {
+  id             String @id @default(uuid()) @db.Uuid
+  participacaoId String @map("participacao_id") @db.Uuid
+
+  metodo MetodoPagamento
+  valor  Decimal         @db.Decimal(10, 2)
+
+  valorReembolsado Decimal @default(0) @map("valor_reembolsado") @db.Decimal(10, 2)
+
+  status StatusPagamento @default(AGUARDANDO)
+
+  /// Único dado do gateway que armazenamos.
+  transacaoExternaId String? @map("transacao_externa_id") @db.VarChar(120)
+
+  /// Impede processar a mesma notificação duas vezes (RN-014). É o `UNIQUE` que
+  /// faz a idempotência ser garantia do banco, e não do código.
+  chaveIdempotencia String @unique @map("chave_idempotencia") @db.VarChar(200)
+
+  /// O que sobra de um cartão depois do formulário (RNF-022).
+  ///
+  /// Número e CVV **não existem** aqui, nem como coluna anulável: o `CHECK` da
+  /// migration exige que os três sejam nulos quando o método é Pix, e que
+  /// `ultimos_quatro` tenha exatamente quatro dígitos quando não é.
+  ///
+  /// O CP5 guardava isto num array paralelo do mock, fora do tipo `Pagamento`.
+  /// A revisão de modelagem do CP5 apontou que a nota do dicionário afirmava que
+  /// "nome do titular" nunca existiria — e ele existia, escondido do inventário
+  /// LGPD. Aqui ele está declarado.
+  ultimosQuatro  String? @map("ultimos_quatro") @db.VarChar(4)
+  bandeiraCartao String? @map("bandeira_cartao") @db.VarChar(24)
+  titularCartao  String? @map("titular_cartao") @db.VarChar(120)
+
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
+  confirmadoEm DateTime? @map("confirmado_em") @db.Timestamptz(3)
+
+  participacao Participacao @relation(fields: [participacaoId], references: [id], onDelete: Restrict)
+
+  // No máximo uma cobrança `AGUARDANDO` por participação (RN-027) — parcial, na
+  // migration. Aqui fica o índice de busca do webhook.
+  @@index([participacaoId])
+  @@index([transacaoExternaId])
+  @@map("pagamento")
+}
+
+model Presenca {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Relação 1:1 com a participação — é o que impede check-in duplo (RN-018),
+  /// e é garantia do banco, não da aplicação.
+  participacaoId String @unique @map("participacao_id") @db.Uuid
+
+  registradoPorId String        @map("registrado_por_id") @db.Uuid
+  metodo          MetodoCheckin
+  checkinEm       DateTime      @default(now()) @map("checkin_em") @db.Timestamptz(3)
+
+  /// Preenchido quando a presença é corrigida à mão (`MANUAL`).
+  motivoCorrecao String? @map("motivo_correcao") @db.VarChar(400)
+
+  /// Fica `false` quando o registro veio de operação offline e ainda não foi
+  /// reconciliado (RNF-014).
+  sincronizado Boolean @default(true)
+
+  participacao  Participacao @relation(fields: [participacaoId], references: [id], onDelete: Restrict)
+  registradoPor Usuario      @relation("registrouPresenca", fields: [registradoPorId], references: [id], onDelete: Restrict)
+
+  @@index([registradoPorId])
+  @@map("presenca")
+}
+
+model RespostaPergunta {
+  id             String @id @default(uuid()) @db.Uuid
+  perguntaId     String @map("pergunta_id") @db.Uuid
+  participacaoId String @map("participacao_id") @db.Uuid
+
+  valor String @db.VarChar(500)
+
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  pergunta     PerguntaCustomizada @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+  participacao Participacao        @relation(fields: [participacaoId], references: [id], onDelete: Cascade)
+
+  /// Uma resposta por par (pergunta, participação) — RN-025.
+  @@unique([perguntaId, participacaoId])
+  @@map("resposta_pergunta")
+}
+
+// ---------------------------------------------------------------------------
+// Social e avisos
+// ---------------------------------------------------------------------------
+
+model Publicacao {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Não existe publicação sem evento (RN-019). `Restrict`: o feed é a memória
+  /// do evento, e evento com publicação é cancelado, nunca apagado.
+  eventoId String @map("evento_id") @db.Uuid
+  autorId  String @map("autor_id") @db.Uuid
+
+  legenda String @db.VarChar(500)
+
+  /// Semente 1..24 da imagem gerada localmente.
+  imagemSeed Int @map("imagem_seed")
+
+  removida       Boolean @default(false)
+  motivoRemocao  String? @map("motivo_remocao") @db.VarChar(400)
+  removidaPorId  String? @map("removida_por_id") @db.Uuid
+
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  evento      Evento   @relation(fields: [eventoId], references: [id], onDelete: Restrict)
+  autor       Usuario  @relation("autorPublicacao", fields: [autorId], references: [id], onDelete: Restrict)
+  removidaPor Usuario? @relation("removeuPublicacao", fields: [removidaPorId], references: [id], onDelete: Restrict)
+
+  comentarios Comentario[]
+
+  @@index([eventoId, criadoEm(sort: Desc)])
+  @@index([autorId])
+  @@map("publicacao")
+}
+
+model Comentario {
+  id            String @id @default(uuid()) @db.Uuid
+  publicacaoId  String @map("publicacao_id") @db.Uuid
+  autorId       String @map("autor_id") @db.Uuid
+
+  texto String @db.VarChar(280)
+
+  removido Boolean  @default(false)
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  publicacao Publicacao @relation(fields: [publicacaoId], references: [id], onDelete: Cascade)
+  autor      Usuario    @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([publicacaoId, criadoEm])
+  @@map("comentario")
+}
+
+model Notificacao {
+  id             String @id @default(uuid()) @db.Uuid
+  destinatarioId String @map("destinatario_id") @db.Uuid
+
+  tipo     TipoNotificacao
+  titulo   String          @db.VarChar(120)
+  mensagem String          @db.VarChar(400)
+
+  /// ID do objeto citado. **Sem FK de propósito**: aponta para tabelas
+  /// diferentes por tipo (evento, participação, publicação). Uma FK exigiria
+  /// uma coluna por tipo, ou uma tabela de junção polimórfica — as duas piores
+  /// que aceitar um ID órfão numa notificação transitória. O consumidor trata
+  /// "não encontrado" como caminho normal.
+  referenciaId String? @map("referencia_id") @db.Uuid
+
+  lida     Boolean  @default(false)
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  destinatario Usuario @relation(fields: [destinatarioId], references: [id], onDelete: Cascade)
+
+  @@index([destinatarioId, criadoEm(sort: Desc)])
+  @@map("notificacao")
+}

@@ -1,4 +1,4 @@
-import type { Evento, PoliticaReembolso } from '../types/domain';
+import type { Evento, PoliticaReembolso } from '../types';
 import { DAY_MS, HOUR_MS, POLICY, toMs } from './policy';
 
 /**

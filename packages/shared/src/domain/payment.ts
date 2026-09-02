@@ -1,4 +1,4 @@
-import type { Evento, Pagamento, Participacao } from '../types/domain';
+import type { Evento, Pagamento, Participacao } from '../types';
 import { HOUR_MS, MINUTE_MS, POLICY, toMs } from './policy';
 
 /**

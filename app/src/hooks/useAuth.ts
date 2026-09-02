@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import type { Credenciais, EntradaOnboarding } from '../types/domain';
-import { onboardingPendente } from '../domain/auth';
 import { queryKeys } from '../lib/queryClient';
 import { mensagemDeErro } from './useCampusData';
 import { repositories } from '../services';
 import { useSessionStore } from '../store/session';
 import { useUiStore } from '../store/ui';
+import { onboardingPendente } from '@campus/shared';
 
 /**
  * Autenticação e onboarding — RF-002 a RF-005 (o cadastro, RF-001, é do CP6).

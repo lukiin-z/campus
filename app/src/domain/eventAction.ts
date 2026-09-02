@@ -1,7 +1,5 @@
 import type { EventoView, Participacao } from '../types/domain';
-import { availableSpots } from './capacity';
-import { enrollmentOpen } from './deadlines';
-import { minutesLeftToPay } from './payment';
+import { availableSpots, enrollmentOpen, minutesLeftToPay } from '@campus/shared';
 
 /**
  * Ação principal do detalhe do evento.

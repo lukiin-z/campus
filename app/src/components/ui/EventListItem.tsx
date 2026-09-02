@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import type { EventoView } from '../../types/domain';
 import { formatDayMonth, formatTime } from '../../domain/format';
-import { formatPrice } from '../../domain/payment';
 import { cn } from '../../lib/cn';
+import { formatPrice } from '@campus/shared';
 
 /**
  * Linha compacta da lista de eventos. Diferente do `TicketCard`, é otimizada

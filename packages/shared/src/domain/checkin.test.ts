@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Evento, Participacao, Presenca } from '../types/domain';
+import type { Evento, Participacao, Presenca } from '../types';
 import { decideCheckIn, numericCheckInCode, ticketCode } from './checkin';
 
 /**

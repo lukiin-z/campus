@@ -8,7 +8,7 @@ import {
   isTerminal,
   organizerIsParticipant,
 } from './participation';
-import { STATUS_PARTICIPACAO, type StatusParticipacao } from '../types/domain';
+import { STATUS_PARTICIPACAO, type StatusParticipacao } from '../types';
 
 /**
  * Ciclo de vida de `Participacao` — RN-015, RN-016 e RN-023.

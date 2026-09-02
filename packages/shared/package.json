@@ -1,0 +1,27 @@
+{
+  "name": "@campus/shared",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tipos, enums e schemas Zod compartilhados entre o app e a API",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint src --max-warnings 0",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { EventoView, ParticipacaoView } from '../types/domain';
 import { formatDayMonth, formatEventDateTime, formatTime } from '../domain/format';
-import { formatPrice } from '../domain/payment';
 import {
   mensagemDeErro,
   useEventos,
@@ -17,6 +16,7 @@ import { EventStatusBadge, StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState, SkeletonLista } from '../components/ui/Feedback';
 import { Tabs } from '../components/ui/Tabs';
+import { formatPrice } from '@campus/shared';
 
 /**
  * Perfil (RF-006, RF-007) — onde o aluno encontra o próprio ingresso.

@@ -24,7 +24,20 @@
     "forceConsistentCasingInFileNames": true,
 
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    /*
+     * `@campus/shared` aponta para a FONTE, não para `dist`.
+     *
+     * Assim `tsc`, `vite dev` e `vitest` não dependem de o pacote ter sido
+     * compilado antes — e uma mudança no domínio aparece no app no mesmo
+     * instante, sem passo de build no meio. O alias equivalente do Vite está em
+     * `vite.config.ts`; os dois têm de andar juntos.
+     *
+     * A API consome o pacote pelo `dist`, porque lá o build existe de todo jeito.
+     */
+    "paths": {
+      "@/*": ["./src/*"],
+      "@campus/shared": ["../packages/shared/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

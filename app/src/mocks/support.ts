@@ -8,11 +8,6 @@ import type {
   Participacao,
   ParticipacaoView,
 } from '../types/domain';
-import { availableSpots } from '../domain/capacity';
-import { enrollmentOpen } from '../domain/deadlines';
-import { findActiveParticipation, isActive } from '../domain/participation';
-import { waitlistSize } from '../domain/waitlist';
-import { alcanceRotulo, canSee } from '../domain/visibility';
 import {
   findEvento,
   findUsuario,
@@ -24,6 +19,15 @@ import {
 } from './db';
 import { USUARIO_ATUAL_ID } from './seed';
 import { aplicarExpiracoes } from './expiracao';
+import {
+  alcanceRotulo,
+  availableSpots,
+  canSee,
+  enrollmentOpen,
+  findActiveParticipation,
+  isActive,
+  waitlistSize,
+} from '@campus/shared';
 
 /**
  * Peças compartilhadas da "API" do CP5.

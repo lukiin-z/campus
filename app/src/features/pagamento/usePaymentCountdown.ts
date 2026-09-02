@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { minutesLeftToPay } from '../../domain/payment';
+import { minutesLeftToPay } from '@campus/shared';
 
 /**
  * Contagem regressiva da janela de pagamento (RN-012).

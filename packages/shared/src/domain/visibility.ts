@@ -1,4 +1,4 @@
-import type { AlcanceEvento, Curso, Evento, Faculdade, Turma, Usuario } from '../types/domain';
+import type { AlcanceEvento, Curso, Evento, Faculdade, Turma, Usuario } from '../types';
 
 /**
  * Alcance e visibilidade — RN-001 e RN-002.

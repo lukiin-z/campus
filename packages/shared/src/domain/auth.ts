@@ -5,7 +5,7 @@ import type {
   MotivoRecusaOnboarding,
   Turma,
   Usuario,
-} from '../types/domain';
+} from '../types';
 
 /**
  * Autenticação e vínculo acadêmico — RN-002, RN-003 e RF-001 a RF-005.

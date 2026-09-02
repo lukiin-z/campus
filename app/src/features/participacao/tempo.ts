@@ -1,4 +1,4 @@
-import { MINUTE_MS } from '../../domain/policy';
+import { MINUTE_MS } from '@campus/shared';
 
 /**
  * Texto de tempo RESTANTE.

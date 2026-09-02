@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { MetodoCheckin, ResultadoCheckin } from '../types/domain';
 import { formatEventDateTime, formatTime } from '../domain/format';
-import { POLICY } from '../domain/policy';
 import { ApiError } from '../services';
 import { mensagemDeErro, useEvento } from '../hooks/useCampusData';
 import { usePainelCheckin, useValidarCheckin } from '../hooks/useCheckin';
@@ -14,6 +13,7 @@ import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState, SkeletonLista } from '../components/ui/Feedback';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { cn } from '../lib/cn';
+import { POLICY } from '@campus/shared';
 
 /**
  * Check-in do organizador (RF-034 e RF-035).

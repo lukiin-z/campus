@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation } from 'react-router-dom';
 import type { Faculdade } from '../types/domain';
-import { exemploDeEmail } from '../domain/auth';
 import { PerfisDemo } from '../features/auth/PerfisDemo';
 import { SENHA_DEMO } from '../features/auth/perfis';
 import { criarLoginSchema, type LoginFormValues } from '../features/auth/loginSchema';
@@ -15,6 +14,7 @@ import { ToastViewport } from '../components/layout/ToastViewport';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Field';
 import { ErrorState, Skeleton } from '../components/ui/Feedback';
+import { exemploDeEmail } from '@campus/shared';
 
 /**
  * Login (RF-001 a RF-003).

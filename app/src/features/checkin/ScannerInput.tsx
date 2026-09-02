@@ -1,6 +1,6 @@
-import { classificarLeitura } from '../../domain/ticketToken';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Field';
+import { classificarLeitura } from '@campus/shared';
 
 /**
  * Leitor simulado (RF-034).

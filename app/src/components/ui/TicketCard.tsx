@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import type { EventoView } from '../../types/domain';
 import { formatEventDateTime } from '../../domain/format';
-import { formatPrice } from '../../domain/payment';
 import { ScopeBadge } from './Badge';
 import { cn } from '../../lib/cn';
+import { formatPrice } from '@campus/shared';
 
 /**
  * TicketCard — o **elemento de assinatura da marca**.

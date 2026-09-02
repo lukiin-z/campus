@@ -8,7 +8,6 @@ import type {
 } from '../types/domain';
 import type { GatewayPrediction } from '../features/pagamento/cardSchema';
 import { formatEventDateTime, formatTime } from '../domain/format';
-import { formatPrice } from '../domain/payment';
 import { mensagemDeErro, useParticipacao } from '../hooks/useCampusData';
 import { useIniciarPagamento, usePagamento, useSimularDesfecho } from '../hooks/usePagamento';
 import { usePaymentCountdown } from '../features/pagamento/usePaymentCountdown';
@@ -19,6 +18,7 @@ import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/Feedback';
 import { Tabs } from '../components/ui/Tabs';
+import { formatPrice } from '@campus/shared';
 
 /**
  * Pagamento simulado (RF-026 a RF-030).

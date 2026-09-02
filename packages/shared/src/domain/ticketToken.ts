@@ -1,4 +1,4 @@
-import type { TokenIngresso } from '../types/domain';
+import type { TokenIngresso } from '../types';
 import { numericCheckInCode, ticketCode } from './checkin';
 
 /**

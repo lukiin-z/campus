@@ -9,7 +9,7 @@ import {
   waitlistPositionLabel,
   waitlistSize,
 } from './waitlist';
-import type { Participacao, StatusParticipacao } from '../types/domain';
+import type { Participacao, StatusParticipacao } from '../types';
 
 /**
  * Lista de espera — RN-006, RN-007 e RN-008.

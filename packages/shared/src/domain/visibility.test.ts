@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { alcanceBadge, ancoraCoerente, ancoraDoEvento, canChangeScope, canSee } from './visibility';
-import type { Evento, PapelUsuario, Usuario } from '../types/domain';
+import type { Evento, PapelUsuario, Usuario } from '../types';
 
 /**
  * Alcance e visibilidade — RN-001 e RN-002.

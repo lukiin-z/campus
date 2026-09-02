@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
-import { POLICY } from '../../domain/policy';
-import { waitlistPositionLabel } from '../../domain/waitlist';
+import { POLICY, waitlistPositionLabel } from '@campus/shared';
 
 /**
  * Posição na lista de espera (RF-021).

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { toMs } from '../../domain/policy';
+import { toMs } from '@campus/shared';
 
 /**
  * Contagem regressiva até um instante.

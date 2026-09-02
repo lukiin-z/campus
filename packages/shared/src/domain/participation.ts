@@ -1,4 +1,4 @@
-import type { Participacao, StatusParticipacao } from '../types/domain';
+import type { Participacao, StatusParticipacao } from '../types';
 
 /**
  * Ciclo de vida de `Participacao` — a tabela de transições permitidas do

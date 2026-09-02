@@ -17,6 +17,12 @@ concurrency:
 permissions:
   contents: read
 
+# O repositório virou monorepo com npm workspaces no CP6: um `package-lock.json`
+# na raiz, e `npm ci` instala os três pacotes de uma vez. Os comandos rodam com
+# `-w <workspace>` em vez de `working-directory`, porque a cadeia de ferramentas
+# (vite, vitest, typescript, eslint, prettier) está içada para a raiz — duas
+# cópias de `vite` no monorepo produzem erro de tipo nominal entre elas, e
+# `jsdom` só em `app/node_modules` faz o `vitest` da raiz não achá-lo.
 jobs:
   documentacao:
     name: Documentação
@@ -33,12 +39,15 @@ jobs:
       - name: Valida links, blocos Mermaid e SVGs
         run: node scripts/validate-docs.mjs
 
-  aplicacao:
-    name: Aplicação (lint, teste, build)
+      # Verifica que o contrato compartilhado continua sendo contrato: nenhum
+      # arquivo de `packages/shared` importando React, Prisma, NestJS ou o mock,
+      # e o alias do Vite igual ao `paths` do TypeScript.
+      - name: Fronteira do pacote compartilhado
+        run: node scripts/check-contrato.mjs
+
+  compartilhado:
+    name: Pacote compartilhado (tipos, regras, schemas)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +55,31 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: package-lock.json
+
+      - name: Instala dependências
+        run: npm ci
+
+      # Primeiro porque é o mais rápido e o mais fundamental: se as regras de
+      # negócio estão erradas, nada depois importa. Roda em `node`, sem jsdom —
+      # ~1s contra ~9s da mesma suíte no ambiente do navegador.
+      - name: Testes do domínio com cobertura (RNF-015)
+        run: npm run test:coverage -w @campus/shared
+
+      - name: Compila o pacote
+        run: npm run build -w @campus/shared
+
+  aplicacao:
+    name: Aplicação (lint, teste, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       # Antes do `npm ci` de propósito: só precisa da stdlib do Node, então é a
       # verificação mais rápida possível do job. Manifest quebrado ou ícone
@@ -56,6 +89,7 @@ jobs:
       # O verificador é inline, e não um arquivo em scripts/, porque cabe em uma
       # tela e não tem outro chamador.
       - name: Manifest do PWA (JSON válido e ícones existentes)
+        working-directory: app
         run: |
           node -e "
           const fs=require('node:fs'), p=require('node:path');
@@ -85,25 +119,25 @@ jobs:
       # build em minutos. Falhar cedo devolve o resultado mais rápido a quem
       # abriu o PR.
       - name: Lint (ESLint, zero aviso tolerado)
-        run: npm run lint
+        run: npm run lint -w campus-app
 
       # Classe utilitária fora da escala fechada do projeto não gera CSS e não
       # dá erro: o elemento colapsa em silêncio. Este passo nasceu de um defeito
       # real (cartão de evento invisível), então ele fica antes dos testes.
       - name: Escala de espaçamento do Tailwind
-        run: node ../scripts/check-tailwind-scale.mjs
+        run: node scripts/check-tailwind-scale.mjs
 
       - name: Formatação (Prettier)
         run: npm run format:check
 
-      - name: Testes com cobertura (limite de 60% no domínio — RNF-015)
-        run: npm run test:coverage
+      - name: Testes com cobertura (limite de 60% — RNF-015)
+        run: npm run test:coverage -w campus-app
 
       - name: Build de produção
-        run: npm run build
+        run: npm run build -w campus-app
 
       - name: Orçamento de tamanho do pacote (RNF-007)
-        run: node ../scripts/check-bundle-size.mjs
+        run: node scripts/check-bundle-size.mjs
 
       - name: Guarda o build
         uses: actions/upload-artifact@v4
@@ -112,21 +146,9 @@ jobs:
           path: app/dist
           retention-days: 7
 
-  # Job separado do de aplicação de propósito: o E2E baixa um navegador (~120 MB)
-  # e leva dezenas de segundos. Separá-lo faz lint e teste unitário continuarem
-  # devolvendo resultado em menos de dois minutos, e o E2E não bloqueia a leitura
-  # do que falhou antes dele.
-  #
-  # Este job fecha a pendência 6.1 de docs/13-roadmap-cp5-cp6.md: o E2E existia
-  # escrito e configurado desde o CP4 e nunca havia sido executado. Enquanto a
-  # execução dependia da máquina de alguém, nenhuma afirmação sobre ele era
-  # verificável.
-  e2e:
-    name: E2E (Playwright)
+  api:
+    name: API (lint, teste, build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     steps:
       - uses: actions/checkout@v4
 
@@ -134,7 +156,50 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: package-lock.json
+
+      - name: Instala dependências
+        run: npm ci
+
+      # O cliente do Prisma é gerado a partir do schema e não é versionado. O
+      # `postinstall` que faria isso é bloqueado pelo npm 11 (`allow-scripts`),
+      # então a geração é explícita — e é melhor assim: aparece no log.
+      - name: Gera o cliente do Prisma
+        run: npm run prisma:generate -w campus-api
+
+      # Valida o schema contra o dialeto do PostgreSQL sem precisar de banco.
+      - name: Valida o schema do Prisma
+        run: npx prisma validate --schema api/prisma/schema.prisma
+
+      - name: Lint
+        run: npm run lint -w campus-api
+
+      - name: Testes unitários
+        run: npm run test -w campus-api
+
+      - name: Build
+        run: npm run build -w campus-api
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # Job separado do de aplicação de propósito: o E2E baixa um navegador
+    # (~120 MB) e leva dezenas de segundos. Separá-lo faz lint e teste unitário
+    # continuarem devolvendo resultado em menos de dois minutos, e o E2E não
+    # bloqueia a leitura do que falhou antes dele.
+    #
+    # Este job fecha a pendência 6.1 de docs/13-roadmap-cp5-cp6.md: o E2E existia
+    # escrito e configurado desde o CP4 e nunca havia sido executado. Enquanto a
+    # execução dependia da máquina de alguém, nenhuma afirmação sobre ele era
+    # verificável — e a primeira execução reprovou 6 de 6.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Instala dependências
         run: npm ci
@@ -144,8 +209,8 @@ jobs:
       - name: Instala o Chromium
         run: npx playwright install --with-deps chromium
 
-      # O `webServer` do playwright.config.ts roda `npm run build` e serve o
-      # preview: o alvo é o artefato de produção, não o dev server.
+      # O `webServer` do playwright.config.ts roda o build e serve o preview: o
+      # alvo é o artefato de produção, não o dev server.
       - name: Roda o E2E
         run: npm run test:e2e
 

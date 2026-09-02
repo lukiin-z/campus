@@ -1,4 +1,4 @@
-import type { Evento, Publicacao, Usuario } from '../types/domain';
+import type { Evento, Publicacao, Usuario } from '../types';
 
 /**
  * Papéis e permissões — RN-023 e RN-024.

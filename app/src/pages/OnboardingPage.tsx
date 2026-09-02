@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import type { ChangeEvent } from 'react';
 import type { Curso, Turma } from '../types/domain';
-import { normalizaCodigo } from '../domain/auth';
 import {
   criarOnboardingSchema,
   turmaConfirmada,
@@ -17,6 +16,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Field';
 import { ErrorState, Skeleton } from '../components/ui/Feedback';
 import { cn } from '../lib/cn';
+import { normalizaCodigo } from '@campus/shared';
 
 /**
  * Onboarding — vínculo com curso e turma (RF-004, RF-005, RN-003).

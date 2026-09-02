@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Curso, Turma } from '../types/domain';
+import type { Curso, Turma } from '../types';
 import {
   decideLogin,
   decideOnboarding,

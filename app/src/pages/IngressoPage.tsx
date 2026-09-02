@@ -1,13 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
-import { numericCheckInCode, ticketCode } from '../domain/checkin';
-import { checkInOpen, checkInWindow } from '../domain/deadlines';
 import {
   formatEventDateTime,
   formatEventRange,
   formatFullDate,
   formatTime,
 } from '../domain/format';
-import { formatPrice, minutesLeftToPay } from '../domain/payment';
 import { mensagemDeErro, useParticipacao } from '../hooks/useCampusData';
 import { useTokenIngresso } from '../hooks/useCheckin';
 import { useSessionStore } from '../store/session';
@@ -16,6 +13,14 @@ import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '../components/ui/Feedback';
 import { QrCode } from '../components/ui/QrCode';
 import { cn } from '../lib/cn';
+import {
+  checkInOpen,
+  checkInWindow,
+  formatPrice,
+  minutesLeftToPay,
+  numericCheckInCode,
+  ticketCode,
+} from '@campus/shared';
 
 /**
  * Ingresso com QR Code (RF-031 a RF-033).

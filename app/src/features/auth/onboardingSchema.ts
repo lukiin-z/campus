@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { Curso, Turma } from '../../types/domain';
-import { decideOnboarding } from '../../domain/auth';
+import { decideOnboarding } from '@campus/shared';
 
 /**
  * Validação do onboarding (RF-004, RF-005, RN-003).

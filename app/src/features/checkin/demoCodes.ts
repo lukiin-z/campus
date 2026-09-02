@@ -1,5 +1,5 @@
 import type { PainelCheckin, PresencaView } from '../../types/domain';
-import { numericCheckInCode } from '../../domain/checkin';
+import { numericCheckInCode } from '@campus/shared';
 
 /**
  * Códigos para quem estiver avaliando poder colar no leitor simulado.

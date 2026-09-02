@@ -3,12 +3,16 @@ import { SENHA_DEMO } from './support';
 import { SENHA_DEMO as SENHA_NA_TELA } from '../features/auth/perfis';
 import { PERFIS_DEMO } from '../features/auth/perfis';
 import { assertInvariants, getDb } from './db';
-import { decideOnboarding, normalizaCodigo, onboardingPendente } from '../domain/auth';
-import { canSee } from '../domain/visibility';
-import { isActive } from '../domain/participation';
-import { occupiesSpot } from '../domain/capacity';
-import { checkInOpen } from '../domain/deadlines';
 import { USUARIO_ATUAL_ID } from './seed';
+import {
+  canSee,
+  checkInOpen,
+  decideOnboarding,
+  isActive,
+  normalizaCodigo,
+  occupiesSpot,
+  onboardingPendente,
+} from '@campus/shared';
 
 /**
  * O seed é o estado da demonstração — e estado de demonstração apodrece calado.

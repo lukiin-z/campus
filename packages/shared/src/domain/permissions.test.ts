@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Evento, Usuario } from '../types/domain';
+import type { Evento, Usuario } from '../types';
 import {
   canApproveCollegeEvent,
   canCancelEvent,
