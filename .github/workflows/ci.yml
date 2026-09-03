@@ -161,6 +161,12 @@ jobs:
       - name: Instala dependências
         run: npm ci
 
+      # A API consome `@campus/shared` pelo `dist`, e o `dist` não é versionado.
+      # Sem este passo, `nest build` falha com "Cannot find module
+      # '@campus/shared'" — que não menciona build nenhum.
+      - name: Compila o pacote compartilhado
+        run: npm run build -w @campus/shared
+
       # O cliente do Prisma é gerado a partir do schema e não é versionado. O
       # `postinstall` que faria isso é bloqueado pelo npm 11 (`allow-scripts`),
       # então a geração é explícita — e é melhor assim: aparece no log.

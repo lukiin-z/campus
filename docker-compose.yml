@@ -1,0 +1,253 @@
+# Campus — um comando sobe o produto inteiro, em máquina limpa.
+#
+#     docker compose up
+#
+# Três serviços em cadeia: o Postgres, a API (que aplica as migrations, roda o
+# seed e sobe) e o front servido estático. Depois de `up`, o app responde em
+# http://localhost:8080 e a API em http://localhost:3000/api.
+#
+# ## A ordem não é sugestão
+#
+# `depends_on` sozinho só espera o container **iniciar**, e um Postgres iniciado
+# ainda não aceita conexão: leva de um a alguns segundos até o `postmaster`
+# terminar a inicialização do cluster. A API subiria nesse intervalo, o
+# `prisma migrate deploy` falharia com ECONNREFUSED e o container morreria — e o
+# sintoma pareceria erro de configuração, não corrida de inicialização.
+#
+# Por isso a espera é por `condition: service_healthy`, e o `healthcheck` do
+# banco é `pg_isready`, que é a pergunta certa: "o servidor aceita conexão neste
+# banco, com este usuário?".
+#
+# ## O que cada Dockerfile precisa expor
+#
+# Este arquivo não constrói as imagens: ele as consome. O que ele assume dos
+# dois `Dockerfile` está escrito abaixo, para que uma mudança de imagem que
+# quebre o compose seja percebida no arquivo que ela quebra.
+#
+# `./Dockerfile.api`
+#   - Contexto de build: a **raiz do repositório** (é um monorepo npm
+#     workspaces; um contexto em `api/` não alcança `packages/shared` nem o
+#     `package-lock.json` único).
+#   - `WORKDIR` do estágio final: `/app/api`, para `npx prisma migrate deploy`
+#     achar `prisma/schema.prisma` sem `--schema` e `npm run …` resolver o
+#     `package.json` da API.
+#   - `EXPOSE 3000`, e a aplicação escutando em `0.0.0.0` (não `127.0.0.1`, ou o
+#     mapeamento de porta não alcança nada).
+#   - No estágio final têm de existir: `node` e `npm`; o CLI `prisma` e o `tsx`
+#     (são devDependencies, e `npm ci --omit=dev` os removeria — sem eles não há
+#     `migrate deploy` nem seed); `api/prisma/**` (schema e migrations);
+#     `api/src/seed/**` e `api/tsconfig.json`; o cliente Prisma já gerado, com a
+#     engine da MESMA plataforma do estágio final; `argon2`; e
+#     `packages/shared/dist`.
+#   - `CMD` própria: `["npm", "run", "start:prod"]`. O `command:` abaixo a
+#     substitui para encaixar migrations e seed antes — a `CMD` é o que vale
+#     quando a imagem roda fora do compose.
+#   - Para o `TZ` abaixo valer, a imagem precisa da base de fusos. A base Debian
+#     (`node:22.17.0-slim`) já traz `/usr/share/zoneinfo`; numa base Alpine
+#     faltaria `tzdata`, e o container ficaria em UTC — as datas do seed
+#     continuariam coerentes, só deslocadas algumas horas.
+#
+# `./Dockerfile.web`
+#   - Contexto de build: a raiz do repositório (mesmo motivo).
+#   - `ARG VITE_DATA_SOURCE` e `ARG VITE_API_URL`, promovidos a `ENV` **antes**
+#     do `vite build`: o Vite embute `import.meta.env.VITE_*` no bundle em tempo
+#     de build. Passá-los como variável de runtime não tem efeito nenhum.
+#   - Estágio final servindo o `dist/` estático na **porta 80**, com fallback de
+#     SPA (`try_files $uri /index.html`): o app usa `BrowserRouter`, e sem o
+#     fallback qualquer recarga em `/eventos` devolve 404.
+#
+# Os dois arquivos já existem e satisfazem o contrato acima. A única coisa que
+# eles oferecem e que este compose deixa no padrão é o `API_UPSTREAM` do nginx
+# (`http://api:3000`), usado só quando o front é construído com
+# `VITE_API_URL=/api` para falar com a API pela mesma origem.
+#
+# ## Segredos
+#
+# A senha do Postgres aqui é `campus_dev_local`, e ela é **de desenvolvimento**:
+# vale para um banco descartável em `localhost`, e está no arquivo de propósito
+# para que `docker compose up` funcione sem preparo.
+#
+# `JWT_SECRET` e `WEBHOOK_SECRET` também têm valor padrão aqui, e isso é uma
+# tensão consciente com `src/config/ambiente.ts`, que se recusa a ter padrão
+# ("um segredo com padrão não é segredo"). A regra continua valendo onde importa:
+# **o código** não tem padrão nenhum, e a API não sobe sem os dois. O que este
+# arquivo faz é fornecê-los para um ambiente local descartável — e os valores
+# dizem isso no próprio texto. Produção injeta outros pelo ambiente do provedor.
+# `api/.env.example` é a lista canônica dos nomes, sem valor.
+#
+# Todo `${VAR:-padrão}` abaixo é sobrescrevível: o compose lê `./.env`
+# automaticamente para interpolação, então basta um `.env` local (que o
+# `.gitignore` já ignora) para mudar qualquer um sem editar este arquivo.
+
+name: campus
+
+services:
+  # -------------------------------------------------------------------------
+  # Banco de dados
+  # -------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-campus}
+      # Senha de DESENVOLVIMENTO. Ver "Segredos" no topo.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campus_dev_local}
+      POSTGRES_DB: ${POSTGRES_DB:-campus}
+      # Recusa conexão sem senha até de dentro do container. O padrão da imagem
+      # (`trust`) faria a autenticação passar a valer só na porta publicada.
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      # Publicada para o `psql` e para o `prisma studio` da máquina do
+      # desenvolvedor. A API não usa esta porta: ela fala com `db:5432` pela
+      # rede interna.
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - db-dados:/var/lib/postgresql/data
+    healthcheck:
+      # `-U` e `-d` são necessários: sem eles o `pg_isready` pergunta pelo banco
+      # `root`, que não existe, e o serviço nunca fica saudável.
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-campus} -d ${POSTGRES_DB:-campus}
+      interval: 5s
+      timeout: 5s
+      # 60 s de teto. Primeiro boot com volume vazio inclui o `initdb`.
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # API — NestJS + Prisma
+  # -------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.api
+    depends_on:
+      db:
+        # A linha que impede a corrida de inicialização. Ver o topo do arquivo.
+        condition: service_healthy
+    environment:
+      # O nome desta variável é contrato: `schema.prisma` a lê em `env()`.
+      # O host é `db`, o nome do serviço na rede do compose.
+      DATABASE_URL: 'postgresql://${POSTGRES_USER:-campus}:${POSTGRES_PASSWORD:-campus_dev_local}@db:5432/${POSTGRES_DB:-campus}?schema=public'
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: '3000'
+      # O seed APAGA as 14 tabelas antes de inserir, e por isso trava sozinho
+      # quando `NODE_ENV=production`. Aqui o consentimento é explícito: este
+      # banco é descartável, e ser reinicializável é a função dele.
+      SEED_PERMITIR_RESET: 'true'
+      # As datas do seed são relativas à meia-noite LOCAL do processo. Fixar o
+      # fuso faz o churrasco das 13 h ser 13 h para quem assiste à demonstração,
+      # em qualquer máquina. Ver a nota sobre fusos no contrato do topo.
+      TZ: ${TZ:-America/Sao_Paulo}
+      # Plural, e separadas por vírgula: é o formato que `carregarAmbiente` lê.
+      # São as origens vistas pelo NAVEGADOR — a do `web` deste compose e a do
+      # `vite dev`, para quem roda o front fora do container contra esta API.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost:5173}
+      # Segredos de DESENVOLVIMENTO. Ver "Segredos" no topo. Os mínimos que a
+      # validação de boot exige são 32 e 16 caracteres.
+      JWT_SECRET: ${JWT_SECRET:-desenvolvimento-local-apenas-troque-em-producao}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-desenvolvimento-local-apenas}
+      # Libera `POST /pagamentos/:id/simular`, o gatilho do gateway fake
+      # (ADR-0006). Esta stack existe para DEMONSTRAR, e roda `production` de
+      # propósito — é o build real que se quer exercitar. Sem esta linha o
+      # endpoint responde 404 e o fluxo de pagamento fica indemonstrável, o que
+      # foi medido antes de a flag existir.
+      PERMITIR_SIMULACAO_PAGAMENTO: ${PERMITIR_SIMULACAO_PAGAMENTO:-true}
+    command:
+      - sh
+      - -c
+      - >-
+        npx prisma migrate deploy
+        && npm run seed
+        && npm run start:prod
+    ports:
+      - '${API_PORT:-3000}:3000'
+    healthcheck:
+      # Feito com o próprio Node, e não com `curl` ou `wget`: `node` é a única
+      # coisa garantidamente presente numa imagem de aplicação Node, e o `fetch`
+      # global existe desde o Node 18. A imagem `slim` não traz `curl`.
+      #
+      # A URL é montada por concatenação, e não com template literal, porque
+      # `CMD-SHELL` passa a linha ao `sh` e crase dentro de aspas duplas viraria
+      # substituição de comando. `127.0.0.1` e não `localhost`: com o nome, o
+      # Node tenta `::1` primeiro e o teste falha se a API escutar só em IPv4.
+      #
+      # A imagem já declara um `HEALTHCHECK` equivalente, e este o substitui por
+      # uma razão concreta: lá o `start-period` é de 30 s, medido para uma `CMD`
+      # que só sobe a API. Aqui o `command:` encadeia migration e seed antes, e
+      # 30 s não cobrem o primeiro boot — o serviço seria marcado como doente no
+      # caminho, e o `web`, que espera por `service_healthy`, desistiria.
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+    # `on-failure` e não `unless-stopped`: se o seed ou a migration falharem, o
+    # container tem de PARAR com o erro visível, e não reiniciar em laço
+    # escondendo a causa atrás de mil linhas de log repetido.
+    restart: on-failure:3
+
+  # -------------------------------------------------------------------------
+  # Front — o pacote de produção, servido estático
+  # -------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.web
+      args:
+        # Tira o MSW do caminho: o app passa a falar com a API real. É a
+        # troca de fonte de dados que o CP6 acrescentou.
+        VITE_DATA_SOURCE: api
+        # Endereço da API do ponto de vista do NAVEGADOR, não do container: o
+        # JavaScript roda na máquina de quem abre a página, e para ela `api`
+        # não é um nome resolvível.
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+    depends_on:
+      api:
+        # Não é obrigatório para servir HTML, mas evita a primeira tela
+        # carregando com a API ainda fora do ar — que numa demonstração parece
+        # bug do app.
+        condition: service_healthy
+    ports:
+      - '${WEB_PORT:-8080}:80'
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # Banco dos testes de integração — perfil `teste`
+  #
+  #     docker compose --profile teste up -d db-teste
+  #
+  # Não sobe no `docker compose up` normal (é o que o `profiles` faz). Porta,
+  # volume e nome de banco são TODOS distintos do serviço `db`: dois Postgres
+  # disputando a 5432 é o tipo de falha que consome uma hora até alguém notar
+  # que o "banco de teste" era o de desenvolvimento.
+  # -------------------------------------------------------------------------
+  db-teste:
+    profiles:
+      - teste
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_TESTE_USER:-campus}
+      POSTGRES_PASSWORD: ${POSTGRES_TESTE_PASSWORD:-campus_dev_local}
+      POSTGRES_DB: ${POSTGRES_TESTE_DB:-campus_teste}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - '${DB_TESTE_PORT:-5433}:5432'
+    volumes:
+      - db-teste-dados:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_TESTE_USER:-campus} -d ${POSTGRES_TESTE_DB:-campus_teste}
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  db-dados:
+  db-teste-dados:

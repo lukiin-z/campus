@@ -1,0 +1,253 @@
+# Imagem da API do Campus (NestJS + Prisma + PostgreSQL).
+#
+# Construída da RAIZ do repositório, não de `api/`:
+#
+#     docker build -f Dockerfile.api -t campus-api .
+#
+# O contexto tem de ser a raiz porque isto é um monorepo com npm workspaces —
+# há UM `package-lock.json`, na raiz, e `api` depende de `@campus/shared` por
+# link de workspace. Construir com contexto `api/` deixaria o lockfile e o
+# pacote compartilhado fora do alcance do `COPY`.
+#
+# ---------------------------------------------------------------------------
+# Por que Debian (`-slim`) e não Alpine
+# ---------------------------------------------------------------------------
+#
+# Quem decide é o Prisma, e o `argon2` foi medido para tirá-lo da conta:
+#
+#   argon2  — NÃO é o motivo. Conferido dentro desta imagem: o pacote publica
+#             `prebuilds/linux-x64/argon2.glibc.node` E
+#             `prebuilds/linux-x64/argon2.musl.node`, e o `require` escolhe o
+#             certo em tempo de execução. Com `npm ci --ignore-scripts`,
+#             `argon2.hash()` + `argon2.verify()` rodaram aqui sem nenhuma
+#             ferramenta de compilação instalada. Alpine também serviria a ele.
+#   Prisma  — é o motivo. A engine é baixada para a PLATAFORMA detectada em
+#             `prisma generate`. Gerar em Debian e rodar em Alpine entrega uma
+#             engine `debian-openssl-3.0.x` a um sistema musl, e o cliente morre
+#             na primeira consulta com "Unable to require libquery_engine".
+#             Todos os estágios abaixo usam a MESMA base — é o que dispensa
+#             declarar `binaryTargets` no schema e o que garante que a engine
+#             gerada no estágio de build é a que o estágio final executa.
+#
+# ---------------------------------------------------------------------------
+# Por que `openssl` é instalado
+# ---------------------------------------------------------------------------
+#
+# `node:22.17.0-slim` não traz libssl — verificado nesta imagem: nem
+# `/usr/lib/x86_64-linux-gnu/libssl.so.3`, nem o pacote `openssl` no dpkg (o
+# Node usa a própria cópia estática de OpenSSL, e o slim não instala a do
+# sistema). A engine do Prisma linka libssl DINAMICAMENTE, então sem este pacote
+# o `prisma generate` até passa e a API quebra ao abrir a primeira conexão.
+
+# ---------------------------------------------------------------------------
+# base — o que build e runtime têm em comum
+# ---------------------------------------------------------------------------
+# Um só estágio para as duas coisas de sistema faz build e runtime dividirem a
+# MESMA camada: o custo de disco é pago uma vez.
+FROM node:22.17.0-slim AS base
+
+# `dumb-init` é PID 1 no estágio final. Sem ele, `node` é o PID 1 e o Linux não
+# aplica as ações padrão de sinal ao PID 1: `docker stop` manda SIGTERM, nada
+# acontece, e o Docker mata com SIGKILL 10 s depois — conexão de banco aberta,
+# requisição em voo cortada. `dumb-init` repassa o sinal e recolhe zumbis.
+#
+# `tzdata` NÃO está nesta lista, e é intencional: a base Debian já traz
+# `/usr/share/zoneinfo` completo. Conferido nesta imagem —
+# `TZ=America/Sao_Paulo node -e 'new Date().toString()'` responde
+# "GMT-0300 (Brasilia Standard Time)". O compose define `TZ` porque as datas do
+# seed são relativas à meia-noite local; aqui isso funciona sem pacote extra.
+# Em base Alpine funcionaria não, e seria mais um item a instalar.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates dumb-init \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    PORT=3000
+
+# ---------------------------------------------------------------------------
+# deps — dependências completas, em camada própria
+# ---------------------------------------------------------------------------
+FROM base AS deps
+
+# Só os manifestos primeiro. É o que faz a camada de `npm ci` — a mais lenta de
+# todas — ser reaproveitada enquanto nenhuma dependência muda. Copiar o código
+# antes do install destruiria esse cache a cada edição de arquivo `.ts`.
+#
+# Os quatro manifestos são obrigatórios: `npm ci` valida o lockfile contra a
+# árvore de workspaces declarada na raiz e recusa a instalação se algum pacote
+# declarado estiver ausente — inclusive `app`, que esta imagem não usa.
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY api/package.json api/
+COPY app/package.json app/
+
+# `--ignore-scripts` é intencional e não custa nada aqui: o `postinstall` que
+# geraria o cliente do Prisma é bloqueado pelo npm 11 de todo jeito, e a geração
+# é explícita no estágio de build. `argon2` não precisa de script de instalação
+# — resolve o prebuild em tempo de `require`, não de install.
+#
+# `NODE_ENV=production` vem do estágio base e faria o npm omitir devDependencies;
+# o build precisa delas (@nestjs/cli, prisma, typescript), então aqui é
+# `development`.
+RUN NODE_ENV=development npm ci --ignore-scripts
+
+# ---------------------------------------------------------------------------
+# build — gera o cliente do Prisma e compila shared + api
+# ---------------------------------------------------------------------------
+FROM deps AS build
+
+COPY packages/shared packages/shared
+COPY api api
+
+# O cliente do Prisma NÃO é versionado (`/api/generated` está no .gitignore) e
+# não existe `postinstall` que o gere. Sem este passo, `nest build` falha no
+# primeiro `import { PrismaClient }`.
+RUN npx prisma generate --schema api/prisma/schema.prisma
+
+# A ordem importa: `api` importa `@campus/shared` pelo `dist` (o app importa
+# pela fonte; ver o comentário em app/tsconfig.app.json). Compilar a API antes
+# do pacote deixaria o `import` sem `dist/index.d.ts` para resolver.
+RUN NODE_ENV=development npm run build -w @campus/shared \
+  && NODE_ENV=development npm run build -w campus-api
+
+# ---------------------------------------------------------------------------
+# prod-deps — monta o `node_modules` final, para ele virar UMA camada
+# ---------------------------------------------------------------------------
+# Este estágio existe por causa de uma medição, não por gosto de arquitetura.
+#
+# A primeira versão instalava as dependências e copiava as partes do Prisma
+# DIRETO no estágio final. Resultado: 985 MB. O motivo é como o overlay
+# funciona — a camada do `npm ci` já continha `@prisma/client` (74 MB), e a
+# camada de `COPY` seguinte escrevia a mesma árvore por cima. Camada não apaga
+# camada: as duas cópias ficam na imagem, e o arquivo sobrescrito continua
+# ocupando espaço embaixo.
+#
+# Montando tudo aqui e copiando `node_modules` inteiro numa única instrução, o
+# estágio final recebe só o conteúdo resolvido, uma vez.
+#
+# O segundo motivo é um defeito que só aparece rodando: `COPY --from` com um
+# SYMLINK no caminho de origem copia o ARQUIVO APONTADO, não o link. Copiando
+# `node_modules/.bin/tsx` assim, o `cli.mjs` do tsx caía dentro de `.bin/` e os
+# `import` relativos dele passavam a procurar irmãos em `.bin/`:
+#
+#   Error [ERR_MODULE_NOT_FOUND]: Cannot find module
+#   '/app/node_modules/.bin/package-BL7Whz21.mjs' imported from
+#   '/app/node_modules/.bin/tsx'
+#
+# Copiando o DIRETÓRIO `node_modules`, os symlinks são preservados como
+# symlinks — inclusive o de `@campus/shared`, que é link de workspace.
+FROM base AS prod-deps
+
+# `-w campus-api --include-workspace-root` corta as dependências do `app`
+# (React, Vite, Playwright, MSW) que o lockfile único traz e que a API não usa;
+# `--omit=dev` corta @nestjs/cli, typescript, supertest e os `@types`. Sem os
+# dois, o `node_modules` do estágio de build é de **439 MB**.
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY api/package.json api/
+COPY app/package.json app/
+RUN npm ci --omit=dev --ignore-scripts -w campus-api --include-workspace-root \
+  && npm cache clean --force
+
+# Três coisas que `npm ci --omit=dev` não produz, e que vêm do estágio de build
+# em vez de um segundo download — assim a versão é a do lockfile e não há rede:
+#
+#   .prisma/client  — o cliente GERADO a partir do schema, com a engine de query
+#                     desta plataforma. Não existe no registro; sai do
+#                     `prisma generate` acima.
+#   prisma, @prisma — a CLI e a schema-engine, que `prisma migrate deploy` exige
+#                     na subida do compose. A CLI é devDependency.
+#   tsx, esbuild    — o seed é `tsx src/seed/run.ts`, e `tsx` é devDependency.
+#                     `@esbuild` traz o binário nativo da plataforma, que é o
+#                     que faz o `tsx` funcionar.
+COPY --from=build /app/node_modules/.prisma  ./node_modules/.prisma
+COPY --from=build /app/node_modules/prisma   ./node_modules/prisma
+COPY --from=build /app/node_modules/@prisma  ./node_modules/@prisma
+COPY --from=build /app/node_modules/tsx      ./node_modules/tsx
+COPY --from=build /app/node_modules/esbuild  ./node_modules/esbuild
+COPY --from=build /app/node_modules/@esbuild ./node_modules/@esbuild
+
+# Os links de `.bin` são RECRIADOS, não copiados, pela razão do comentário do
+# estágio: copiar o symlink traria o arquivo. É o `.bin` que faz `npx prisma` e
+# `npm run seed` resolverem sem consultar a rede.
+RUN ln -sf ../prisma/build/index.js node_modules/.bin/prisma \
+  && ln -sf ../tsx/dist/cli.mjs     node_modules/.bin/tsx \
+  && ln -sf ../esbuild/bin/esbuild  node_modules/.bin/esbuild
+
+# ---------------------------------------------------------------------------
+# runtime — só o que roda
+# ---------------------------------------------------------------------------
+FROM base AS runtime
+
+# Uma instrução, uma camada, sem sobreposição. Ver o comentário de `prod-deps`.
+COPY --from=prod-deps /app/node_modules ./node_modules
+
+# Os manifestos, porque `npm run …` precisa do `package.json` da API e a raiz
+# declara os workspaces.
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY api/package.json api/
+COPY app/package.json app/
+
+# O schema e as migrations viajam com a imagem porque `prisma migrate deploy` lê
+# os dois em tempo de execução. A migration inicial é escrita à mão sobre o SQL
+# gerado (CHECK de capacidade e índices únicos parciais que o schema não
+# expressa) — perder este diretório perderia essas garantias.
+COPY --from=build /app/api/prisma ./api/prisma
+
+# A FONTE do seed, e não só o `dist`, porque `npm run seed` é `tsx
+# src/seed/run.ts` — é o comando que o docker-compose.yml invoca. O `tsconfig`
+# vem junto porque o `tsx` o lê para resolver `target` e caminhos.
+#
+# A alternativa é `node dist/seed/run.js`, que `nest build` também produz e que
+# dispensaria `tsx`, `esbuild` e este `COPY`. Ela não foi adotada para não
+# divergir do `command:` já escrito no compose.
+COPY --from=build /app/api/src           ./api/src
+COPY --from=build /app/api/tsconfig.json ./api/tsconfig.json
+
+COPY --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build /app/api/dist ./api/dist
+
+# Não-root. A imagem `node` já traz o usuário `node` (uid 1000): criar outro só
+# adicionaria camada. Nada em `/app` precisa de escrita em runtime — a aplicação
+# não grava arquivo, e por isso os arquivos seguem de posse do root, legíveis
+# por todos e **não graváveis** pelo processo. Container comprometido não
+# reescreve o próprio código.
+USER node
+
+# `/app/api` e não `/app`: é o que faz `npx prisma migrate deploy` achar
+# `prisma/schema.prisma` sem `--schema`, e `npm run …` achar o `package.json` da
+# API. Contrato acordado com o docker-compose.yml. O `node_modules` continua
+# resolvendo — o Node sobe a árvore de diretórios até `/app/node_modules`.
+WORKDIR /app/api
+
+EXPOSE 3000
+
+# O healthcheck usa o `fetch` global do Node 22, não `curl`: a imagem slim não
+# traz curl (verificado), e instalá-lo só para isto adicionaria ~5 MB e uma
+# superfície de rede a mais. `127.0.0.1` e não `localhost` de propósito — com
+# `localhost`, o Node resolve `::1` primeiro e o healthcheck falha se o servidor
+# escutar só em IPv4.
+#
+# `start-period` de 30 s cobre a subida do Nest e a primeira conexão com o
+# banco; dentro dele, falha não conta para o limite de tentativas.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
+  CMD ["node", "-e", "fetch(`http://127.0.0.1:${process.env.PORT||3000}/api/health`).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+
+ENTRYPOINT ["dumb-init", "--"]
+
+# A CMD só sobe a API. Migration e seed NÃO estão aqui de propósito: encadeados
+# na CMD, toda reinicialização do container tentaria migrar o banco de novo.
+# Quem os encadeia é a orquestração — o `command:` do docker-compose.yml —, que
+# é onde a decisão pertence. Os dois são alcançáveis nesta imagem, a partir
+# deste WORKDIR:
+#
+#   npx prisma migrate deploy
+#   npm run seed
+#
+# `npm run start:prod` (e não `node dist/main.js` direto) para a imagem rodar o
+# mesmo comando que o repositório documenta. `dumb-init` sinaliza o GRUPO de
+# processos, então o SIGTERM chega ao `node` por baixo do `npm`.
+CMD ["npm", "run", "start:prod"]

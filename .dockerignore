@@ -1,0 +1,90 @@
+# Contexto de build das imagens (Dockerfile.api e Dockerfile.web).
+#
+# Por que este arquivo existe: sem ele, `docker build .` empacota e envia ao
+# daemon o repositório INTEIRO — os `node_modules` (centenas de MB), o `.git`,
+# os relatórios de cobertura e do Playwright. Medido neste repositório com `du`:
+#
+#   repositório inteiro          678 MB
+#     node_modules (raiz)        553 MB   ← cortado
+#     app/node_modules           111 MB   ← cortado
+#     docs                       6,3 MB   ← cortado
+#     .git                       4,4 MB   ← cortado
+#   contexto efetivo             2,2 MB
+#
+# São duas ordens de magnitude. E o custo não é só de tempo: o contexto é
+# enviado ao daemon antes de qualquer camada rodar, então ele é pago mesmo
+# quando todas as camadas estão em cache.
+#
+# O segundo motivo é correção, não velocidade: `node_modules` copiado de uma
+# máquina Windows para dentro de uma imagem Linux traz binários nativos da
+# plataforma errada (`argon2`, engines do Prisma, esbuild/rollup). A imagem tem
+# de instalar as dependências dela, sempre.
+
+# --- Dependências: instaladas dentro da imagem, nunca copiadas ---
+**/node_modules
+
+# --- Artefatos de build: gerados dentro da imagem, nunca copiados ---
+**/dist
+**/dist-ssr
+**/build
+**/.vite
+**/.turbo
+**/*.tsbuildinfo
+# Cliente do Prisma, gerado por `prisma generate` no estágio de build.
+api/generated
+
+# --- Histórico e metadados do Git ---
+.git
+.gitignore
+.gitattributes
+.github
+
+# --- Relatórios e saídas de teste ---
+**/coverage
+**/.nyc_output
+app/test-results
+app/playwright-report
+app/blob-report
+app/playwright/.cache
+
+# --- Documentação, marca e protótipo: não entram em imagem de runtime ---
+docs
+prototype
+scripts
+*.md
+LICENSE
+
+# --- Configuração de ferramenta que não participa do build ---
+.editorconfig
+.prettierrc
+.prettierignore
+.nvmrc
+.claude
+.vscode
+.idea
+
+# --- Segredos: nunca no contexto de build ---
+#
+# Camada de imagem é pública para quem tem a imagem, e `docker history` mostra
+# o conteúdo. Um `.env` que entrasse aqui viraria segredo publicado. A imagem
+# recebe configuração por variável de ambiente em tempo de execução.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+
+# --- Ruído de editor e de SO ---
+**/.DS_Store
+**/Thumbs.db
+**/*.swp
+**/*.log
+
+# --- Os próprios arquivos de Docker ---
+#
+# Mudar um comentário do Dockerfile não deve invalidar o cache das camadas de
+# instalação de dependência.
+Dockerfile*
+.dockerignore
+docker-compose*.yml

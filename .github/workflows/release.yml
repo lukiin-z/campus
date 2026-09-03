@@ -1,0 +1,231 @@
+name: Release
+
+# Publica as duas imagens do produto e as anexa a uma Release.
+#
+# Dispara em tag `cp*` (é o esquema de tag do projeto: `cp5`, `cp6`, `cp6.1`) e
+# sob demanda, para dar para ensaiar o release sem criar tag.
+#
+# ## Por que GitHub Container Registry, e não Docker Hub
+#
+# `ghcr.io` autentica com o `GITHUB_TOKEN` que a própria execução recebe: não há
+# conta de terceiro para criar, não há segredo para cadastrar e nada neste
+# arquivo é segredo. Docker Hub exigiria `DOCKERHUB_TOKEN` nos secrets do
+# repositório — uma dependência de uma pessoa com acesso administrativo, que é
+# exatamente o que este projeto não tem garantido (ver docs/23-instalacao.md).
+on:
+  push:
+    tags:
+      - 'cp*'
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: 'Rótulo da versão (sem tag Git). Ex.: cp6-ensaio'
+        required: false
+        default: 'manual'
+
+# `packages: write` é obrigatório para empurrar em ghcr.io — sem ele o push
+# falha com `denied: installation not allowed to Write organization package`, e
+# a mensagem não diz que o problema é permissão do workflow.
+# `contents: write` é o que permite criar a Release.
+permissions:
+  contents: write
+  packages: write
+
+# Dois pushes de tag em sequência não devem publicar fora de ordem. Sem
+# `cancel-in-progress`: release interrompida no meio deixa pacote publicado sem
+# Release correspondente.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  imagens:
+    name: Constrói e publica as imagens
+    runs-on: ubuntu-latest
+
+    outputs:
+      versao: ${{ steps.contexto.outputs.versao }}
+      repo: ${{ steps.contexto.outputs.repo }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ghcr.io recusa maiúscula no nome do repositório, e `github.repository`
+      # preserva a caixa do nome da conta. `lukiin-z/campus` já é minúsculo, mas
+      # depender disso é depender de a conta nunca ser renomeada — e o erro que
+      # sai quando quebra (`invalid reference format: repository name must be
+      # lowercase`) aparece só no push, depois de o build inteiro rodar.
+      #
+      # A versão sai da tag quando há tag, e do input quando o disparo é manual.
+      - name: Resolve nome do repositório e versão
+        id: contexto
+        run: |
+          repo=$(printf '%s' "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            versao="${{ github.ref_name }}"
+          else
+            versao="${{ inputs.versao }}"
+          fi
+          echo "repo=$repo"     >> "$GITHUB_OUTPUT"
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+          echo "Publicando ghcr.io/$repo/{api,web}:$versao"
+
+      # Buildx para ter cache de camada entre execuções. Sem ele, cada release
+      # reinstala as dependências do zero — os dois `npm ci` são o passo mais
+      # lento dos dois Dockerfiles.
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Autentica no ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # Token da própria execução. Não é um segredo cadastrado: o GitHub o
+          # emite por execução e ele expira com ela.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---------------------------------------------------------------------
+      # API
+      # ---------------------------------------------------------------------
+      # `context: .` (a raiz) porque é um monorepo npm workspaces: o lockfile
+      # único e `packages/shared` ficam fora de `api/`. Está documentado no topo
+      # de cada Dockerfile.
+      - name: Constrói e publica a imagem da API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.api
+          push: true
+          tags: |
+            ghcr.io/${{ steps.contexto.outputs.repo }}/api:${{ steps.contexto.outputs.versao }}
+            ghcr.io/${{ steps.contexto.outputs.repo }}/api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+          # Rótulos padronizados: é o que faz a página do pacote no GitHub
+          # apontar de volta para o repositório e para o commit exato.
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.contexto.outputs.versao }}
+            org.opencontainers.image.description=API do Campus (NestJS + Prisma + PostgreSQL)
+            org.opencontainers.image.licenses=MIT
+
+      # ---------------------------------------------------------------------
+      # Front
+      # ---------------------------------------------------------------------
+      # `VITE_API_URL` entra como build-arg porque o Vite resolve
+      # `import.meta.env.VITE_*` em tempo de BUILD: a imagem publicada carrega o
+      # endereço embutido, e trocá-lo depois exige reconstruir. Por isso o valor
+      # vem de uma variável de repositório (`vars`, não `secrets` — não é
+      # segredo, é um endereço público) e cai num padrão de desenvolvimento
+      # quando ninguém a definiu.
+      - name: Constrói e publica a imagem do front
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.web
+          push: true
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL || 'http://localhost:3000/api' }}
+            VITE_DATA_SOURCE=api
+          tags: |
+            ghcr.io/${{ steps.contexto.outputs.repo }}/web:${{ steps.contexto.outputs.versao }}
+            ghcr.io/${{ steps.contexto.outputs.repo }}/web:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.contexto.outputs.versao }}
+            org.opencontainers.image.description=Front do Campus (Vite + React, servido por nginx)
+            org.opencontainers.image.licenses=MIT
+
+  # -------------------------------------------------------------------------
+  # Release
+  # -------------------------------------------------------------------------
+  # Job separado: se o build falhar, não existe Release meia-feita apontando
+  # para imagem que não foi publicada.
+  release:
+    name: Publica a Release
+    needs: imagens
+    # Só em tag. No disparo manual, as imagens são publicadas e a Release não —
+    # é o que permite ensaiar sem sujar a lista de releases.
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Os artefatos anexados são os que uma pessoa precisa para subir a stack
+      # sem clonar o repositório: o compose, os dois Dockerfiles, o modelo de
+      # ambiente e os dois documentos de instalação e de uso.
+      #
+      # A cópia é condicional porque estes arquivos são escritos por frentes
+      # diferentes: faltando um, a Release sai com o que existe e registra um
+      # aviso, em vez de o job inteiro morrer em `cp: No such file`.
+      - name: Monta o pacote de instalação
+        run: |
+          mkdir -p pacote
+          for arquivo in \
+            docker-compose.yml \
+            Dockerfile.api \
+            Dockerfile.web \
+            .dockerignore \
+            .env.example \
+            docs/22-manual-de-uso.md \
+            docs/23-instalacao.md
+          do
+            if [ -f "$arquivo" ]; then
+              cp "$arquivo" pacote/
+            else
+              echo "::warning::$arquivo ausente — não entrou no pacote da Release"
+            fi
+          done
+          ls -la pacote/
+          tar -czf campus-${{ needs.imagens.outputs.versao }}-instalacao.tar.gz -C pacote .
+
+      - name: Corpo da Release
+        run: |
+          repo='${{ needs.imagens.outputs.repo }}'
+          versao='${{ needs.imagens.outputs.versao }}'
+          cat > corpo.md <<EOF
+          ## Imagens publicadas
+
+          | Imagem | Endereço |
+          |---|---|
+          | API | \`ghcr.io/$repo/api:$versao\` |
+          | Front | \`ghcr.io/$repo/web:$versao\` |
+
+          \`\`\`bash
+          docker pull ghcr.io/$repo/api:$versao
+          docker pull ghcr.io/$repo/web:$versao
+          \`\`\`
+
+          ## Como instalar
+
+          O anexo \`campus-$versao-instalacao.tar.gz\` traz o \`docker-compose.yml\`,
+          os dois \`Dockerfile\`, o \`.env.example\` e os dois documentos. Com o
+          repositório clonado, um comando sobe a stack inteira:
+
+          \`\`\`bash
+          docker compose up
+          \`\`\`
+
+          O passo a passo com a saída esperada de cada comando, os três caminhos
+          de instalação e o roteiro de validação assinável estão em
+          \`docs/23-instalacao.md\`. O manual por perfil de usuário está em
+          \`docs/22-manual-de-uso.md\`.
+
+          Commit: \`${{ github.sha }}\`
+          EOF
+          cat corpo.md
+
+      - name: Cria a Release e anexa os artefatos
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Campus ${{ needs.imagens.outputs.versao }}
+          body_path: corpo.md
+          files: |
+            campus-${{ needs.imagens.outputs.versao }}-instalacao.tar.gz
+            docker-compose.yml
+            .env.example
