@@ -1,0 +1,44 @@
+{
+  /*
+   * TypeScript dos specs de ponta a ponta.
+   *
+   * `app/tsconfig.app.json` cobre `src`, e `app/tsconfig.node.json` cobre
+   * `vite.config.ts` e `playwright.config.ts`. `e2e/` não estava em nenhum dos
+   * dois — então `npm run build` (`tsc -b`) nunca verificou os specs, e o
+   * `strict` que o app inteiro paga não valia aqui. Verifique com:
+   *
+   *     npx tsc --noEmit -p app/e2e/tsconfig.json
+   *
+   * Fica fora do `tsc -b` do app de propósito: o build do artefato não deve
+   * depender de compilar teste, e o `webServer` do Playwright roda esse build
+   * para subir o front. Um erro de tipo no spec quebraria a subida do servidor
+   * em vez de reprovar o spec.
+   *
+   * `preparar-stack.mjs` é `.mjs` e não entra aqui: ele é executado por `node`
+   * puro no meio do comando do `webServer` (ver o cabeçalho do arquivo). O
+   * `@ts-check` no topo dele dá a verificação que o editor mostra.
+   */
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    // As mesmas flags de rigor de `tsconfig.app.json`, sem exceção.
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"]
+}

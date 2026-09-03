@@ -1,0 +1,44 @@
+{
+  /*
+   * TypeScript dos testes de integração.
+   *
+   * ## Por que existe um tsconfig próprio aqui
+   *
+   * `api/tsconfig.json` declara `"include": ["src"]` e `"rootDir": "./src"` —
+   * é o projeto que o `nest build` compila, e `test/` está fora dele de
+   * propósito (teste não vai para o `dist`). A consequência é que
+   * `npx tsc --noEmit -p api/tsconfig.json` **não verifica** este diretório.
+   *
+   * Sem este arquivo, os testes seriam o único código TypeScript do repositório
+   * sem verificação de tipo — e o `any` que a API proíbe entraria por aqui sem
+   * ninguém notar. Verifique com:
+   *
+   *     npx tsc --noEmit -p api/test/tsconfig.json
+   *
+   * As flags de rigor são herdadas sem exceção, `noUncheckedIndexedAccess`
+   * inclusive: é por causa dela que os casos escrevem `linhas[0]?.campo` em vez
+   * de `linhas[0].campo`, e essa disciplina é a mesma que `api/src` paga.
+   *
+   * `vitest.int.config.ts` fica fora: ele usa `import.meta.url`, que não existe
+   * em `module: commonjs`. É a mesma situação de `api/vitest.config.ts`, que
+   * também não pertence a nenhum projeto TypeScript — arquivo de configuração é
+   * transformado pelo Vite, não pelo `tsc`.
+   */
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    /*
+     * `..` e não `.`: os testes importam de `../src` (o `AppModule`, o seed, os
+     * erros de negócio), e o `rootDir` tem de conter todo arquivo do programa —
+     * com `.`, o `tsc` reprova cada import de `src` com TS6059 antes de olhar
+     * um tipo. `incremental` desligado porque o `tsBuildInfoFile` herdado
+     * aponta para `dist/`, que é do `nest build`.
+     */
+    "rootDir": "..",
+    "incremental": false,
+    // `argon2` e `supertest` são consumidos pelos testes; `node` já vem do
+    // projeto base e é o que dá `process.env` e `node:crypto`.
+    "types": ["node"]
+  },
+  "include": ["."]
+}
