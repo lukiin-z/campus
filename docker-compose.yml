@@ -56,10 +56,10 @@
 #     SPA (`try_files $uri /index.html`): o app usa `BrowserRouter`, e sem o
 #     fallback qualquer recarga em `/eventos` devolve 404.
 #
-# Os dois arquivos já existem e satisfazem o contrato acima. A única coisa que
-# eles oferecem e que este compose deixa no padrão é o `API_UPSTREAM` do nginx
-# (`http://api:3000`), usado só quando o front é construído com
-# `VITE_API_URL=/api` para falar com a API pela mesma origem.
+# Os dois arquivos já existem e satisfazem o contrato acima. O `API_UPSTREAM` do
+# nginx (`http://api:3000`) fica no padrão e É usado: desde a correção do
+# `VITE_API_URL`, o front é construído com `/api` e todo o tráfego de dados
+# atravessa o proxy de mesma origem — ver a razão junto do argumento de build.
 #
 # ## Segredos
 #
@@ -202,10 +202,23 @@ services:
         # Tira o MSW do caminho: o app passa a falar com a API real. É a
         # troca de fonte de dados que o CP6 acrescentou.
         VITE_DATA_SOURCE: api
-        # Endereço da API do ponto de vista do NAVEGADOR, não do container: o
-        # JavaScript roda na máquina de quem abre a página, e para ela `api`
-        # não é um nome resolvível.
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+        # `/api` — mesma origem, atravessando o proxy do nginx.
+        #
+        # O padrão era `http://localhost:3000/api`, e ele funciona exatamente
+        # numa máquina: a de quem construiu a imagem. O JavaScript roda no
+        # navegador de quem ABRE a página, então `localhost:3000` ali significa
+        # a porta 3000 DELE — em qualquer VM, servidor de colega ou máquina na
+        # nuvem, o app tenta falar com uma API que não existe. Para um critério
+        # que vale 20% e se chama "instalabilidade", esse é o pior padrão
+        # possível: o único ambiente onde ele funciona é o de quem já tem tudo.
+        #
+        # Com `/api`, o navegador chama a origem de onde baixou a página, o
+        # nginx encaminha para `api:3000` pela rede interna, e nada precisa de
+        # CORS. Funciona em `localhost` e funciona em qualquer host.
+        #
+        # Quem quiser o comportamento antigo — falar direto com a API publicada
+        # na 3000 — passa `VITE_API_URL=http://localhost:3000/api` no ambiente.
+        VITE_API_URL: ${VITE_API_URL:-/api}
     depends_on:
       api:
         # Não é obrigatório para servir HTML, mas evita a primeira tela

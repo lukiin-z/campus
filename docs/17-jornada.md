@@ -9,6 +9,7 @@
 | Versão | Data | Checkpoint | O que mudou |
 |---|---|---|---|
 | 1.0 | 2026-09-02 | CP5 | Documento criado: linha do tempo do CP4 e do CP5, decisões, mudanças de escopo, requisitos revistos e defeitos encontrados por verificação |
+| 1.2 | 2026-09-02 | CP6 | Abre a seção do CP6: a fase de contrato, a decisão de mover o domínio para `@campus/shared`, as 22 restrições do banco verificadas e 6 defeitos de infraestrutura que a migração expôs (16 a 21) |
 | 1.1 | 2026-09-02 | CP5 | Fecha a seção do CP5 depois da integração: 9 defeitos registrados (7 a 15), separados entre comissão e omissão; a pendência do E2E do CP4 fechada com o relato da primeira execução; quadro do que foi medido e do que não foi |
 
 ---
@@ -50,7 +51,7 @@ git log --oneline cp4..cp5 # os commits do CP5
 |---|---|---|---|
 | `cp4` | 2026-09-01 | 8 | Idealização: documentação, UML, marca, pitch, Trello, base técnica |
 | `cp5` | 2026-09-02 | ver `git log cp4..cp5` | Protótipo funcional: 12 rotas navegáveis com dados simulados, ambiente de teste, PWA |
-| `cp6` | — | ver `git log cp5..cp6` | Entrega final: API, persistência, instalabilidade |
+| `cp6` | 2026-09-02 | ver `git log cp5..cp6` | Entrega final: monorepo, API NestJS + PostgreSQL, pacote instalável |
 
 ---
 
@@ -230,10 +231,139 @@ de verdade (RNF-005), que depende de pessoas e não de código.
 
 ## 5. CP6 — Entrega final
 
-*Esta seção é preenchida no bloco do CP6.* O que ela precisará conter, para o critério de
-evolução ficar verificável: os commits da tag `cp6`, as decisões novas em ADR, o que o
-backend real provou estar errado no mock, os defeitos que os testes de integração
-encontraram, e o `git diff --stat cp5 cp6`.
+**Tag:** `cp6` · **Foco:** o produto com dados reais — API, banco e pacote instalável.
+
+### 5.1 A fase de contrato, e por que ela veio primeiro
+
+O CP5 foi construído com paralelismo sobre um contrato escrito antes (§4.1). O CP6 repetiu
+a receita, e a diferença é que agora o contrato atravessa **dois processos**: o que o
+navegador chama e o que o servidor responde.
+
+Quatro artefatos foram escritos antes de qualquer divisão de trabalho:
+
+| Artefato | O que fixa |
+|---|---|
+| `packages/shared/` | Tipos, as 13 regras de negócio e os schemas Zod — a fonte única dos dois lados ([ADR-0008](adr/0008-monorepo-com-dominio-compartilhado.md)) |
+| `api/prisma/schema.prisma` | 14 tabelas e 10 enums, espelhando o ER coluna por coluna |
+| `api/prisma/migrations/0001_init/` | O SQL, com as 20 restrições `CHECK` e os índices parciais escritos à mão sobre o que o Prisma gera |
+| `api/openapi.yaml` | 38 caminhos, 43 operações, 44 schemas — método, corpo, resposta e código de erro |
+
+### 5.2 A decisão: o domínio saiu do front
+
+Treze módulos de regra saíram de `app/src/domain/` para `packages/shared/src/domain/`, com
+`git mv` para o histórico acompanhar. **Não foi organização de pastas** — foi a resposta à
+pergunta que o CP6 impõe: onde mora a regra quando dois processos precisam dela.
+
+O raciocínio completo, com as quatro alternativas recusadas, está na
+[ADR-0008](adr/0008-monorepo-com-dominio-compartilhado.md). O resumo é que a alternativa
+óbvia — copiar o domínio para a API — erra no único ponto que precisa acertar, e há
+evidência disso no próprio CP5: **quatro divergências** em um dia de trabalho, todas em
+pares de código que nasceram idênticos (os três critérios de RN-019, o `MAX_PRICE` em dois
+schemas, a senha de demonstração em dois arquivos, e os nomes de rota do contrato contra as
+rotas do mock).
+
+Dois efeitos que não eram o objetivo e vieram de graça:
+
+- **243 testes passaram a cobrir o domínio da API** sem uma linha de teste escrita para ela.
+- **A suíte do domínio ficou 9× mais rápida** — roda em `node`, sem jsdom: ~1 s contra ~9 s.
+  Isso muda hábito, porque a suíte volta a caber no laço de edição.
+
+Ficaram no app três módulos, e o motivo é o mesmo nos três: **não são domínio**. `format`
+é apresentação, `eventAction` decide estado de botão, e `eventSchema` valida a forma do
+**formulário** — que é diferente da forma do corpo da requisição. Essa última parece
+duplicação e não é: o que não se repete é o limite, e capacidade e preço vêm de `POLICY`.
+
+### 5.3 O que o banco real provou
+
+O CP5 garantia RN-004 com uma fila de escrita serializada dentro do service worker. É uma
+boa imitação de `SELECT ... FOR UPDATE`, e foi escolhida de propósito para o teste de
+concorrência não passar no mock e falhar na API. Mas imitação não é garantia: no CP5, se o
+código tivesse um furo, o dado inconsistente entraria.
+
+No CP6 a garantia mudou de lugar. Vinte restrições `CHECK`, um índice único **parcial** e
+uma ação referencial fazem o **banco** recusar dado impossível — e foram
+**exercitadas, não apenas declaradas**:
+
+```
+api/prisma/verificar-restricoes.sql, contra PostgreSQL 16
+→ 22 verificações, todas recusando
+```
+
+Cada uma tenta violar uma garantia central e espera a recusa. Duas merecem nota:
+
+- **RN-015 tem duas metades.** O índice é parcial de propósito: a segunda inscrição *ativa*
+  no mesmo evento é recusada, **e** a reinscrição depois de cancelar é permitida. Um único
+  que ignorasse o status impediria comportamento legítimo e frequente. As duas metades são
+  verificadas.
+- **RNF-022 deixou de depender de disciplina.** Dado de cartão em cobrança Pix é recusado
+  pelo `CHECK`, não pela boa vontade de quem escreve o service. E o `ResumoCartao` do
+  contrato é `strict`: um cliente que tentasse enviar o número do cartão recebe `422`,
+  porque o objeto não aceita campo a mais.
+
+### 5.4 Os defeitos que a migração expôs
+
+Seis, todos de infraestrutura, e nenhum óbvio antes de acontecer. Registro porque a
+mensagem de erro de cada um **não menciona a causa**:
+
+| # | Sintoma | Causa |
+|---|---|---|
+| 16 | `Cannot find package 'jsdom' imported from node_modules/vitest` | `jsdom` ficou em `app/node_modules` e o `vitest` foi içado para a raiz. A mensagem não menciona workspace |
+| 17 | `Type 'Plugin<any>' is not assignable to type 'PluginOption'` | **Duas cópias de `vite`** no monorepo, com erro de tipo *nominal* entre elas |
+| 18 | Cobertura caiu de 83% para 63% e o limite reprovou | O `include` de cobertura apontando para `../packages/` não funciona: o provider v8 resolve o glob da raiz do projeto e descarta o caminho de fora |
+| 19 | "Você só pode cancelar a sua própria inscrição" em um teste que não fala de cancelamento | O token de sessão é estado de módulo e não era zerado entre testes. Apareceu ao cobrir os métodos de autenticação, que nenhum teste chamava |
+| 20 | `preco: 12.999` passava pela validação | `Number.isInteger(Math.round(v*100))` é **sempre** verdadeiro. A verificação de centavos não verificava nada — e era código que eu havia escrito minutos antes |
+| 21 | `services/http` com **45,71%** de cobertura de funções | Metade dos métodos do contrato de dados nunca havia sido chamada. É exatamente o arquivo que a troca do mock pela API substitui. Hoje 97,14% |
+
+O de número 20 é o mais instrutivo do checkpoint: a linha parecia certa, passava no
+`tsc`, passava no lint, e foi escrita com a intenção correta. O que a pegou foi um teste
+que afirmava o comportamento — não uma releitura.
+
+#### Os defeitos da integração, 22 a 33
+
+Estes apareceram depois, quando as frentes voltaram e as peças foram ligadas. A tabela
+separa **o que os produziu**, porque é a única coluna com valor transferível.
+
+| # | Sintoma | Causa | O que o encontrou |
+|---|---|---|---|
+| 22 | `ERR_PACKAGE_PATH_NOT_EXPORTED` em todo módulo da API | `packages/shared` publicava só a condição `import` no `exports`, e a API é CommonJS. **O `tsc` não avisa**: a resolução de tipos usa caminho diferente da de execução | Rodar a API. Nenhuma verificação estática pegava |
+| 23 | `GET /api/eventos` respondia **200 com o index.html**, e a tela quebrava com `Cannot read properties of undefined (reading 'map')` | `resposta.json().catch(() => ({}))` valia para sucesso e erro. No sucesso, o `{}` de consolo virava "deu certo, sem dados" | Abrir a build num navegador que **recusa service worker** — o caminho de falha que nenhum ambiente normal produz |
+| 24 | A página voltava a ficar **em branco**, apagando o próprio aviso que explicava a falha | O app não tinha fronteira de erro. Um `throw` em render desmonta a árvore inteira no React 18, e leva a faixa de aviso com ela — anulando a correção do CP5 | O mesmo navegador, no mesmo minuto |
+| 25 | `POST /pagamentos/{id}/simular` → **404** na stack de demonstração | A guarda do simulador era `NODE_ENV !== 'production'`, e a stack de demonstração roda `production` de propósito. O fluxo de pagamento ficava indemonstrável | Percorrer os fluxos contra os containers, não contra o código |
+| 26 | Aluno sem vínculo cairia num feed vazio em vez do onboarding (RF-004) | O schema `Usuario` do contrato não declarava `cursoId`/`turmaId`. `onboardingPendente` compara `=== null`, e `undefined === null` é falso | Uma frente lendo o contrato contra o código que o consome |
+| 27 | O e-mail institucional de todo organizador ia no payload da lista de eventos e do feed | Os quatro pontos de aninhamento usavam `$ref: Usuario`, que exige `email` — e essas listas são vistas pela turma inteira (RNF-021) | Revisão do contrato campo por campo, procurando o que ele obriga a mandar |
+| 28 | `npm run build` reprovava com seis `TS2304` | `export type { X } from` reexporta o nome **sem trazê-lo ao escopo do módulo**, e as assinaturas do próprio arquivo o usavam. Efeito colateral: `tsc -p app/tsconfig.json --noEmit` **passa** e `tsc -b` reprova — os dois não são equivalentes neste repositório, e é o do build que vale | O build. O typecheck que eu havia rodado antes não |
+| 29 | Uma verificação que o código **afirmava ter** não existia | O comentário de `main.ts` dizia que a concordância entre `openapi.yaml` e as rotas servidas era "a verificação que impede o contrato e as rotas divergirem". Nunca foi escrita | Reler a frase e procurar o arquivo |
+| 30 | O job `api` da CI reprovava com `P1012` | `prisma validate` exige `DATABASE_URL` porque o `datasource` a lê com `env(...)`, e nenhum job a definia | Simular o job localmente |
+| 31 | Duas verdades sobre o mesmo corpo de resposta | `ResultadoLoginApi` na API e `TokensDeSessao` no pacote, forma idêntica. E `ParticipanteConfirmado` tinha duas declarações **já divergentes**: `status: string` no app, `StatusParticipacao` na API | Procurar por tipo declarado dos dois lados |
+| 32 | Regerar o código de convite da turma respondia erro no modo `api`, sem nada acusar | O cliente mandava `GET` onde a API serve `POST`. O caminho existia, então conferir só o caminho daria verde | O primeiro teste do cliente HTTP, no primeiro caso que ele rodou |
+| 33 | O front funcionava **em exatamente uma máquina** | `VITE_API_URL` tinha padrão `http://localhost:3000/api`, e o JavaScript roda no navegador de quem ABRE a página: em qualquer VM ou servidor, `localhost:3000` é a porta 3000 *dele*. Para um critério que se chama instalabilidade, o pior padrão possível | Ler a aba de rede do navegador durante o passeio pelas telas |
+
+Quatro citações a **RNF-021** no código apontavam para o requisito errado — o limite de
+taxa citava *controle do titular*, que não tem relação, e não existe RNF de limite de taxa
+em [`02-requisitos.md`](02-requisitos.md). Não é defeito de comportamento, e está aqui
+porque citação errada é pior que citação nenhuma: faz o código parecer rastreável a um
+requisito que ninguém escreveu.
+
+#### O que a medição de cobertura mostrou, de novo
+
+O CP5 aprendeu que cinco dos seus nove defeitos eram **omissões**. O CP6 repetiu a lição em
+quatro lugares, e nenhum deles teria aparecido em revisão:
+
+| Arquivo | Cobertura de funções | O que era |
+|---|---|---|
+| `app/src/services/api/index.ts` | **20,83%** | 41 das 42 operações do cliente da API real nunca chamadas. É a camada de que depende a troca de fonte |
+| `packages/shared/src/domain/deadlines.ts` | **28,57%** (22,22% de linhas) | **Sem arquivo de teste nenhum.** Os 22% vinham de ser importado pelos testes de outros módulos — o efeito colateral que faz um módulo *parecer* exercitado |
+| `packages/shared/src/domain/policy.ts` | **33,33%** | `addMinutes` e `addHours`, as duas funções que *produzem* os prazos gravados no banco |
+| `app/src/lib/` | não medido | O cliente HTTP com a renovação de sessão estava **fora do `include`**: o arquivo mais delicado da camada de dados não aparecia em número nenhum |
+
+O limite de cobertura era 60% com medição real acima de 90%, o que não protege nada —
+deixa passar uma regressão que apaga metade da cobertura. Subiu para 90/85 no pacote e
+88/78 no app, com a folga escrita no arquivo de configuração.
+
+### 5.5 O que continua sendo pendência declarada
+
+*Preenchido no fecho do CP6, com o que as verificações de integração e de instalabilidade
+apurarem.*
 
 ---
 

@@ -2,8 +2,10 @@
 #
 # Construída da RAIZ do repositório, não de `app/`:
 #
-#     docker build -f Dockerfile.web -t campus-web \
-#       --build-arg VITE_API_URL=http://localhost:3000/api .
+#     docker build -f Dockerfile.web -t campus-web .
+#
+# `VITE_API_URL` tem padrão `/api` e raramente precisa ser passado; a razão
+# está junto do `ARG` mais abaixo.
 #
 # Contexto na raiz porque `app` resolve `@campus/shared` pela FONTE
 # (`packages/shared/src`, ver o alias em app/vite.config.ts) e o lockfile do
@@ -54,13 +56,20 @@ COPY app app
 
 # Os dois valores que o front precisa saber antes de existir.
 #
-#   VITE_API_URL     — base das chamadas. O padrão é o endereço publicado pelo
-#                      compose na máquina de quem avalia. `/api` faz o front
-#                      falar com a própria origem e usar o proxy do nginx.
+#   VITE_API_URL     — base das chamadas. O padrão é `/api`: mesma origem,
+#                      atravessando o proxy do nginx desta própria imagem.
+#
+#                      O padrão era `http://localhost:3000/api`, e ele funciona
+#                      em exatamente uma máquina — a de quem constrói. O
+#                      JavaScript roda no navegador de quem ABRE a página, e
+#                      `localhost:3000` ali é a porta 3000 DELE: numa VM, num
+#                      servidor ou na nuvem, o front tentava falar com uma API
+#                      que não existe. Com `/api` funciona nos dois casos, e
+#                      sem CORS.
 #   VITE_DATA_SOURCE — qual implementação da camada de dados sobe (ADR-0003):
 #                      `api` fala com a API real, `mock` sobe o MSW. A imagem
 #                      existe para servir a API real, então o padrão é `api`.
-ARG VITE_API_URL=http://localhost:3000/api
+ARG VITE_API_URL=/api
 ARG VITE_DATA_SOURCE=api
 
 # `ENV` a partir do `ARG` porque o Vite lê do ambiente do processo, não dos
@@ -162,10 +171,9 @@ server {
         default_type application/manifest+json;
     }
 
-    # Proxy de mesma origem para a API. Só é exercitado quando a imagem é
-    # construída com `VITE_API_URL=/api`; com o padrão
-    # (`http://localhost:3000/api`) o navegador fala direto com a API e este
-    # bloco fica inerte.
+    # Proxy de mesma origem para a API — o caminho PADRÃO desde o CP6, quando
+    # `VITE_API_URL` passou a ser `/api`. Todo o tráfego de dados do front
+    # atravessa este bloco.
     #
     # O destino passa por VARIÁVEL, não por literal: com `proxy_pass
     # http://api:3000` o nginx resolve o nome na LEITURA da configuração e se

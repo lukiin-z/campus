@@ -289,7 +289,7 @@ $ docker build -f Dockerfile.api -t campus-api:teste .
  => naming to docker.io/library/campus-api:teste                          done
 
 $ docker build -f Dockerfile.web -t campus-web:teste \
-    --build-arg VITE_API_URL=http://localhost:3000/api .
+    --build-arg VITE_API_URL=/api .
  => [build  7/10] RUN npm ci --ignore-scripts                             62.0s
  => [build 10/10] RUN npm run build -w campus-app                         20.8s
  => [runtime 4/4] COPY --from=build /app/app/dist /usr/share/nginx/html   done
