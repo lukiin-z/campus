@@ -124,7 +124,14 @@ export interface Turma {
   nome: string;
   /** Ano e semestre, ex.: `2026.1`. */
   periodo: string;
-  /** Código de convite que vincula o aluno à turma (RF-005). */
+  /**
+   * Código de convite que vincula o aluno à turma (RF-005, RN-003).
+   *
+   * **É credencial, não identificador.** Quem tem o código entra na turma, e
+   * com isso passa a ver os eventos dela. Por isso a API o OMITE em
+   * `GET /cursos/:id/turmas`, que é público — ele só volta em
+   * `POST /admin/turmas/:id/codigo`, para quem tem competência no escopo.
+   */
   codigoConvite: string;
   codigoAtivo: boolean;
 }
@@ -163,8 +170,13 @@ export interface Evento {
   alcance: AlcanceEvento;
   /**
    * Âncora do alcance: exatamente UMA das três é preenchida, coerente com
-   * `alcance` (RN-001). No banco isso é um CHECK composto; aqui é invariante
-   * garantida por `assertAncoraCoerente` em domain/visibility.ts.
+   * `alcance` (RN-001).
+   *
+   * No banco é o `CHECK ck_evento_ancora_coerente` da migration `0001_init` —
+   * a garantia de verdade, que recusa a escrita. Em código, quem verifica é
+   * `ancoraCoerente` em `domain/visibility.ts`. (Este comentário citava
+   * `assertAncoraCoerente`, que nunca existiu; a Lane de backend do CP6 tentou
+   * importá-la e o `tsc` reprovou.)
    */
   turmaId: string | null;
   cursoId: string | null;
@@ -400,9 +412,34 @@ export interface Credenciais {
 }
 
 /**
+ * Resposta de `POST /auth/login` **na rede** (CP6).
+ *
+ * Dois tokens com tempos de vida diferentes: o de acesso é curto e vai no
+ * cabeçalho de cada requisição; o de refresh é longo, revogável, e tem o hash
+ * guardado na tabela `sessao` — um vazamento do banco não dá sessão a ninguém
+ * (RNF-020).
+ *
+ * É deliberadamente **diferente** de `ResultadoLogin`, que é o que a interface
+ * do app devolve às telas. A camada de serviço traduz entre as duas: assim a
+ * tela de login nunca soube que o formato mudou entre o CP5 e o CP6, que é o
+ * ponto de RNF-016. Nomear as duas formas evita a terceira, escrita à mão em
+ * algum lugar quando alguém precisar dela.
+ */
+export interface TokensDeSessao {
+  accessToken: string;
+  refreshToken: string;
+  /** Validade do token de acesso, em segundos. */
+  expiraEm: number;
+  sessao: SessaoUsuario;
+}
+
+/**
+ * O que a camada de dados do app devolve ao concluir um login.
+ *
  * O token existe desde o CP5 mesmo com o mock: é ele que a store guarda e o
- * cliente HTTP envia. No CP6 o valor passa a ser um JWT real assinado pela API,
- * e nada acima desta camada muda (ADR-0003).
+ * cliente HTTP envia. No CP6 o valor passou a ser um JWT real assinado pela API,
+ * e nada acima desta camada mudou (ADR-0003) — o refresh vive na camada de
+ * transporte, porque renovar sessão não é decisão de tela.
  */
 export interface ResultadoLogin {
   token: string;
@@ -546,4 +583,84 @@ export interface NovaPublicacao {
 
 export interface NovoComentario {
   texto: string;
+}
+
+/* ==========================================================================
+ * Formas que atravessam a rede
+ *
+ * Estas seis nasceram em `app/src/services/index.ts` porque `packages/shared`
+ * era de outra lane quando o cliente HTTP foi escrito. Elas vieram para cá pela
+ * razão que criou o pacote: cada uma tinha DUAS declarações — uma no app e uma
+ * na API — e `ParticipanteConfirmado` provou o custo disso, porque as duas já
+ * divergiam. O app declarava `status: string`; a API, `StatusParticipacao`.
+ * ========================================================================== */
+
+/** RF-001 — cadastro com e-mail institucional (`Cadastro` do contrato). */
+export interface EntradaCadastro extends Credenciais {
+  nome: string;
+}
+
+/**
+ * Subconjunto editável de um evento (RN-023).
+ *
+ * `alcance` não entra: mudá-lo tiraria a visibilidade de quem já se inscreveu.
+ * `capacidade` entra, mas o servidor recusa reduzi-la abaixo de `ocupadas` — a
+ * validação é dele, não da tela.
+ */
+export interface EdicaoEvento {
+  titulo?: string;
+  descricao?: string;
+  inicio?: IsoDateTime;
+  fim?: IsoDateTime;
+  local?: string;
+  capacidade?: number;
+  prazoInscricao?: IsoDateTime;
+  prazoCancelamento?: IsoDateTime;
+}
+
+/**
+ * Linha da lista de confirmados do organizador (RN-024).
+ *
+ * Respeita o opt-out de RF-009: quem desmarcou `visivelEntreConfirmados` não
+ * aparece nem para o organizador.
+ *
+ * `status` é `StatusParticipacao`, e não `string`. A diferença não é cosmética:
+ * a tela decide o rótulo da linha por esse campo, e com `string` o `switch` não
+ * tem exaustividade — um status novo passaria silenciosamente pelo compilador e
+ * apareceria cru na interface.
+ */
+export interface ParticipanteConfirmado {
+  participacaoId: string;
+  nome: string;
+  turma: string | null;
+  status: StatusParticipacao;
+}
+
+/** Notificação do gateway (RN-014). Quem envia em produção é o gateway. */
+export interface WebhookPagamento {
+  transacaoExternaId: string;
+  chaveIdempotencia: string;
+  valorPago: number;
+  pago: boolean;
+}
+
+export type DesfechoWebhook =
+  'CONFIRMAR' | 'IGNORAR_DUPLICADA' | 'ESTORNAR' | 'DIVERGENCIA_DE_VALOR' | 'DESCONHECIDO';
+
+/**
+ * Resposta do webhook — sempre `200`, inclusive no reprocessamento.
+ *
+ * Responder erro faria o gateway reenviar indefinidamente: idempotência é
+ * sucesso sem efeito, não recusa (RN-014).
+ */
+export interface AceitePagamento {
+  desfecho: DesfechoWebhook;
+}
+
+/** Resposta de `/health` — a única rota que responde sem autenticação. */
+export interface Saude {
+  status: 'ok' | 'degradado';
+  banco: 'ok' | 'indisponivel';
+  versao: string;
+  migrationsAplicadas: number;
 }

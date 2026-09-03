@@ -2,8 +2,20 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    /*
+     * CommonJS, e não ESM.
+     *
+     * O único consumidor do `dist` é a API, que é CommonJS (NestJS + ts). O app
+     * NÃO consome o build: ele resolve `@campus/shared` pela fonte, por `paths`
+     * no tsconfig e `alias` no Vite.
+     *
+     * Isto foi descoberto quebrando: com `"type": "module"` e `exports` só com a
+     * condição `import`, qualquer módulo CJS da API que importasse o pacote
+     * batia em `ERR_PACKAGE_PATH_NOT_EXPORTED` — e o `tsc` NÃO avisa, porque o
+     * erro é de resolução em tempo de execução do Node.
+     */
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -19,8 +31,8 @@
     "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"]

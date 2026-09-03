@@ -617,7 +617,7 @@ paths:
           description: 'Ingresso e histórico da participação'
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Participacao' }
+              schema: { $ref: '#/components/schemas/ParticipacaoView' }
         '401':
           description: 'Token ausente, expirado ou inválido'
           content:
@@ -812,7 +812,7 @@ paths:
       summary: 'Notificação do gateway; idempotente por chave (RN-014)'
       tags: [pagamentos]
       security:
-        - bearer: []
+        - assinaturaGateway: []
       description: 'Exige: Assinatura HMAC do gateway no cabeçalho `X-Assinatura`'
       requestBody:
         required: true
@@ -820,7 +820,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/WebhookPagamento' }
       responses:
-        '201':
+        '200':
           description: 'Notificação do gateway; idempotente por chave (RN-014)'
           content:
             application/json:
@@ -993,7 +993,7 @@ paths:
               schema: { $ref: '#/components/schemas/Erro' }
     post:
       operationId: validarCheckin
-      summary: 'Valida a leitura; recusa é 200 com aceito=false (RF-034, RN-017)'
+      summary: 'Valida a leitura; aceite cria presença (201) e recusa devolve 200 com aceito=false'
       tags: [checkin]
       security:
         - bearer: []
@@ -1005,7 +1005,12 @@ paths:
             schema: { $ref: '#/components/schemas/LeituraCheckin' }
       responses:
         '201':
-          description: 'Valida a leitura; recusa é 200 com aceito=false (RF-034, RN-017)'
+          description: 'Valida a leitura; aceite cria presença (201) e recusa devolve 200 com aceito=false'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoCheckin' }
+        '200':
+          description: 'Leitura recusada, com o motivo específico. NÃO é erro: na porta de um evento "ingresso já usado" é resposta do sistema, e um 4xx mandaria a tela mostrar "erro ao validar"'
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ResultadoCheckin' }
@@ -1327,7 +1332,7 @@ paths:
         in: path
         required: true
         schema: { type: string, format: uuid }
-    get:
+    post:
       operationId: regerarCodigoConvite
       summary: 'Gera um código de convite novo e desativa o anterior (RF-043)'
       tags: [admin]
@@ -1365,6 +1370,14 @@ components:
         JWT de acesso, validade de 15 minutos. O refresh vai no corpo de
         `/auth/refresh`, é revogável e tem hash guardado na tabela `sessao` —
         um vazamento do banco não dá sessão a ninguém (RNF-020).
+    assinaturaGateway:
+      type: apiKey
+      in: header
+      name: X-Assinatura
+      description: |
+        HMAC-SHA256 do corpo cru com o segredo do gateway. O gateway não tem
+        sessão de usuário, então `bearer` não se aplica — e o segredo fica no
+        servidor, nunca no cliente.
   schemas:
     Erro:
       type: object
@@ -1386,6 +1399,12 @@ components:
             Presente em alguns `409`: o que o cliente pode oferecer em seguida.
             `SEM_VAGA` traz `LISTA_ESPERA`.
           examples: [LISTA_ESPERA]
+        totalFila:
+          type: integer
+          description: |
+            Acompanha o `409 SEM_VAGA`. A tela convida para a fila dizendo em que
+            posição a pessoa entraria — "você seria o 8º" decide mais que
+            "evento lotado". Sem este campo o convite fica sem informação.
         detalhes:
           type: array
           description: Erros por campo, quando a recusa é de validação (`422`).
@@ -1397,6 +1416,7 @@ components:
 
     Saude:
       type: object
+      required: [status, banco]
       properties:
         status: { type: string, enum: [ok, degradado] }
         banco: { type: string, enum: [ok, indisponivel] }
@@ -1453,6 +1473,16 @@ components:
         duracaoSemestres: { type: integer }
     Turma:
       type: object
+      description: |
+        `codigoConvite` é **opcional na resposta, e isso é decisão de segurança**:
+        ele é credencial, não identificador — quem tem o código entra na turma e
+        passa a ver os eventos dela (RN-003).
+
+        `GET /cursos/{id}/turmas` é público e **omite** o campo.
+        `POST /admin/turmas/{id}/codigo` o devolve, para quem tem competência no
+        escopo. A API implementou essa distinção acima do que a primeira versão
+        deste contrato pedia.
+      required: [id, cursoId, nome, periodo, codigoAtivo]
       properties:
         id: { type: string, format: uuid }
         cursoId: { type: string, format: uuid }
@@ -1472,16 +1502,62 @@ components:
       description: |
         `senhaHash` NÃO aparece em nenhuma projeção de leitura. O campo existe no
         banco e é lido em um lugar só — a verificação de credencial.
+
+        `cursoId` e `turmaId` são **obrigatórios e anuláveis**, não opcionais, e a
+        distinção tem consequência observável: `onboardingPendente` decide o
+        destino pós-login com `cursoId === null || turmaId === null`. Se a API
+        omitir os campos, `undefined === null` é falso, e o aluno sem vínculo cai
+        no feed — que para ele é vazio e sem explicação (RF-004). A primeira
+        versão deste schema os omitia.
+      required:
+        [
+          id,
+          nome,
+          email,
+          avatarSeed,
+          faculdadeId,
+          cursoId,
+          turmaId,
+          papeis,
+          emailVerificado,
+          visivelEntreConfirmados,
+        ]
       properties:
         id: { type: string, format: uuid }
         nome: { type: string }
         email: { type: string, format: email }
         avatarSeed: { type: integer }
+        faculdadeId: { type: string, format: uuid }
+        cursoId: { type: [string, 'null'], format: uuid }
+        turmaId: { type: [string, 'null'], format: uuid }
         papeis:
           type: array
           items: { type: string, enum: [ALUNO, ADMIN_CURSO, ADMIN_FACULDADE] }
         emailVerificado: { type: boolean }
         visivelEntreConfirmados: { type: boolean }
+        criadoEm: { type: string, format: date-time }
+    AutorResumido:
+      type: object
+      description: |
+        O autor aninhado em evento, publicação, comentário e presença — e é
+        **deliberadamente menor** que `Usuario`.
+
+        `Usuario` exige `email`, e a lista de eventos e o feed são vistos por
+        toda a turma, o curso ou a faculdade. Aninhar o usuário completo
+        exporia o e-mail institucional de cada organizador e de cada pessoa que
+        comentou, a cada carregamento de tela, para quem não tem nada a ver com
+        isso (RNF-021).
+
+        Três campos bastam para o que a interface mostra: o nome e o avatar de
+        iniciais, mais o id para navegar. A primeira versão deste contrato
+        declarava `$ref: Usuario` aqui, e foi a implementação da API que apontou
+        — ela devolvia os três campos e recusou-se a devolver o resto.
+      required: [id, nome, avatarSeed]
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        avatarSeed: { type: integer }
+
     SessaoUsuario:
       type: object
       description: Titular com o vínculo acadêmico já resolvido — uma chamada, não quatro.
@@ -1576,7 +1652,7 @@ components:
         prazoInscricao: { type: string, format: date-time }
         prazoCancelamento: { type: string, format: date-time }
         capaSeed: { type: integer }
-        organizador: { $ref: '#/components/schemas/Usuario' }
+        organizador: { $ref: '#/components/schemas/AutorResumido' }
         minhaParticipacao:
           oneOf:
             - $ref: '#/components/schemas/Participacao'
@@ -1598,23 +1674,71 @@ components:
         id: { type: string, format: uuid }
         eventoId: { type: string, format: uuid }
         usuarioId: { type: string, format: uuid }
-        status:
-          type: string
-          enum: [PENDENTE_PAGAMENTO, CONFIRMADA, LISTA_ESPERA, OFERTA_PENDENTE, PRESENTE, AUSENTE, CANCELADA, EXPIRADA]
+        status: { $ref: '#/components/schemas/StatusParticipacao' }
         posicaoFila: { type: [integer, 'null'], minimum: 1 }
         pagamentoExpiraEm: { type: [string, 'null'], format: date-time }
         ofertaExpiraEm: { type: [string, 'null'], format: date-time }
         motivoCancelamento:
           type: [string, 'null']
-          enum: [ALUNO_DESISTIU, EVENTO_CANCELADO, VINCULO_PERDIDO, REMOVIDO_PELO_ORGANIZADOR, OFERTA_RECUSADA, null]
+          enum:
+            [
+              ALUNO_DESISTIU,
+              EVENTO_CANCELADO,
+              VINCULO_PERDIDO,
+              REMOVIDO_PELO_ORGANIZADOR,
+              OFERTA_RECUSADA,
+              null,
+            ]
         canceladaAposPrazo: { type: boolean }
         politicaVigente:
           type: [object, 'null']
           description: Política de reembolso congelada no pagamento (RN-013).
         criadoEm: { type: string, format: date-time }
+    ParticipacaoView:
+      allOf:
+        - $ref: '#/components/schemas/Participacao'
+        - type: object
+          description: |
+            Projeção de leitura: a participação com o evento, o pagamento e a
+            presença **já resolvidos**.
+
+            É o que a tela "Minhas inscrições" consome — ela mostra título,
+            preço e estado do pagamento. A primeira versão do contrato devolvia
+            a entidade nua aqui, o que deixaria a tela com duas saídas ruins:
+            N+1 requisições, ou campo em branco.
+          required: [evento, pagamento, presenca]
+          properties:
+            evento: { $ref: '#/components/schemas/Evento' }
+            pagamento:
+              oneOf:
+                - $ref: '#/components/schemas/Pagamento'
+                - type: 'null'
+            presenca:
+              type: [object, 'null']
+              properties:
+                id: { type: string, format: uuid }
+                metodo: { type: string, enum: [QR_CODE, CODIGO_NUMERICO, MANUAL] }
+                checkinEm: { type: string, format: date-time }
+                motivoCorrecao: { type: [string, 'null'] }
     ListaParticipacoes:
       type: array
-      items: { $ref: '#/components/schemas/Participacao' }
+      items: { $ref: '#/components/schemas/ParticipacaoView' }
+    StatusParticipacao:
+      # Espelha `STATUS_PARTICIPACAO` de packages/shared/src/types.ts. Existe
+      # como schema nomeado porque o mesmo enum era repetido em dois lugares
+      # do contrato e omitido num terceiro.
+      type: string
+      enum:
+        [
+          PENDENTE_PAGAMENTO,
+          CONFIRMADA,
+          LISTA_ESPERA,
+          OFERTA_PENDENTE,
+          PRESENTE,
+          AUSENTE,
+          CANCELADA,
+          EXPIRADA,
+        ]
     ListaParticipantes:
       type: array
       description: |
@@ -1622,11 +1746,16 @@ components:
         falso não aparece, nem para o organizador.
       items:
         type: object
+        required: [participacaoId, nome, turma, status]
         properties:
           participacaoId: { type: string, format: uuid }
           nome: { type: string }
           turma: { type: [string, 'null'] }
-          status: { type: string }
+          # Era `type: string` solto — a mais frouxa das três declarações que
+          # este campo tinha (app, API e contrato). Um cliente escrito contra o
+          # contrato teria de aceitar qualquer texto onde a consulta só emite
+          # `CONFIRMADA` e `PRESENTE`.
+          status: { $ref: '#/components/schemas/StatusParticipacao' }
     ResultadoCancelamento:
       type: object
       properties:
@@ -1666,8 +1795,27 @@ components:
         valorReembolsado: { type: number }
         status:
           type: string
-          enum: [AGUARDANDO, CONFIRMADO, RECUSADO, EM_ANALISE, REEMBOLSO_SOLICITADO, REEMBOLSADO, REEMBOLSADO_PARCIAL, ESTORNADO]
+          enum:
+            [
+              AGUARDANDO,
+              CONFIRMADO,
+              RECUSADO,
+              EM_ANALISE,
+              REEMBOLSO_SOLICITADO,
+              REEMBOLSADO,
+              REEMBOLSADO_PARCIAL,
+              ESTORNADO,
+            ]
         minutosRestantes: { type: [integer, 'null'] }
+        chaveIdempotencia:
+          type: string
+          description: |
+            Não é segredo: é derivada de `(participacaoId, transacaoExternaId)` e
+            existe para o gateway não processar a mesma notificação duas vezes
+            (RN-014). A tela de demonstração do gateway a exibe justamente para
+            tornar a idempotência visível — ela é invisível quando tudo dá certo
+            na primeira tentativa.
+        transacaoExternaId: { type: [string, 'null'] }
         pix:
           type: [object, 'null']
           properties:
@@ -1735,7 +1883,18 @@ components:
         aceito: { type: boolean }
         motivo:
           type: [string, 'null']
-          enum: [TOKEN_INVALIDO, OUTRO_EVENTO, AINDA_NAO_ABRIU, JA_ENCERROU, JA_UTILIZADO, NAO_CONFIRMADA, SEM_PERMISSAO, EVENTO_CANCELADO, null]
+          enum:
+            [
+              TOKEN_INVALIDO,
+              OUTRO_EVENTO,
+              AINDA_NAO_ABRIU,
+              JA_ENCERROU,
+              JA_UTILIZADO,
+              NAO_CONFIRMADA,
+              SEM_PERMISSAO,
+              EVENTO_CANCELADO,
+              null,
+            ]
         mensagem: { type: string }
         participante:
           type: [object, 'null']
@@ -1770,7 +1929,7 @@ components:
               participacaoId: { type: string, format: uuid }
               metodo: { type: string, enum: [QR_CODE, CODIGO_NUMERICO, MANUAL] }
               checkinEm: { type: string, format: date-time }
-              participante: { $ref: '#/components/schemas/Usuario' }
+              participante: { $ref: '#/components/schemas/AutorResumido' }
 
     NovaPublicacao:
       type: object
@@ -1791,6 +1950,11 @@ components:
         motivo: { type: string, minLength: 10, maxLength: 400 }
     Comentario:
       type: object
+      description: |
+        `autor` vem resolvido. O cartão de publicação mostra nome e avatar de quem
+        comentou; sem o objeto, o feed renderizaria `undefined` para cada
+        comentário — e a tela não pode buscar usuário por conta própria.
+      required: [id, publicacaoId, autorId, texto, removido, criadoEm, autor]
       properties:
         id: { type: string, format: uuid }
         publicacaoId: { type: string, format: uuid }
@@ -1798,6 +1962,7 @@ components:
         texto: { type: string }
         removido: { type: boolean }
         criadoEm: { type: string, format: date-time }
+        autor: { $ref: '#/components/schemas/AutorResumido' }
     Publicacao:
       type: object
       properties:
@@ -1809,7 +1974,7 @@ components:
         removida: { type: boolean }
         motivoRemocao: { type: [string, 'null'] }
         criadoEm: { type: string, format: date-time }
-        autor: { $ref: '#/components/schemas/Usuario' }
+        autor: { $ref: '#/components/schemas/AutorResumido' }
         evento: { $ref: '#/components/schemas/Evento' }
         comentarios:
           type: array
@@ -1825,7 +1990,17 @@ components:
         destinatarioId: { type: string, format: uuid }
         tipo:
           type: string
-          enum: [NOVO_EVENTO, VAGA_LIBERADA, PAGAMENTO_CONFIRMADO, PAGAMENTO_EXPIRADO, EVENTO_ALTERADO, EVENTO_CANCELADO, CHECKIN_REALIZADO, EVENTO_APROVADO]
+          enum:
+            [
+              NOVO_EVENTO,
+              VAGA_LIBERADA,
+              PAGAMENTO_CONFIRMADO,
+              PAGAMENTO_EXPIRADO,
+              EVENTO_ALTERADO,
+              EVENTO_CANCELADO,
+              CHECKIN_REALIZADO,
+              EVENTO_APROVADO,
+            ]
         titulo: { type: string }
         mensagem: { type: string }
         referenciaId:

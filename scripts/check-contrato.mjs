@@ -15,7 +15,7 @@
  * Rode com:  node scripts/check-contrato.mjs
  */
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -179,6 +179,63 @@ if (reexport) {
     falhas.push(
       `app/src/types/domain.ts\n      ${declaracoes.length} declaração(ões) própria(s): o arquivo é reexportação de @campus/shared.\n      Tipo que atravessa a rede pertence ao pacote (ver o cabeçalho do arquivo)`,
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 5. O pacote é consumível por `require` E por `import`
+//
+// A API é CommonJS; o app é ESM e resolve o pacote pela fonte. A primeira
+// versão do `package.json` tinha `"type": "module"` e `exports` só com a
+// condição `import` — e QUALQUER módulo CJS da API que importasse o pacote
+// batia em `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+//
+// O `tsc` não avisa: o erro é de resolução em tempo de execução do Node. Só um
+// `require` de verdade prova. Por isso esta verificação existe, e por isso ela
+// é executada e não inferida do `package.json`.
+// ---------------------------------------------------------------------------
+
+const pacoteJson = join(RAIZ, 'packages', 'shared', 'package.json');
+const distIndex = join(RAIZ, 'packages', 'shared', 'dist', 'index.js');
+
+if (!existsSync(distIndex)) {
+  console.log('');
+  console.log('  aviso: `packages/shared/dist` não existe — a verificação de');
+  console.log('         require/import foi pulada. Rode `npm run build -w @campus/shared`.');
+} else {
+  const { execFileSync } = await import('node:child_process');
+
+  const provas = [
+    {
+      rotulo: 'require (a API é CommonJS)',
+      args: ['-e', "const s=require('@campus/shared'); if (typeof s.planPromotion !== 'function') process.exit(2);"],
+    },
+    {
+      rotulo: 'import (o app é ESM)',
+      args: ['--input-type=module', '-e', "import { planPromotion } from '@campus/shared'; if (typeof planPromotion !== 'function') process.exit(2);"],
+    },
+  ];
+
+  for (const prova of provas) {
+    try {
+      execFileSync(process.execPath, prova.args, { cwd: RAIZ, stdio: 'pipe' });
+    } catch (erro) {
+      const saida = String(erro.stderr ?? erro.message).split('\n')[0];
+      falhas.push(
+        `packages/shared/package.json\n      o pacote não é consumível por ${prova.rotulo}\n      ${saida}`,
+      );
+    }
+  }
+
+  // O `exports` tem de declarar as duas condições explicitamente.
+  const declarado = JSON.parse(readFileSync(pacoteJson, 'utf8'));
+  const condicoes = declarado.exports?.['.'] ?? {};
+  for (const condicao of ['require', 'import', 'types']) {
+    if (!condicoes[condicao]) {
+      falhas.push(
+        `packages/shared/package.json\n      falta a condição '${condicao}' em exports['.']`,
+      );
+    }
   }
 }
 
