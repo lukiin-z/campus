@@ -1,0 +1,1840 @@
+# Contrato da API do Campus — CP6.
+#
+# GERADO. A fonte é a tabela de endpoints de
+# `scripts/../docs/21-api-contrato.md`, e o mesmo dado alimenta a tabela
+# daquele documento. Editar este YAML à mão diverge do documento na
+# primeira mudança — que foi exatamente o que aconteceu entre o contrato
+# escrito no CP4 e as rotas do mock do CP5 (ver 08-arquitetura.md §5.11).
+#
+# O `@nestjs/swagger` também serve um spec em `/api/docs`, gerado do código
+# em execução. Os dois têm de concordar na lista de caminhos.
+openapi: 3.1.0
+info:
+  title: Campus API
+  version: 1.0.0
+  description: |
+    Eventos universitários com alcance segmentado por turma, curso e faculdade.
+
+    Duas convenções valem em todo o contrato e explicam a maior parte das
+    escolhas de código de status:
+
+    - **`404` para invisível.** Um evento de turma acessado por quem não é da
+      turma responde `404`, não `403`. Revelar a existência do evento já é
+      vazamento de alcance (RN-001, RNF-012). O `403` só aparece onde a
+      existência do recurso **já** é conhecida por quem pede.
+    - **`409` versus `422`.** `409` é conflito com o estado atual e pode deixar
+      de acontecer — a vaga pode abrir, e por isso a resposta traz `acao`.
+      `422` é regra de negócio violada e não muda por espera.
+  contact:
+    name: Equipe Campus — FIAP, Engenharia de Software
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000/api
+    description: Desenvolvimento local (docker compose)
+  - url: https://campus-api.onrender.com/api
+    description: Publicado — ver docs/23-instalacao.md
+tags:
+  - name: saude
+  - name: autenticacao
+  - name: academico
+  - name: eventos
+  - name: participacoes
+  - name: pagamentos
+  - name: checkin
+  - name: feed
+  - name: notificacoes
+  - name: admin
+paths:
+  /health:
+    get:
+      operationId: saude
+      summary: 'Saúde da API e conexão com o banco'
+      tags: [saude]
+      security: []
+      responses:
+        '200':
+          description: 'Saúde da API e conexão com o banco'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Saude' }
+  /auth/cadastro:
+    post:
+      operationId: cadastrar
+      summary: 'Cria conta com e-mail institucional (RF-001)'
+      tags: [autenticacao]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Cadastro' }
+      responses:
+        '201':
+          description: 'Cria conta com e-mail institucional (RF-001)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoLogin' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '429':
+          description: 'Limite de taxa excedido (RNF-021)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /auth/login:
+    post:
+      operationId: entrar
+      summary: 'Autentica e devolve os tokens (RF-003, RN-002)'
+      tags: [autenticacao]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Credenciais' }
+      responses:
+        '201':
+          description: 'Autentica e devolve os tokens (RF-003, RN-002)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoLogin' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '429':
+          description: 'Limite de taxa excedido (RNF-021)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /auth/refresh:
+    post:
+      operationId: renovar
+      summary: 'Troca o refresh por um par novo (RNF-020)'
+      tags: [autenticacao]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Refresh' }
+      responses:
+        '201':
+          description: 'Troca o refresh por um par novo (RNF-020)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoLogin' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /auth/logout:
+    post:
+      operationId: sair
+      summary: 'Revoga a sessão corrente'
+      tags: [autenticacao]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Refresh' }
+      responses:
+        '204': { description: Sem conteúdo }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /auth/onboarding:
+    post:
+      operationId: concluirOnboarding
+      summary: 'Vincula curso e turma pelo código de convite (RF-005, RN-003)'
+      tags: [autenticacao]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EntradaOnboarding' }
+      responses:
+        '201':
+          description: 'Vincula curso e turma pelo código de convite (RF-005, RN-003)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessaoUsuario' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /sessao:
+    get:
+      operationId: obterSessao
+      summary: 'Titular autenticado com o vínculo resolvido'
+      tags: [autenticacao]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Titular autenticado com o vínculo resolvido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessaoUsuario' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /faculdade:
+    get:
+      operationId: obterFaculdade
+      summary: 'Dados públicos da instituição (RF-002)'
+      tags: [academico]
+      security: []
+      responses:
+        '200':
+          description: 'Dados públicos da instituição (RF-002)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Faculdade' }
+  /cursos:
+    get:
+      operationId: listarCursos
+      summary: 'Cursos da faculdade'
+      tags: [academico]
+      security: []
+      responses:
+        '200':
+          description: 'Cursos da faculdade'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaCursos' }
+  /cursos/{id}/turmas:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listarTurmas
+      summary: 'Turmas de um curso'
+      tags: [academico]
+      security: []
+      responses:
+        '200':
+          description: 'Turmas de um curso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaTurmas' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos:
+    get:
+      operationId: listarEventos
+      summary: 'Eventos visíveis para o titular, filtrados e ordenados (RF-015, RN-001)'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      parameters:
+        - name: alcance
+          in: query
+          schema: { type: string, enum: [TODOS, MINHA_TURMA, MEU_CURSO, FACULDADE] }
+        - name: preco
+          in: query
+          schema: { type: string, enum: [TODOS, GRATUITOS, PAGOS] }
+        - name: periodo
+          in: query
+          schema: { type: string, enum: [TODOS, ESTE_MES, PROXIMOS_7_DIAS] }
+        - name: busca
+          in: query
+          schema: { type: string, maxLength: 120 }
+      responses:
+        '200':
+          description: 'Eventos visíveis para o titular, filtrados e ordenados (RF-015, RN-001)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaEventos' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+    post:
+      operationId: criarEvento
+      summary: 'Cria evento; alcance FACULDADE nasce em aprovação (RN-003)'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NovoEvento' }
+      responses:
+        '201':
+          description: 'Cria evento; alcance FACULDADE nasce em aprovação (RN-003)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Evento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/destaque:
+    get:
+      operationId: listarDestaques
+      summary: 'Próximos eventos com inscrição aberta'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Próximos eventos com inscrição aberta'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaEventos' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: obterEvento
+      summary: 'Detalhe do evento; 404 também para fora do alcance'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Detalhe do evento; 404 também para fora do alcance'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Evento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+    patch:
+      operationId: editarEvento
+      summary: 'Edita evento não encerrado (RN-023)'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EdicaoEvento' }
+      responses:
+        '200':
+          description: 'Edita evento não encerrado (RN-023)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Evento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}/cancelamento:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: cancelarEvento
+      summary: 'Cancela o evento e as participações em cascata (RN-021, RN-022)'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CancelamentoEvento' }
+      responses:
+        '201':
+          description: 'Cancela o evento e as participações em cascata (RN-021, RN-022)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Evento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}/aprovacao:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: aprovarEvento
+      summary: 'Aprova evento de alcance FACULDADE (RN-003)'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Admin de Faculdade da faculdade do recurso'
+      responses:
+        '201':
+          description: 'Aprova evento de alcance FACULDADE (RN-003)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Evento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}/participacoes:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: inscrever
+      summary: 'Reserva vaga; 409 SEM_VAGA devolve a ação de fila (RN-004, RN-006)'
+      tags: [participacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '201':
+          description: 'Reserva vaga; 409 SEM_VAGA devolve a ação de fila (RN-004, RN-006)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Participacao' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}/lista-espera:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: entrarNaListaEspera
+      summary: 'Entra na fila FIFO do evento lotado (RN-006)'
+      tags: [participacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '201':
+          description: 'Entra na fila FIFO do evento lotado (RN-006)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Participacao' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes:
+    get:
+      operationId: listarMinhasParticipacoes
+      summary: 'Participações do titular (RF-007)'
+      tags: [participacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Participações do titular (RF-007)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaParticipacoes' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: obterParticipacao
+      summary: 'Ingresso e histórico da participação'
+      tags: [participacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Ingresso e histórico da participação'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Participacao' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+    delete:
+      operationId: cancelarParticipacao
+      summary: 'Cancela e oferece a vaga ao primeiro da fila (RN-007, RN-010)'
+      tags: [participacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Cancela e oferece a vaga ao primeiro da fila (RN-007, RN-010)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoCancelamento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes/{id}/confirmar:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: confirmarOferta
+      summary: 'Confirma a vaga oferecida dentro da janela (RN-008)'
+      tags: [participacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '201':
+          description: 'Confirma a vaga oferecida dentro da janela (RN-008)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Participacao' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}/participantes:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listarParticipantes
+      summary: 'Confirmados do evento, para o organizador (RN-024, RNF-021)'
+      tags: [eventos]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      responses:
+        '200':
+          description: 'Confirmados do evento, para o organizador (RN-024, RNF-021)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaParticipantes' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes/{id}/pagamento:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: abrirCobranca
+      summary: 'Abre a cobrança; idempotente por participação (RN-012, RN-027)'
+      tags: [pagamentos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NovoPagamento' }
+      responses:
+        '201':
+          description: 'Abre a cobrança; idempotente por participação (RN-012, RN-027)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pagamento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+    get:
+      operationId: obterCobranca
+      summary: 'Cobrança corrente da participação'
+      tags: [pagamentos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Cobrança corrente da participação'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pagamento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /pagamentos/webhook:
+    post:
+      operationId: webhookPagamento
+      summary: 'Notificação do gateway; idempotente por chave (RN-014)'
+      tags: [pagamentos]
+      security:
+        - bearer: []
+      description: 'Exige: Assinatura HMAC do gateway no cabeçalho `X-Assinatura`'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WebhookPagamento' }
+      responses:
+        '201':
+          description: 'Notificação do gateway; idempotente por chave (RN-014)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AceitePagamento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /pagamentos/{id}/simular:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: simularDesfecho
+      summary: 'Dispara o desfecho do gateway fake (ADR-0006, só fora de produção)'
+      tags: [pagamentos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DesfechoSimulado' }
+      responses:
+        '201':
+          description: 'Dispara o desfecho do gateway fake (ADR-0006, só fora de produção)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pagamento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes/{id}/reembolso:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: solicitarReembolso
+      summary: 'Calcula e registra o reembolso pela política congelada (RN-013)'
+      tags: [pagamentos]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '201':
+          description: 'Calcula e registra o reembolso pela política congelada (RN-013)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pagamento' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes/{id}/token:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: obterTokenDoIngresso
+      summary: 'Token assinado do ingresso, só para o titular (RF-033)'
+      tags: [checkin]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Token assinado do ingresso, só para o titular (RF-033)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenIngresso' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /eventos/{id}/checkin:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: obterPainelCheckin
+      summary: 'Painel da porta: janela, contadores e quem falta (RF-035)'
+      tags: [checkin]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      responses:
+        '200':
+          description: 'Painel da porta: janela, contadores e quem falta (RF-035)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PainelCheckin' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+    post:
+      operationId: validarCheckin
+      summary: 'Valida a leitura; recusa é 200 com aceito=false (RF-034, RN-017)'
+      tags: [checkin]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeituraCheckin' }
+      responses:
+        '201':
+          description: 'Valida a leitura; recusa é 200 com aceito=false (RF-034, RN-017)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoCheckin' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /participacoes/{id}/presenca-manual:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: registrarPresencaManual
+      summary: 'Registra presença sem leitura, com motivo (RN-018)'
+      tags: [checkin]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PresencaManual' }
+      responses:
+        '201':
+          description: 'Registra presença sem leitura, com motivo (RN-018)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoCheckin' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '409':
+          description: 'Conflito com o estado atual; pode deixar de acontecer'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /feed:
+    get:
+      operationId: listarFeed
+      summary: 'Feed segmentado pelo alcance dos eventos (RF-036, RN-019)'
+      tags: [feed]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Feed segmentado pelo alcance dos eventos (RF-036, RN-019)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaPublicacoes' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /feed/eventos-publicaveis:
+    get:
+      operationId: listarEventosPublicaveis
+      summary: 'Eventos em que o titular pode publicar (RN-019)'
+      tags: [feed]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Eventos em que o titular pode publicar (RN-019)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaEventosResumidos' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /publicacoes:
+    post:
+      operationId: publicar
+      summary: 'Publica foto vinculada a um evento (RF-037, RN-019)'
+      tags: [feed]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NovaPublicacao' }
+      responses:
+        '201':
+          description: 'Publica foto vinculada a um evento (RF-037, RN-019)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Publicacao' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /publicacoes/{id}/comentarios:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: comentar
+      summary: 'Comenta em publicação visível (RF-038)'
+      tags: [feed]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NovoComentario' }
+      responses:
+        '201':
+          description: 'Comenta em publicação visível (RF-038)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Comentario' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /publicacoes/{id}/remocao:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: removerPublicacao
+      summary: 'Remove com motivo e autor registrados (RF-042, RN-020)'
+      tags: [feed]
+      security:
+        - bearer: []
+      description: 'Exige: Organizador do evento, ou admin com competência no escopo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RemocaoPublicacao' }
+      responses:
+        '201':
+          description: 'Remove com motivo e autor registrados (RF-042, RN-020)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Publicacao' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '422':
+          description: 'Regra de negócio violada; não muda por espera'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /notificacoes:
+    get:
+      operationId: listarNotificacoes
+      summary: 'Notificações do titular (RF-040)'
+      tags: [notificacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '200':
+          description: 'Notificações do titular (RF-040)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaNotificacoes' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /notificacoes/{id}/lida:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: marcarNotificacaoLida
+      summary: 'Marca uma como lida'
+      tags: [notificacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '204': { description: Sem conteúdo }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /notificacoes/lidas:
+    post:
+      operationId: marcarTodasLidas
+      summary: 'Marca todas as do titular como lidas'
+      tags: [notificacoes]
+      security:
+        - bearer: []
+      description: 'Exige: Qualquer titular autenticado'
+      responses:
+        '204': { description: Sem conteúdo }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /admin/eventos-pendentes:
+    get:
+      operationId: listarEventosPendentes
+      summary: 'Eventos aguardando aprovação no escopo do admin (RF-041)'
+      tags: [admin]
+      security:
+        - bearer: []
+      description: 'Exige: Admin de Faculdade da faculdade do recurso'
+      responses:
+        '200':
+          description: 'Eventos aguardando aprovação no escopo do admin (RF-041)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListaEventos' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+  /admin/turmas/{id}/codigo:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: regerarCodigoConvite
+      summary: 'Gera um código de convite novo e desativa o anterior (RF-043)'
+      tags: [admin]
+      security:
+        - bearer: []
+      description: 'Exige: Admin de Curso do curso do recurso'
+      responses:
+        '200':
+          description: 'Gera um código de convite novo e desativa o anterior (RF-043)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Turma' }
+        '401':
+          description: 'Token ausente, expirado ou inválido'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '403':
+          description: 'Autenticado, mas sem competência sobre o recurso'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '404':
+          description: 'Não existe — ou está fora do seu alcance (RN-001, RNF-012)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT de acesso, validade de 15 minutos. O refresh vai no corpo de
+        `/auth/refresh`, é revogável e tem hash guardado na tabela `sessao` —
+        um vazamento do banco não dá sessão a ninguém (RNF-020).
+  schemas:
+    Erro:
+      type: object
+      required: [erro, mensagem]
+      properties:
+        erro:
+          type: string
+          description: |
+            Código estável, em SCREAMING_SNAKE_CASE. É por ele que o cliente
+            decide a mensagem e a tela — nunca pelo texto de `mensagem`, que é
+            escrito para leitura humana e pode mudar.
+          examples: [SEM_VAGA, JA_INSCRITO, PRAZO_ENCERRADO, FORA_DO_ALCANCE]
+        mensagem:
+          type: string
+          description: Texto pronto para a tela, no tom de voz da marca.
+        acao:
+          type: string
+          description: |
+            Presente em alguns `409`: o que o cliente pode oferecer em seguida.
+            `SEM_VAGA` traz `LISTA_ESPERA`.
+          examples: [LISTA_ESPERA]
+        detalhes:
+          type: array
+          description: Erros por campo, quando a recusa é de validação (`422`).
+          items:
+            type: object
+            properties:
+              campo: { type: string }
+              mensagem: { type: string }
+
+    Saude:
+      type: object
+      properties:
+        status: { type: string, enum: [ok, degradado] }
+        banco: { type: string, enum: [ok, indisponivel] }
+        versao: { type: string }
+        migrationsAplicadas: { type: integer }
+
+    Credenciais:
+      type: object
+      required: [email, senha]
+      properties:
+        email: { type: string, format: email }
+        senha: { type: string, minLength: 8 }
+    Cadastro:
+      allOf:
+        - $ref: '#/components/schemas/Credenciais'
+        - type: object
+          required: [nome]
+          properties:
+            nome: { type: string, minLength: 3, maxLength: 120 }
+    Refresh:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+    ResultadoLogin:
+      type: object
+      required: [accessToken, refreshToken, sessao]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiraEm: { type: integer, description: Segundos de validade do access token }
+        sessao: { $ref: '#/components/schemas/SessaoUsuario' }
+    EntradaOnboarding:
+      type: object
+      required: [cursoId, codigoConvite]
+      properties:
+        cursoId: { type: string, format: uuid }
+        codigoConvite: { type: string, maxLength: 24 }
+
+    Faculdade:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        sigla: { type: string }
+        dominiosEmail: { type: array, items: { type: string } }
+    Curso:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        faculdadeId: { type: string, format: uuid }
+        nome: { type: string }
+        codigo: { type: string }
+        duracaoSemestres: { type: integer }
+    Turma:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        cursoId: { type: string, format: uuid }
+        nome: { type: string }
+        periodo: { type: string }
+        codigoConvite: { type: string }
+        codigoAtivo: { type: boolean }
+    ListaCursos:
+      type: array
+      items: { $ref: '#/components/schemas/Curso' }
+    ListaTurmas:
+      type: array
+      items: { $ref: '#/components/schemas/Turma' }
+
+    Usuario:
+      type: object
+      description: |
+        `senhaHash` NÃO aparece em nenhuma projeção de leitura. O campo existe no
+        banco e é lido em um lugar só — a verificação de credencial.
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        email: { type: string, format: email }
+        avatarSeed: { type: integer }
+        papeis:
+          type: array
+          items: { type: string, enum: [ALUNO, ADMIN_CURSO, ADMIN_FACULDADE] }
+        emailVerificado: { type: boolean }
+        visivelEntreConfirmados: { type: boolean }
+    SessaoUsuario:
+      type: object
+      description: Titular com o vínculo acadêmico já resolvido — uma chamada, não quatro.
+      properties:
+        usuario: { $ref: '#/components/schemas/Usuario' }
+        faculdade: { $ref: '#/components/schemas/Faculdade' }
+        curso:
+          oneOf:
+            - $ref: '#/components/schemas/Curso'
+            - type: 'null'
+        turma:
+          oneOf:
+            - $ref: '#/components/schemas/Turma'
+            - type: 'null'
+
+    NovoEvento:
+      type: object
+      required: [titulo, descricao, alcance, inicio, fim, local, capacidade, preco, publicar]
+      description: |
+        Não existe campo de âncora (`turmaId`/`cursoId`/`faculdadeId`): ela vem do
+        vínculo de quem cria (RN-001). Aceitá-la do cliente permitiria publicar
+        na turma de outra pessoa.
+      properties:
+        titulo: { type: string, minLength: 4, maxLength: 120 }
+        descricao: { type: string, minLength: 20, maxLength: 2000 }
+        alcance: { type: string, enum: [TURMA, CURSO, FACULDADE] }
+        inicio: { type: string, format: date-time }
+        fim: { type: string, format: date-time }
+        local: { type: string, minLength: 3, maxLength: 160 }
+        capacidade: { type: integer, minimum: 2, maximum: 2000 }
+        preco: { type: number, minimum: 0, maximum: 5000 }
+        prazoInscricao: { type: string, format: date-time }
+        prazoCancelamento: { type: string, format: date-time }
+        publicar: { type: boolean }
+        perguntas:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/PerguntaCustomizada' }
+    EdicaoEvento:
+      type: object
+      description: |
+        Subconjunto editável. `alcance` e `capacidade` para baixo não entram:
+        reduzir capacidade abaixo de `ocupadas` deixaria inscrito sem vaga, e
+        mudar alcance tiraria a visibilidade de quem já se inscreveu.
+      properties:
+        titulo: { type: string }
+        descricao: { type: string }
+        inicio: { type: string, format: date-time }
+        fim: { type: string, format: date-time }
+        local: { type: string }
+        capacidade: { type: integer }
+        prazoInscricao: { type: string, format: date-time }
+        prazoCancelamento: { type: string, format: date-time }
+    CancelamentoEvento:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, minLength: 10, maxLength: 400 }
+    PerguntaCustomizada:
+      type: object
+      required: [enunciado, tipo, obrigatoria]
+      properties:
+        enunciado: { type: string, maxLength: 160 }
+        tipo: { type: string, enum: [TEXTO_CURTO, ESCOLHA_UNICA] }
+        opcoes: { type: array, items: { type: string }, minItems: 2, maxItems: 6 }
+        obrigatoria: { type: boolean }
+    Evento:
+      type: object
+      description: Projeção de leitura — traz o que a lista e o detalhe mostram em uma requisição.
+      properties:
+        id: { type: string, format: uuid }
+        organizadorId: { type: string, format: uuid }
+        titulo: { type: string }
+        descricao: { type: string }
+        alcance: { type: string, enum: [TURMA, CURSO, FACULDADE] }
+        alcanceRotulo: { type: string, examples: ['3ESPX'] }
+        turmaId: { type: [string, 'null'], format: uuid }
+        cursoId: { type: [string, 'null'], format: uuid }
+        faculdadeId: { type: [string, 'null'], format: uuid }
+        inicio: { type: string, format: date-time }
+        fim: { type: string, format: date-time }
+        local: { type: string }
+        capacidade: { type: integer }
+        ocupadas: { type: integer }
+        vagasDisponiveis: { type: integer }
+        taxaOcupacao: { type: number }
+        inscricoesAbertas: { type: boolean }
+        totalListaEspera: { type: integer }
+        preco: { type: number }
+        status: { type: string, enum: [RASCUNHO, EM_APROVACAO, PUBLICADO, CANCELADO, REALIZADO] }
+        motivoCancelamento: { type: [string, 'null'] }
+        prazoInscricao: { type: string, format: date-time }
+        prazoCancelamento: { type: string, format: date-time }
+        capaSeed: { type: integer }
+        organizador: { $ref: '#/components/schemas/Usuario' }
+        minhaParticipacao:
+          oneOf:
+            - $ref: '#/components/schemas/Participacao'
+            - type: 'null'
+    ListaEventos:
+      type: array
+      items: { $ref: '#/components/schemas/Evento' }
+    ListaEventosResumidos:
+      type: array
+      items:
+        type: object
+        properties:
+          id: { type: string, format: uuid }
+          titulo: { type: string }
+
+    Participacao:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        eventoId: { type: string, format: uuid }
+        usuarioId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [PENDENTE_PAGAMENTO, CONFIRMADA, LISTA_ESPERA, OFERTA_PENDENTE, PRESENTE, AUSENTE, CANCELADA, EXPIRADA]
+        posicaoFila: { type: [integer, 'null'], minimum: 1 }
+        pagamentoExpiraEm: { type: [string, 'null'], format: date-time }
+        ofertaExpiraEm: { type: [string, 'null'], format: date-time }
+        motivoCancelamento:
+          type: [string, 'null']
+          enum: [ALUNO_DESISTIU, EVENTO_CANCELADO, VINCULO_PERDIDO, REMOVIDO_PELO_ORGANIZADOR, OFERTA_RECUSADA, null]
+        canceladaAposPrazo: { type: boolean }
+        politicaVigente:
+          type: [object, 'null']
+          description: Política de reembolso congelada no pagamento (RN-013).
+        criadoEm: { type: string, format: date-time }
+    ListaParticipacoes:
+      type: array
+      items: { $ref: '#/components/schemas/Participacao' }
+    ListaParticipantes:
+      type: array
+      description: |
+        Respeita o opt-out de RF-009: quem marcou `visivelEntreConfirmados` como
+        falso não aparece, nem para o organizador.
+      items:
+        type: object
+        properties:
+          participacaoId: { type: string, format: uuid }
+          nome: { type: string }
+          turma: { type: [string, 'null'] }
+          status: { type: string }
+    ResultadoCancelamento:
+      type: object
+      properties:
+        cancelada: { type: boolean }
+        promovido:
+          type: [string, 'null']
+          description: Id de quem recebeu a oferta da vaga liberada (RN-007).
+        reembolso:
+          type: [object, 'null']
+          description: Faixa aplicada e valor, quando havia pagamento (RN-013).
+
+    NovoPagamento:
+      type: object
+      required: [metodo]
+      description: |
+        Não existe campo para número de cartão, validade ou CVV — nem opcional.
+        RNF-022 se cumpre pelo FORMATO do contrato: um cliente que tentasse
+        enviar o número recebe `422`, porque o objeto de cartão é estrito.
+      properties:
+        metodo: { type: string, enum: [PIX, CARTAO_CREDITO, CARTAO_DEBITO] }
+        cartao: { $ref: '#/components/schemas/ResumoCartao' }
+    ResumoCartao:
+      type: object
+      additionalProperties: false
+      required: [ultimosQuatro, bandeira, titular]
+      properties:
+        ultimosQuatro: { type: string, pattern: '^[0-9]{4}$' }
+        bandeira: { type: string }
+        titular: { type: string }
+    Pagamento:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        participacaoId: { type: string, format: uuid }
+        metodo: { type: string, enum: [PIX, CARTAO_CREDITO, CARTAO_DEBITO] }
+        valor: { type: number }
+        valorReembolsado: { type: number }
+        status:
+          type: string
+          enum: [AGUARDANDO, CONFIRMADO, RECUSADO, EM_ANALISE, REEMBOLSO_SOLICITADO, REEMBOLSADO, REEMBOLSADO_PARCIAL, ESTORNADO]
+        minutosRestantes: { type: [integer, 'null'] }
+        pix:
+          type: [object, 'null']
+          properties:
+            chave: { type: string }
+            brCode: { type: string, description: Payload EMV com CRC16 }
+            expiraEm: { type: string, format: date-time }
+        cartao:
+          oneOf:
+            - $ref: '#/components/schemas/ResumoCartao'
+            - type: 'null'
+        criadoEm: { type: string, format: date-time }
+        confirmadoEm: { type: [string, 'null'], format: date-time }
+    WebhookPagamento:
+      type: object
+      required: [transacaoExternaId, chaveIdempotencia, valorPago, pago]
+      properties:
+        transacaoExternaId: { type: string }
+        chaveIdempotencia: { type: string }
+        valorPago: { type: number }
+        pago: { type: boolean }
+    AceitePagamento:
+      type: object
+      description: |
+        Sempre `200`, inclusive no reprocessamento. Responder erro faria o
+        gateway reenviar indefinidamente: idempotência é resposta de sucesso sem
+        efeito, não recusa (RN-014).
+      properties:
+        desfecho:
+          type: string
+          enum: [CONFIRMAR, IGNORAR_DUPLICADA, ESTORNAR, DIVERGENCIA_DE_VALOR, DESCONHECIDO]
+    DesfechoSimulado:
+      type: object
+      required: [desfecho]
+      properties:
+        desfecho: { type: string, enum: [CONFIRMAR, RECUSAR, DUPLICAR] }
+
+    TokenIngresso:
+      type: object
+      properties:
+        valor: { type: string, description: 'Conteúdo do QR: campus.v1.<payload>.<assinatura>' }
+        codigoNumerico: { type: string, pattern: '^[0-9]{8}$' }
+        codigoLegivel: { type: string, examples: ['CMP-3ESPX-0184'] }
+        emitidoEm: { type: string, format: date-time }
+        expiraEm: { type: string, format: date-time }
+    LeituraCheckin:
+      type: object
+      required: [leitura]
+      description: |
+        A leitura vai crua; quem classifica é o servidor. As três formas — token,
+        código de 8 dígitos e código impresso — convergem para a MESMA decisão.
+      properties:
+        leitura: { type: string, minLength: 1, maxLength: 4096 }
+    PresencaManual:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, minLength: 10, maxLength: 400 }
+    ResultadoCheckin:
+      type: object
+      description: |
+        Recusa vem com `200` e `aceito: false`. Na porta de um evento com fila,
+        "ingresso já usado" é resposta do sistema, não falha dele — e um `4xx`
+        mandaria a tela mostrar "erro ao validar".
+      properties:
+        aceito: { type: boolean }
+        motivo:
+          type: [string, 'null']
+          enum: [TOKEN_INVALIDO, OUTRO_EVENTO, AINDA_NAO_ABRIU, JA_ENCERROU, JA_UTILIZADO, NAO_CONFIRMADA, SEM_PERMISSAO, EVENTO_CANCELADO, null]
+        mensagem: { type: string }
+        participante:
+          type: [object, 'null']
+          properties:
+            nome: { type: string }
+            turma: { type: [string, 'null'] }
+        registradoEm: { type: [string, 'null'], format: date-time }
+    PainelCheckin:
+      type: object
+      properties:
+        evento: { $ref: '#/components/schemas/Evento' }
+        abertoAgora: { type: boolean }
+        abreEm: { type: string, format: date-time }
+        fechaEm: { type: string, format: date-time }
+        confirmados: { type: integer }
+        presentes: { type: integer }
+        aguardando:
+          type: array
+          items:
+            type: object
+            properties:
+              participacaoId: { type: string, format: uuid }
+              nome: { type: string }
+              turma: { type: [string, 'null'] }
+              codigoNumerico: { type: string }
+        presencas:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              participacaoId: { type: string, format: uuid }
+              metodo: { type: string, enum: [QR_CODE, CODIGO_NUMERICO, MANUAL] }
+              checkinEm: { type: string, format: date-time }
+              participante: { $ref: '#/components/schemas/Usuario' }
+
+    NovaPublicacao:
+      type: object
+      required: [eventoId, legenda]
+      properties:
+        eventoId: { type: string, format: uuid }
+        legenda: { type: string, minLength: 2, maxLength: 500 }
+        imagemSeed: { type: integer, minimum: 1, maximum: 24 }
+    NovoComentario:
+      type: object
+      required: [texto]
+      properties:
+        texto: { type: string, minLength: 2, maxLength: 280 }
+    RemocaoPublicacao:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, minLength: 10, maxLength: 400 }
+    Comentario:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        publicacaoId: { type: string, format: uuid }
+        autorId: { type: string, format: uuid }
+        texto: { type: string }
+        removido: { type: boolean }
+        criadoEm: { type: string, format: date-time }
+    Publicacao:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        eventoId: { type: string, format: uuid }
+        autorId: { type: string, format: uuid }
+        legenda: { type: string }
+        imagemSeed: { type: integer }
+        removida: { type: boolean }
+        motivoRemocao: { type: [string, 'null'] }
+        criadoEm: { type: string, format: date-time }
+        autor: { $ref: '#/components/schemas/Usuario' }
+        evento: { $ref: '#/components/schemas/Evento' }
+        comentarios:
+          type: array
+          items: { $ref: '#/components/schemas/Comentario' }
+    ListaPublicacoes:
+      type: array
+      items: { $ref: '#/components/schemas/Publicacao' }
+
+    Notificacao:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        destinatarioId: { type: string, format: uuid }
+        tipo:
+          type: string
+          enum: [NOVO_EVENTO, VAGA_LIBERADA, PAGAMENTO_CONFIRMADO, PAGAMENTO_EXPIRADO, EVENTO_ALTERADO, EVENTO_CANCELADO, CHECKIN_REALIZADO, EVENTO_APROVADO]
+        titulo: { type: string }
+        mensagem: { type: string }
+        referenciaId:
+          type: [string, 'null']
+          description: |
+            Sem FK de propósito: aponta para tabelas diferentes por tipo. O
+            consumidor trata "não encontrado" como caminho normal.
+        lida: { type: boolean }
+        criadoEm: { type: string, format: date-time }
+    ListaNotificacoes:
+      type: array
+      items: { $ref: '#/components/schemas/Notificacao' }
