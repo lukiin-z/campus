@@ -5,15 +5,22 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { AvisoMockIndisponivel } from './components/layout/AvisoMockIndisponivel';
 import { queryClient } from './lib/queryClient';
+import { usandoApiReal } from './services';
 import './styles/index.css';
 
 /**
  * Entrada do app.
  *
- * O MSW é iniciado ANTES de renderizar: se o app subisse primeiro, a primeira
- * requisição escaparia do interceptador e falharia. No CP6, apagar `iniciarMock`
- * é literalmente o que "trocar o mock pela API real" significa (RNF-016,
- * ADR-0003).
+ * O MSW é iniciado ANTES de renderizar, e SÓ no modo mock: se o app subisse
+ * primeiro, a primeira requisição escaparia do interceptador; e com
+ * `VITE_DATA_SOURCE=api` o worker interceptaria as chamadas antes de elas
+ * chegarem à API real.
+ *
+ * No CP5 o comentário aqui dizia que "apagar `iniciarMock` é literalmente o que
+ * trocar o mock pela API real significa". Deixou de ser verdade no CP6: não se
+ * apaga mais nada, escolhe-se por variável de ambiente (RNF-016, ADR-0003), e as
+ * duas implementações convivem atrás da mesma interface. É o que faz o ambiente
+ * de teste do CP5 continuar funcionando sem servidor.
  */
 async function iniciarMock(): Promise<string | null> {
   try {
@@ -43,7 +50,18 @@ async function iniciarMock(): Promise<string | null> {
 }
 
 async function iniciar(): Promise<void> {
-  const falhaDoMock = await iniciarMock();
+  /*
+   * O teste é escrito com `import.meta.env` inline de propósito, e não com a
+   * constante `usandoApiReal`: assim o Vite dobra a condição em tempo de build e
+   * o Rollup DESCARTA o chunk do MSW (~110 KB gzip) na build `api`. Com a
+   * constante importada, o bundler não consegue provar que o ramo é morto e
+   * carrega o worker inteiro num pacote que nunca vai usá-lo.
+   *
+   * `usandoApiReal` continua importado porque é ele que o resto do app consulta
+   * — a duplicação aqui é deliberada e tem uma razão medível.
+   */
+  const falhaDoMock =
+    import.meta.env.VITE_DATA_SOURCE === 'api' || usandoApiReal ? null : await iniciarMock();
 
   const raiz = document.getElementById('root');
   if (!raiz) throw new Error('elemento #root não encontrado');

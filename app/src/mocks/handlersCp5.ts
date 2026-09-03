@@ -471,7 +471,17 @@ export const handlersCp5 = [
     const evento = findEvento(String(params.id));
     if (!evento) return erro(404, 'NAO_ENCONTRADO', 'Evento não encontrado.');
     if (!canValidateCheckIn(atual, evento)) {
-      return erro(403, 'SEM_PERMISSAO', 'Só o organizador valida check-in deste evento.');
+      /*
+       * A mensagem não pode dizer "só o organizador": `canValidateCheckIn`
+       * admite o organizador **ou** o admin do escopo (`isAdminOfScope`). O
+       * texto anterior dizia a um admin de curso que ele não podia validar um
+       * evento do próprio curso — quando podia.
+       */
+      return erro(
+        403,
+        'SEM_PERMISSAO',
+        'Quem valida o check-in é o organizador do evento ou um administrador do curso ou da faculdade.',
+      );
     }
 
     const participacoes = participacoesDoEvento(evento.id);

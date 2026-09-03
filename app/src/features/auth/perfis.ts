@@ -54,7 +54,12 @@ export const PERFIS_DEMO: readonly PerfilDemo[] = [
     nome: 'Henrique Lima',
     email: 'henrique.lima@fiap.com.br',
     papeis: ['ALUNO', 'ADMIN_CURSO'],
-    descricao: 'Administra o curso: aprova evento de alcance de curso.',
+    // Não é "aprova evento de curso": `requiresApproval` só é verdadeiro em
+    // alcance FACULDADE, e quem aprova é `canApproveCollegeEvent`, que exige
+    // ADMIN_FACULDADE. O que o admin de curso tem é competência de ESCOPO —
+    // editar, cancelar e validar check-in dos eventos do curso dele
+    // (`isAdminOfScope`). O texto anterior prometia autoridade que a regra nega.
+    descricao: 'Competência de escopo no curso: edita, cancela e valida check-in.',
     vinculo: '2ESPA · Engenharia de Computação',
   },
   {

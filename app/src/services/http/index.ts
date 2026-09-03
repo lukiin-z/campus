@@ -26,84 +26,83 @@ import type {
   TokenIngresso,
   Turma,
 } from '../../types/domain';
-import { ApiError, type Repositories } from '../index';
+import { ApiError, criarClienteHttp, type OpcoesRequisicao } from '../../lib/api';
+import { definirToken, portaDeSessao } from '../sessao';
+import type { Repositories } from '../index';
 
 /**
- * Implementação HTTP dos repositórios.
+ * Implementação dos repositórios contra o **mock do CP5**.
  *
- * Hoje as requisições são interceptadas pelo MSW (src/mocks/browser.ts) e
- * respondidas pelo mock em memória; no CP6 elas saem para a API real sem
- * mudar uma linha daqui além de `BASE_URL`. Ver ADR-0003.
+ * ## Por que ela continua existindo no CP6
+ *
+ * O CP5 escreveu esta camada acreditando que "trocar o mock pela API real" seria
+ * mudar `BASE_URL` aqui. Não é — e o motivo é o achado desta lane: o
+ * `openapi.yaml` do CP6 tem 43 operações em 38 caminhos, e as rotas que o mock
+ * responde são as do CP4, com forma diferente em pontos que importam (o login
+ * devolvia um token, agora devolve dois; a inscrição devolvia a união
+ * `ResultadoInscricao`, agora devolve a `Participacao` crua). Uma implementação
+ * não serve para os dois contratos sem mentir para um deles.
+ *
+ * Então há duas, e o container escolhe (`VITE_DATA_SOURCE`):
+ *
+ * - **esta**, que fala as rotas do CP5 e é interceptada pelo MSW. Ela sustenta
+ *   os 377 testes e a demonstração no GitHub Pages, onde não há servidor nenhum
+ *   para subir;
+ * - **`services/api`**, que fala o `openapi.yaml`.
+ *
+ * As duas implementam a MESMA interface e compartilham o mesmo cliente HTTP e a
+ * mesma sessão. Nenhuma tela sabe qual está ativa (RNF-016, ADR-0003).
  */
 
+/**
+ * O MSW registra os handlers em `/api` (`mocks/support.ts`). Este endereço é
+ * relativo de propósito: o worker intercepta a requisição antes de ela sair, e
+ * em `vitest` o `msw/node` faz o mesmo no processo.
+ */
 const BASE_URL = '/api';
 
-const CHAVE_TOKEN = 'campus.token';
+const cliente = criarClienteHttp({
+  baseUrl: BASE_URL,
+  sessao: portaDeSessao,
+  /*
+   * Sem renovação automática.
+   *
+   * O mock do CP5 não tem `/auth/refresh` — e não pode ganhar um agora: os
+   * handlers são de outra lane neste checkpoint. Com a renovação ligada, cada
+   * `401` legítimo do mock (credencial errada, requisição sem token) dispararia
+   * uma chamada a uma rota inexistente, que o `onUnhandledRequest: 'error'` da
+   * suíte transformaria em falha de teste sem relação nenhuma com o caso.
+   */
+  renovarEm401: false,
+});
+
+const request = <T>(caminho: string, init?: OpcoesRequisicao): Promise<T> =>
+  cliente.request<T>(caminho, init);
 
 /**
- * Token da sessão.
+ * Endpoint que só existe contra a API real.
  *
- * Guardado em `sessionStorage` (não em `localStorage`): fechar a aba encerra a
- * sessão, que é o comportamento certo para app usado em computador de laboratório
- * compartilhado — o cenário real das personas (RNF-020).
+ * O `openapi.yaml` tem 43 operações; o cliente do CP5 cobria 30. Das 13 novas,
+ * 12 têm método de repositório e caem aqui (cadastro, edição, cancelamento e
+ * aprovação de evento, participantes, webhook, reembolso, presença manual,
+ * remoção de publicação, `/health` e as duas de admin) — a 13ª, `/auth/refresh`,
+ * vive dentro do cliente HTTP e não é chamada por tela nenhuma. Elas fazem parte
+ * da interface porque a API as tem; aqui elas falham com um código explícito.
+ *
+ * Falhar dizendo o motivo é melhor do que as duas alternativas: chamar a rota e
+ * deixar o MSW responder o que der (em teste, erro sem explicação; no
+ * navegador, um `404` do servidor de arquivos estáticos), ou devolver dado
+ * inventado, que mentiria sobre o estado do sistema na demonstração.
  */
-let tokenAtual: string | null = lerTokenGuardado();
-
-function lerTokenGuardado(): string | null {
-  try {
-    return globalThis.sessionStorage?.getItem(CHAVE_TOKEN) ?? null;
-  } catch {
-    // Modo privado e iframe bloqueiam storage. Sessão em memória ainda funciona.
-    return null;
-  }
-}
-
-export function definirToken(token: string | null): void {
-  tokenAtual = token;
-  try {
-    if (token) globalThis.sessionStorage?.setItem(CHAVE_TOKEN, token);
-    else globalThis.sessionStorage?.removeItem(CHAVE_TOKEN);
-  } catch {
-    // Ignora: o token em memória basta até a aba fechar.
-  }
-}
-
-export function obterToken(): string | null {
-  return tokenAtual;
-}
-
-interface ErroApi {
-  erro?: string;
-  mensagem?: string;
-  [chave: string]: unknown;
-}
-
-async function request<T>(caminho: string, init?: RequestInit): Promise<T> {
-  const resposta = await fetch(`${BASE_URL}${caminho}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(tokenAtual ? { Authorization: `Bearer ${tokenAtual}` } : {}),
-      ...init?.headers,
-    },
-  });
-
-  if (resposta.status === 204) return undefined as T;
-
-  const corpo = (await resposta.json().catch(() => ({}))) as unknown;
-
-  if (!resposta.ok) {
-    const dados = corpo as ErroApi;
-    const { erro, mensagem, ...extra } = dados;
-    throw new ApiError(
-      resposta.status,
-      erro ?? 'ERRO_DESCONHECIDO',
-      mensagem ?? 'Não foi possível concluir a operação. Tente de novo.',
-      extra,
-    );
-  }
-
-  return corpo as T;
+function foraDoMock<T>(operacao: string): Promise<T> {
+  return Promise.reject(
+    new ApiError(
+      501,
+      'NAO_IMPLEMENTADO_NO_MOCK',
+      `"${operacao}" só existe contra a API real. Suba a API e use VITE_DATA_SOURCE=api.`,
+      { operacao },
+    ),
+  );
 }
 
 function queryDeFiltros(filtros?: FiltroEventos): string {
@@ -125,6 +124,10 @@ export const httpRepositories: Repositories = {
      * Guardar o token é responsabilidade desta camada, não da tela: quem chama
      * `entrar` recebe a sessão pronta e não precisa saber que existe cabeçalho
      * `Authorization`.
+     *
+     * O mock devolve `{ token, sessao }` — um token só, sem refresh. É a forma
+     * do CP5, e é por isso que aqui se usa `definirToken` e não
+     * `guardarSessao`: não há par de tokens para guardar.
      */
     entrar: async (credenciais: Credenciais) => {
       const resultado = await request<ResultadoLogin>('/auth/login', {
@@ -134,6 +137,8 @@ export const httpRepositories: Repositories = {
       definirToken(resultado.token);
       return resultado;
     },
+
+    cadastrar: () => foraDoMock('cadastro (POST /auth/cadastro)'),
 
     sair: async () => {
       try {
@@ -179,6 +184,10 @@ export const httpRepositories: Repositories = {
         method: 'POST',
         body: JSON.stringify({ desfecho }),
       }),
+
+    solicitarReembolso: () => foraDoMock('reembolso (POST /participacoes/{id}/reembolso)'),
+
+    notificarWebhook: () => foraDoMock('webhook do gateway (POST /pagamentos/webhook)'),
   },
 
   checkin: {
@@ -204,6 +213,9 @@ export const httpRepositories: Repositories = {
         throw error;
       }
     },
+
+    registrarPresencaManual: () =>
+      foraDoMock('presença manual (POST /participacoes/{id}/presenca-manual)'),
   },
 
   events: {
@@ -230,6 +242,14 @@ export const httpRepositories: Repositories = {
         method: 'POST',
         body: JSON.stringify(entrada),
       }),
+
+    editar: () => foraDoMock('edição de evento (PATCH /eventos/{id})'),
+
+    cancelar: () => foraDoMock('cancelamento de evento (POST /eventos/{id}/cancelamento)'),
+
+    aprovar: () => foraDoMock('aprovação de evento (POST /eventos/{id}/aprovacao)'),
+
+    listarParticipantes: () => foraDoMock('participantes (GET /eventos/{id}/participantes)'),
   },
 
   participations: {
@@ -241,6 +261,10 @@ export const httpRepositories: Repositories = {
      * Exceção fica reservada ao que a tela não sabe tratar: falha de rede,
      * `500`, `401`. Essa separação é o que permite a tela mostrar a mensagem
      * certa em vez de "algo deu errado".
+     *
+     * O mock devolve a própria união no corpo do `201`; a API real devolve a
+     * `Participacao` e deixa o desvio nos códigos de status. A tradução dessa
+     * diferença está em `services/api`, não aqui.
      */
     inscrever: async (eventoId) => {
       try {
@@ -312,11 +336,27 @@ export const httpRepositories: Repositories = {
 
     eventosPublicaveis: () =>
       request<Array<{ id: string; titulo: string }>>('/feed/eventos-publicaveis'),
+
+    remover: () => foraDoMock('remoção de publicação (POST /publicacoes/{id}/remocao)'),
   },
 
   notifications: {
     listar: () => request<Notificacao[]>('/notificacoes'),
     marcarComoLida: (id) => request<void>(`/notificacoes/${id}/lida`, { method: 'POST' }),
     marcarTodasComoLidas: () => request<void>('/notificacoes/lidas', { method: 'POST' }),
+  },
+
+  admin: {
+    eventosPendentes: () => foraDoMock('eventos pendentes (GET /admin/eventos-pendentes)'),
+    regerarCodigoConvite: () =>
+      foraDoMock('novo código de convite (GET /admin/turmas/{id}/codigo)'),
+  },
+
+  health: {
+    /**
+     * O mock não tem `/health`, e a resposta honesta é a mesma que a API daria
+     * se estivesse degradada — com a diferença de que aqui nunca há banco.
+     */
+    verificar: () => foraDoMock('saúde da API (GET /health)'),
   },
 };
