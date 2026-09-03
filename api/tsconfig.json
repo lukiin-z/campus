@@ -1,0 +1,56 @@
+{
+  /*
+   * TypeScript da API.
+   *
+   * Duas escolhas merecem nota:
+   *
+   * - `module: commonjs`. É o formato que o NestJS assume (o decorator e o
+   *   `reflect-metadata` dependem de ordem de avaliação de módulo), e é o que
+   *   `nest build`/`nest start` esperam. `api/package.json` não declara
+   *   `"type": "module"`.
+   * - As flags de rigor são as MESMAS de `packages/shared/tsconfig.json` e de
+   *   `app/tsconfig.app.json`. `noUncheckedIndexedAccess` inclusive: um
+   *   `array[0]` que o compilador aceita como definido é a origem mais comum
+   *   de `undefined` em produção, e o pacote compartilhado já paga esse preço.
+   *
+   * `@campus/shared` é resolvido pelo `dist` do pacote (via `main`/`types`), e
+   * não por `paths` apontando para a fonte como o app faz. É a convenção
+   * registrada em `app/tsconfig.app.json`: o app quer a fonte para não depender
+   * de build; a API consome o build, que existe de todo jeito no pipeline.
+   */
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "declaration": false,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": true,
+
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

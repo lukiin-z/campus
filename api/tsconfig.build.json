@@ -1,0 +1,8 @@
+{
+  /*
+   * Configuração do `nest build`. O teste fica fora do artefato: código de
+   * teste em `dist/` é superfície que roda em produção sem ninguém pedir.
+   */
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "dist", "coverage", "**/*.test.ts", "**/*.spec.ts"]
+}
