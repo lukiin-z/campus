@@ -201,7 +201,7 @@ Os blocos 2 a 5 são gravados como **Marina Alves**. O bloco 6 precisa das duas 
    ingresso.
 2. **Como Rafael Souza**, para validar na porta. Validar check-in exige ser organizador do
    evento ou administrador do escopo
-   ([`../app/src/domain/permissions.ts`](../app/src/domain/permissions.ts)). `evt-013` é de
+   ([`../packages/shared/src/domain/permissions.ts`](../packages/shared/src/domain/permissions.ts)). `evt-013` é de
    alcance **turma**, então não tem administrador de curso nem de faculdade competente:
    **só Rafael**, que o organiza, abre aquele painel. Entrar como outra pessoa devolve
    "Você não valida o check-in deste evento".
@@ -224,7 +224,7 @@ O painel também traz a lista **"Códigos deste evento para testar"**, com um to
 preencher o campo. Use-a como reserva se a área de transferência falhar: ela mostra o
 código de quem já entrou, com o efeito esperado escrito ao lado. O leitor aceita as três
 formas do mesmo ingresso — token do QR, numérico de 8 dígitos e legível
-`CMP-3ESPX-<4 dígitos>` ([`../app/src/domain/ticketToken.ts`](../app/src/domain/ticketToken.ts)).
+`CMP-3ESPX-<4 dígitos>` ([`../packages/shared/src/domain/ticketToken.ts`](../packages/shared/src/domain/ticketToken.ts)).
 
 ### 6.4 A regra de ouro: não recarregue no meio de uma tomada
 

@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campus — slides de apoio do vídeo do CP6</title>
+<meta name="description" content="Deck estático de 9 slides para acompanhar a gravação do vídeo de 3 minutos do Checkpoint 6 do projeto Campus: a stack subindo em um comando, o produto contra PostgreSQL, os números medidos e a evolução do mock ao banco real.">
+<!-- Favicon embutido: o deploy copia SÓ este arquivo, sem a pasta de assets.
+     Caminho relativo para 06-marca/assets/ quebraria em HTTP. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%23C83A16'%20fill-rule='evenodd'%20d='M%205.5%204%20H%2018.5%20A%203.5%203.5%200%200%201%2022%207.5%20V%209.8%20A%202.2%202.2%200%200%200%2022%2014.2%20V%2016.5%20A%203.5%203.5%200%200%201%2018.5%2020%20H%205.5%20A%203.5%203.5%200%200%201%202%2016.5%20V%2014.2%20A%202.2%202.2%200%200%200%202%209.8%20V%207.5%20A%203.5%203.5%200%200%201%205.5%204%20Z%20M%2015.21%2015.83%20A%205%205%200%201%201%2015.21%208.17%20L%2013.54%2010.16%20A%202.4%202.4%200%201%200%2013.54%2013.84%20Z'/%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* ==========================================================================
+   Campus — deck de apoio do vídeo do CP6
+   Arquivo único e autossuficiente. Único recurso externo: Google Fonts.
+   Mesmos tokens de docs/06-marca/identidade-visual.md §3 e mesmo mecanismo de
+   navegação de docs/20-video-cp5-slides.html. Todo par de cor usado em texto
+   está na auditoria de contraste da §4 daquele documento.
+   ========================================================================== */
+
+:root {
+  /* --- escala coral ---------------------------------------------------- */
+  --coral-50:  #FAF4F2;
+  --coral-100: #F7E6E1;
+  --coral-200: #F3CBC1;
+  --coral-300: #F0A693;
+  --coral-400: #EE7D60;
+  --coral-500: #E8542E;
+  --coral-600: #C83A16;
+  --coral-700: #9B2E13;
+  --coral-800: #6F2411;
+  --coral-900: #491A0E;
+
+  /* --- escala teal ----------------------------------------------------- */
+  --teal-50:  #F2F8F7;
+  --teal-100: #DEEFED;
+  --teal-200: #BDE5E0;
+  --teal-300: #82D9CF;
+  --teal-400: #27BFAE;
+  --teal-500: #0F7A6E;
+  --teal-600: #0C6258;
+  --teal-700: #094D46;
+  --teal-800: #093A34;
+  --teal-900: #072723;
+
+  /* --- escala neutral -------------------------------------------------- */
+  --neutral-50:  #FBFBFA;
+  --neutral-100: #F2F1EE;
+  --neutral-200: #E7E5E0;
+  --neutral-300: #D6D3CC;
+  --neutral-400: #A9A5A0;
+  --neutral-500: #767D85;
+  --neutral-600: #5C6269;
+  --neutral-700: #43484E;
+  --neutral-800: #2A2E33;
+  --neutral-900: #14181C;
+  --white: #FFFFFF;
+
+  /* --- tokens semânticos ----------------------------------------------- */
+  --bg:             var(--neutral-50);
+  --surface:        var(--white);
+  --surface-2:      var(--neutral-100);
+  --border:         var(--neutral-200);
+  --border-strong:  var(--neutral-500);
+  --text:           var(--neutral-900);
+  --text-muted:     var(--neutral-600);
+  --text-disabled:  var(--neutral-400);
+  --accent:         var(--coral-500);
+  --accent-strong:  var(--coral-600);
+  --accent-hover:   var(--coral-700);
+  --accent-soft:    var(--coral-100);
+  --accent-2:       var(--teal-500);
+  --accent-2-soft:  var(--teal-100);
+  --danger:         var(--coral-800);
+  --on-accent:      var(--white);
+
+  /* --- tipografia ------------------------------------------------------ */
+  --font-display: 'Space Grotesk', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body:    'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Mono', 'Consolas', ui-monospace, 'Courier New', monospace;
+
+  --mono-xs:      0.6875rem; /* 11 */
+  --mono-sm:      0.75rem;   /* 12 */
+  --body-xs:      0.75rem;   /* 12 */
+  --body-sm:      0.8125rem; /* 13 */
+  --body-md:      0.875rem;  /* 14 */
+  --display-sm:   1rem;      /* 16 */
+  --display-md:   1.25rem;   /* 20 */
+  --display-lg:   1.5rem;    /* 24 */
+  --display-xl:   1.75rem;   /* 28 */
+  --display-2xl:  2.25rem;   /* 36 */
+  /* passos exclusivos de projeção, derivados da escala */
+  --deck-title:   3rem;
+  --deck-hero:    4.5rem;
+  --deck-lead:    1.125rem;
+
+  /* --- espaçamento (base 4px) ------------------------------------------ */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- raios ------------------------------------------------------------ */
+  --radius-sm:   0.5rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.25rem;
+  --radius-full: 999px;
+
+  /* --- sombras ---------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(20, 24, 28, .05);
+  --shadow-md: 0 4px 12px rgba(20, 24, 28, .08);
+  --shadow-lg: 0 12px 32px rgba(20, 24, 28, .12);
+
+  /* --- deck ------------------------------------------------------------- */
+  --hairline: 1.5px;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Tipografia proporcional ao menor eixo útil: enche 1920×1080 e encolhe junto
+   quando a janela é menor ou mais baixa, sem gerar rolagem. */
+html {
+  font-size: clamp(10px, min(0.95vw, 1.68vh), 20px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--body-md);
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.08; }
+p, dl, dd, dt, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+b, strong { font-weight: 600; }
+
+.mono { font-family: var(--font-mono); font-variant-ligatures: none; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-strong);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================ estrutura do deck ========================== */
+
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.deck__progress {
+  position: absolute; inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--border);
+  z-index: 40;
+}
+.deck__progress b {
+  display: block; height: 100%;
+  width: var(--progress, 11.1%);
+  background: var(--accent-strong);
+  transition: width .32s var(--ease);
+}
+
+.deck__stage { position: absolute; inset: 0; }
+
+/* lâminas de clique nas laterais — decorativas, o teclado usa o HUD */
+.deck__edge {
+  position: absolute; top: 0; bottom: 0;
+  width: 12%;
+  border: 0; padding: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 30;
+}
+.deck__edge--prev { left: 0; }
+.deck__edge--next { right: 0; }
+
+.deck__hud {
+  position: absolute;
+  right: var(--space-10); bottom: var(--space-8);
+  display: flex; align-items: center; gap: var(--space-3);
+  z-index: 50;
+}
+.deck__counter {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  min-width: 4.5em; text-align: center;
+}
+.deck__btn {
+  width: 2.4rem; height: 2.4rem;
+  display: grid; place-items: center;
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-family: var(--font-body);
+  font-size: var(--display-sm);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background .16s var(--ease), border-color .16s var(--ease);
+}
+.deck__btn:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent-strong); }
+.deck__btn:disabled { color: var(--text-disabled); cursor: default; box-shadow: none; }
+
+/* ============================== slide =================================== */
+
+.slide {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-6);
+  padding: var(--space-10) var(--space-16) var(--space-6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition: opacity .3s var(--ease), transform .3s var(--ease), visibility .3s step-end;
+}
+.slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s;
+}
+
+.slide__head { display: flex; flex-direction: column; gap: var(--space-2); }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--mono-xs);
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+.slide__title { font-size: var(--deck-title); font-weight: 700; letter-spacing: -.02em; max-width: 26ch; }
+.slide__lead { font-size: var(--deck-lead); color: var(--text-muted); max-width: 76ch; }
+
+.slide__body { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+
+.slide__foot {
+  display: flex; align-items: baseline; gap: var(--space-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+  padding-right: 14rem; /* deixa o canto livre para o HUD */
+}
+.cue-time {
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+  font-weight: 500;
+  color: var(--accent-strong);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--radius-sm);
+  background: var(--coral-50);
+  white-space: nowrap;
+}
+.cue-time--apoio { color: var(--teal-700); border-color: var(--accent-2-soft); background: var(--teal-50); }
+.cue-who { font-size: var(--body-sm); color: var(--text-muted); }
+.cue-who b { color: var(--text); }
+
+.mark { position: absolute; top: var(--space-8); right: var(--space-16); width: 2.2rem; height: 2.2rem; }
+.mark svg { display: block; width: 100%; height: 100%; }
+
+/* ============================== capa ==================================== */
+
+.cover { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--space-16); align-items: center; height: 100%; }
+.cover__logo { display: flex; align-items: center; gap: var(--space-5); }
+.cover__logo svg { width: 5.5rem; height: 5.5rem; display: block; }
+.cover__word { font-family: var(--font-display); font-size: var(--deck-hero); font-weight: 700; letter-spacing: -.035em; }
+.cover__one { font-size: var(--display-md); color: var(--text-muted); max-width: 34ch; margin-top: var(--space-5); }
+.cover__course { font-size: var(--body-md); color: var(--text-muted); margin-top: var(--space-6); max-width: 46ch; }
+.cover__cp {
+  display: inline-block; margin-top: var(--space-5);
+  font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--accent-strong);
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-full);
+}
+.cover__hint { margin-top: var(--space-5); font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--text-muted); }
+
+.team { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.team li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+.team__name { font-family: var(--font-display); font-size: var(--display-sm); font-weight: 500; }
+.team__rm { font-family: var(--font-mono); font-size: var(--mono-xs); color: var(--accent-strong); display: block; margin-top: var(--space-1); }
+.team__role { font-size: var(--body-xs); color: var(--text-muted); display: block; }
+
+/* ====================== terminal (slide da stack) ======================= */
+
+.term {
+  background: var(--neutral-900);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--mono-sm);
+}
+.term__bar {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--neutral-800);
+  color: var(--neutral-400);
+  font-size: var(--mono-xs);
+}
+.term__dot { width: .6rem; height: .6rem; border-radius: var(--radius-full); background: var(--neutral-600); }
+.term__body { padding: var(--space-5) var(--space-6); display: grid; gap: var(--space-2); }
+.term__line { color: var(--neutral-300); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.term__cmd { color: var(--coral-300); }
+.term__cmd::before { content: "$ "; color: var(--teal-300); }
+.term__ok { color: var(--teal-300); }
+.term__ok::before { content: "✓ "; }
+.term__note { color: var(--neutral-500); }
+
+.chain { display: grid; gap: var(--space-3); }
+.chain li {
+  display: grid; grid-template-columns: 3.5rem 1fr; gap: var(--space-4); align-items: start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  border-radius: var(--radius-md); padding: var(--space-4) var(--space-5);
+}
+.chain__k { font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500; color: var(--teal-700); }
+.chain__t { font-size: var(--body-md); font-weight: 600; }
+.chain__t span { display: block; font-weight: 400; color: var(--text-muted); font-size: var(--body-sm); margin-top: var(--space-1); }
+
+/* ============================ fluxos e regras =========================== */
+
+.two { display: grid; grid-template-columns: .95fr 1.05fr; gap: var(--space-12); align-items: center; }
+
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+.step {
+  display: flex; flex-direction: column; gap: var(--space-3);
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-strong);
+  border-radius: var(--radius-lg); padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.step__n {
+  font-family: var(--font-mono); font-weight: 500; font-size: var(--display-2xl);
+  color: var(--accent-strong); line-height: 1;
+}
+.step__t { font-size: var(--display-md); font-weight: 500; }
+.step__d { font-size: var(--body-sm); color: var(--text-muted); }
+.step__r {
+  margin-top: auto;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  color: var(--accent-hover); background: var(--accent-soft);
+  padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+  align-self: flex-start; word-break: break-all;
+}
+
+.rules { display: grid; gap: var(--space-4); }
+.rule {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); align-items: baseline;
+  border-bottom: 1px solid var(--border); padding-bottom: var(--space-4);
+}
+.rules .rule:last-child { border-bottom: 0; padding-bottom: 0; }
+.rule__k { font-family: var(--font-mono); font-size: var(--display-md); font-weight: 500; color: var(--accent-2); }
+.rule__t { font-family: var(--font-display); font-size: var(--display-md); font-weight: 500; }
+.rule__d { font-size: var(--body-md); color: var(--text-muted); margin-top: var(--space-1); }
+
+/* cartão-ingresso picotado — elemento de assinatura da marca */
+.ticket {
+  position: relative; margin: 0;
+  background: var(--surface);
+  border: var(--hairline) dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 27rem;
+}
+.ticket__main { padding: var(--space-6) var(--space-6) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.ticket__title { font-size: var(--display-lg); font-weight: 500; }
+.ticket__meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.ticket__meta dt {
+  font-family: var(--font-mono); font-size: var(--mono-xs);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+}
+.ticket__meta dd { font-size: var(--body-md); margin-top: var(--space-1); }
+.ticket__stub {
+  border-top: var(--hairline) dashed var(--border-strong);
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.ticket__code { font-family: var(--font-mono); font-size: var(--mono-sm); font-weight: 500; letter-spacing: .14em; color: var(--text-muted); }
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft); color: var(--accent-hover);
+}
+.tag--ok { background: var(--accent-2-soft); color: var(--teal-700); }
+
+.verdicts { display: grid; gap: var(--space-4); }
+.verdict {
+  border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--border); background: var(--surface);
+}
+.verdict--ok { border-color: var(--accent-2); background: var(--accent-2-soft); }
+.verdict--no { border-color: var(--danger); background: var(--accent-soft); }
+.verdict__k {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.verdict--ok .verdict__k { color: var(--teal-700); }
+.verdict--no .verdict__k { color: var(--danger); }
+.verdict__m { font-family: var(--font-display); font-size: var(--display-md); font-weight: 700; margin-top: var(--space-2); }
+.verdict__d { font-size: var(--body-sm); color: var(--text-muted); margin-top: var(--space-2); }
+
+/* ===================== o slide da evolução (bloco 7) ==================== */
+
+.evo { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-8); align-items: stretch; }
+.evo__col {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.evo__col--now { border-color: var(--accent-2); border-width: var(--hairline); }
+.evo__cp {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+}
+.evo__col--now .evo__cp { color: var(--teal-700); }
+.evo__what { font-family: var(--font-display); font-size: var(--display-md); font-weight: 700; }
+.evo__list { display: grid; gap: var(--space-3); }
+.evo__list li { font-size: var(--body-md); color: var(--text-muted); padding-left: var(--space-4); position: relative; }
+.evo__list li::before { content: "—"; position: absolute; left: 0; color: var(--accent-strong); }
+.evo__col--now .evo__list li::before { color: var(--accent-2); }
+.evo__arrow {
+  align-self: center;
+  font-family: var(--font-mono); font-size: var(--display-2xl); font-weight: 500;
+  color: var(--accent-strong);
+}
+.evo__keep {
+  margin-top: var(--space-6);
+  border-top: var(--hairline) solid var(--accent);
+  padding-top: var(--space-5);
+  font-family: var(--font-display); font-size: var(--display-md); font-weight: 500;
+}
+.evo__keep b { color: var(--accent-strong); font-weight: 700; }
+
+/* ============================ números =================================== */
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: var(--space-2);
+}
+.stat__n {
+  font-family: var(--font-display); font-weight: 700; font-size: var(--display-2xl);
+  color: var(--accent-strong); line-height: 1; letter-spacing: -.03em;
+}
+.stat__n small { font-family: var(--font-mono); font-size: var(--display-sm); font-weight: 500; letter-spacing: 0; }
+.stat__t { font-size: var(--display-sm); font-weight: 600; }
+.stat__d { font-size: var(--body-sm); color: var(--text-muted); }
+.stat__cmd {
+  margin-top: auto; align-self: flex-start;
+  font-family: var(--font-mono); font-size: var(--mono-xs);
+  color: var(--text-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+}
+
+/* ============================ encerramento ============================== */
+
+.close { display: grid; grid-template-rows: 1fr auto; gap: var(--space-8); height: 100%; }
+.pitch { align-self: center; }
+.pitch p {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: var(--deck-title); line-height: 1.1; letter-spacing: -.02em;
+  max-width: 44ch;
+}
+.pitch b { color: var(--accent-strong); }
+.links { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: baseline; }
+.links div { display: grid; gap: var(--space-1); }
+.links__k {
+  font-family: var(--font-mono); font-size: var(--mono-xs); font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
+}
+.links__v { font-family: var(--font-mono); font-size: var(--mono-sm); color: var(--accent-strong); font-weight: 500; word-break: break-all; }
+.names { margin-top: var(--space-5); font-size: var(--body-md); color: var(--text-muted); }
+
+/* ============================ degradação ================================= */
+
+@media (max-width: 1180px) {
+  .slide { padding: var(--space-8) var(--space-8) var(--space-5); }
+  .mark { right: var(--space-8); }
+  .deck__hud { right: var(--space-6); }
+  .flow { grid-template-columns: repeat(2, 1fr); }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 860px) {
+  html { font-size: clamp(12px, 2.6vw, 16px); }
+  /* Em tela estreita as colunas viram uma só e o slide fica mais alto que a
+     janela. Aqui o slide sai do grid e volta ao fluxo normal: com três linhas
+     `auto` numa caixa de altura definida, a linha do corpo encolhe abaixo do
+     conteúdo e o conteúdo pinta sobre o rodapé. No fluxo normal a caixa cresce
+     e quem rola é o slide inteiro — rolagem aninhada esconderia o rodapé com a
+     deixa de tempo. `overflow-x` explícito porque só declarar `overflow-y`
+     faria o eixo x virar `auto` e abrir rolagem lateral (RNF-018). */
+  .slide {
+    display: block;
+    padding: var(--space-6) var(--space-5) var(--space-3);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  /* em tela estreita o título ocupa a largura toda e passaria SOB a marca */
+  .mark { display: none; }
+  /* a margem substitui o `gap` do grid, que aqui não vale mais */
+  .slide__head { margin-bottom: var(--space-5); }
+  .slide__body { margin-bottom: var(--space-5); display: block; }
+  .slide__foot { padding-right: 0; padding-bottom: 3.4rem; flex-wrap: wrap; }
+  .deck__hud { right: 50%; transform: translateX(50%); bottom: var(--space-3); }
+  .deck__edge { width: 8%; }
+  .cover, .two, .team, .flow, .stats { grid-template-columns: 1fr; }
+  .evo { grid-template-columns: 1fr; }
+  .evo__arrow { justify-self: center; transform: rotate(90deg); }
+  .chain li { grid-template-columns: 1fr; }
+  .slide__title { font-size: var(--display-2xl); }
+  .cover__word { font-size: var(--display-2xl); }
+  .pitch p { font-size: var(--display-2xl); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide, .deck__progress b, .deck__btn { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="deck__progress" aria-hidden="true"><b id="deck-bar"></b></div>
+
+  <main class="deck__stage" id="deck-stage">
+
+    <!-- ================================ 1 ================================ -->
+    <section class="slide is-active" id="slide-capa" role="group"
+             aria-roledescription="slide" aria-label="Slide 1 de 9: capa">
+      <div class="slide__head">
+        <p class="eyebrow">Checkpoint 6 · entrega final</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="cover">
+          <div>
+            <div class="cover__logo">
+              <!-- símbolo Campus: cópia fiel de docs/06-marca/assets/logo-simbolo.svg -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-labelledby="campus-simbolo-titulo">
+                <title id="campus-simbolo-titulo">Campus — símbolo</title>
+                <path fill="var(--accent-strong)" fill-rule="evenodd" d="
+                  M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8
+                  A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20
+                  H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2
+                  A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z
+                  M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16
+                  A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+              </svg>
+              <h1 class="cover__word">Campus</h1>
+            </div>
+            <p class="cover__one">Um comando sobe o produto inteiro: banco, API e aplicativo. O dado sobrevive ao F5.</p>
+            <p class="cover__course">Engenharia de Software · FIAP · Engenharia de Computação · 3º ano · Prof. Hercules Ramos</p>
+            <p><span class="cover__cp">Checkpoint 6 · produto</span></p>
+            <p class="cover__hint">← → navega · espaço avança · Home volta ao início</p>
+          </div>
+
+          <ul class="team">
+            <li><span class="team__name">Ana Luiza Dourado</span><span class="team__rm">RM558793</span><span class="team__role">UX/UI Designer</span></li>
+            <li><span class="team__name">João Viviani Baldini</span><span class="team__rm">RM558596</span><span class="team__role">Product Owner</span></li>
+            <li><span class="team__name">Lucas Baraldi</span><span class="team__rm">RM555407</span><span class="team__role">Tech Lead / Arquiteto</span></li>
+            <li><span class="team__name">Lucas Zolla</span><span class="team__rm">RM557952</span><span class="team__role">Analista de Requisitos</span></li>
+            <li><span class="team__name">Ronaldo Veloso Filho</span><span class="team__rm">RM556445</span><span class="team__role">Modelagem / Analista UML</span></li>
+            <li><span class="team__name">Vitor Pantarotto</span><span class="team__rm">RM554961</span><span class="team__role">Scrum Master / QA</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">0:00–0:03</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 2 ================================ -->
+    <section class="slide" id="slide-stack" role="group"
+             aria-roledescription="slide" aria-label="Slide 2 de 9: a stack em um comando" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Instalabilidade</p>
+        <h2 class="slide__title">Um comando, três serviços, nenhum passo manual</h2>
+        <p class="slide__lead">A ordem não é sugestão: a API espera o banco <b>aceitar conexão</b>, não o container ligar. Um Postgres iniciado ainda não responde, e a API subiria nesse intervalo.</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="two">
+          <div class="term" role="img" aria-label="Terminal mostrando docker compose up: banco saudável, migrações aplicadas, seed carregado e API respondendo">
+            <div class="term__bar">
+              <span class="term__dot" aria-hidden="true"></span>
+              <span class="term__dot" aria-hidden="true"></span>
+              <span class="term__dot" aria-hidden="true"></span>
+              <span>campus — máquina limpa</span>
+            </div>
+            <div class="term__body">
+              <p class="term__line term__cmd">docker compose up</p>
+              <p class="term__line term__ok">db&nbsp;&nbsp;&nbsp;healthy&nbsp;&nbsp;pg_isready</p>
+              <p class="term__line term__ok">api&nbsp;&nbsp;prisma migrate deploy</p>
+              <p class="term__line term__ok">api&nbsp;&nbsp;seed carregado</p>
+              <p class="term__line term__ok">api&nbsp;&nbsp;escutando em 0.0.0.0:3000</p>
+              <p class="term__line term__ok">web&nbsp;&nbsp;servindo em :80</p>
+              <p class="term__line term__note">app  http://localhost:8080</p>
+              <p class="term__line term__note">api  http://localhost:3000/api</p>
+            </div>
+          </div>
+
+          <ul class="chain">
+            <li>
+              <span class="chain__k">1º</span>
+              <span class="chain__t">Postgres 16
+                <span>Sobe e só é considerado pronto quando <span class="mono">pg_isready</span> responde. É a pergunta certa: o servidor aceita conexão neste banco, com este usuário?</span>
+              </span>
+            </li>
+            <li>
+              <span class="chain__k">2º</span>
+              <span class="chain__t">API
+                <span>Aplica as migrações, carrega o seed e sobe. Sem segredo no código: falta variável, o processo não passa do boot e diz qual falta.</span>
+              </span>
+            </li>
+            <li>
+              <span class="chain__k">3º</span>
+              <span class="chain__t">Aplicativo
+                <span>Servido estático, apontado para a API. Instalável como app no celular.</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">detalha o bloco 2 do roteiro · fala: <b>Lucas Baraldi</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 3 ================================ -->
+    <section class="slide" id="slide-fluxos" role="group"
+             aria-roledescription="slide" aria-label="Slide 3 de 9: os quatro fluxos" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">O que o vídeo percorre</p>
+        <h2 class="slide__title">Quatro fluxos, uma conta, dado persistido</h2>
+        <p class="slide__lead">Tudo como Marina Alves, turma 3ESPX — só a validação na porta é feita pelo organizador, porque só ele tem essa permissão. Os dados vêm do seed carregado pela API.</p>
+      </div>
+
+      <div class="slide__body">
+        <ul class="flow">
+          <li class="step">
+            <span class="step__n">1</span>
+            <h3 class="step__t">Entrar</h3>
+            <p class="step__d">E-mail institucional, senha com hash forte, sessão revogável. O topo mostra o vínculo, e o feed traz só o que o alcança.</p>
+            <span class="step__r">login → feed</span>
+          </li>
+          <li class="step">
+            <span class="step__n">2</span>
+            <h3 class="step__t">Esperar</h3>
+            <p class="step__d">Evento lotado, 80 de 80. A tela informa em vez de recusar: sétima da fila, seis na frente, 24 h para confirmar.</p>
+            <span class="step__r">detalhe do Hackathon</span>
+          </li>
+          <li class="step">
+            <span class="step__n">3</span>
+            <h3 class="step__t">Pagar</h3>
+            <p class="step__d">R$ 45,00, prazo correndo. Cobrança gerada, provedor simulado confirma. <b>F5, e continua pago.</b></p>
+            <span class="step__r">pagamento → F5</span>
+          </li>
+          <li class="step">
+            <span class="step__n">4</span>
+            <h3 class="step__t">Entrar no evento</h3>
+            <p class="step__d">Ingresso com código legível. Na porta, o organizador valida. O mesmo código de novo é recusado, com a hora do primeiro uso.</p>
+            <span class="step__r">ingresso → check-in</span>
+          </li>
+        </ul>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">panorama dos blocos 3 a 6 · fala: <b>Lucas Zolla</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 4 ================================ -->
+    <section class="slide" id="slide-fila" role="group"
+             aria-roledescription="slide" aria-label="Slide 4 de 9: a fila" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Lotado não é erro</p>
+        <h2 class="slide__title">A vaga que evapora, agora com fila e prazo</h2>
+      </div>
+
+      <div class="slide__body">
+        <div class="two">
+          <figure class="ticket">
+            <div class="ticket__main">
+              <p><span class="tag">Faculdade</span></p>
+              <h3 class="ticket__title">Hackathon Campus 48h</h3>
+              <dl class="ticket__meta">
+                <div><dt>Vagas</dt><dd><b>80 / 80</b> — lotado</dd></div>
+                <div><dt>Na fila</dt><dd>7 pessoas</dd></div>
+                <div><dt>Sua posição</dt><dd><b>7ª</b>, 6 na frente</dd></div>
+                <div><dt>Para confirmar</dt><dd>24 horas</dd></div>
+              </dl>
+            </div>
+            <div class="ticket__stub">
+              <p class="ticket__code">FILA · FIFO · UMA OFERTA POR VAGA</p>
+            </div>
+          </figure>
+
+          <div class="rules">
+            <div class="rule">
+              <span class="rule__k">1</span>
+              <div>
+                <h3 class="rule__t">A ordem é de chegada, e ela é visível</h3>
+                <p class="rule__d">Posição é número, não adjetivo. Quem espera sabe exatamente onde está — e a posição avança quando alguém sai da frente.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <span class="rule__k">2</span>
+              <div>
+                <h3 class="rule__t">Uma vaga liberada gera uma oferta</h3>
+                <p class="rule__d">Oferecer a mesma vaga a duas pessoas recriaria o problema que a fila existe para resolver. A decisão é a mesma função na tela e no servidor.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <span class="rule__k">3</span>
+              <div>
+                <h3 class="rule__t">A vaga fica reservada durante a oferta</h3>
+                <p class="rule__d">E a reserva tem prazo. Oferta que vence passa a vez ao próximo, sem punição para quem perdeu.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">detalha o bloco 4 do roteiro · fala: <b>Ana Luiza Dourado</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 5 ================================ -->
+    <section class="slide" id="slide-persistencia" role="group"
+             aria-roledescription="slide" aria-label="Slide 5 de 9: persistência" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">A prova de que o dado é real</p>
+        <h2 class="slide__title">O F5 é o teste, não o pagamento</h2>
+        <p class="slide__lead">Confirmar uma cobrança é fácil de simular. O que separa dado real de dado de mentira é o que sobra depois de recarregar a página.</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="verdicts">
+          <div class="verdict verdict--no">
+            <p class="verdict__k">Checkpoint 5 — dado em memória</p>
+            <p class="verdict__m">F5 devolvia o seed. O pagamento desaparecia.</p>
+            <p class="verdict__d">Na demonstração isso era vantagem: recarregar era o botão de recomeçar. Mas não era banco de dados, e o roteiro daquele checkpoint dizia isso com essas palavras.</p>
+          </div>
+          <div class="verdict verdict--ok">
+            <p class="verdict__k">Checkpoint 6 — dado no PostgreSQL</p>
+            <p class="verdict__m">F5, e o pagamento continua confirmado.</p>
+            <p class="verdict__d">E o mesmo aviso do provedor, repetido, não cobra duas vezes — a garantia é uma restrição de unicidade no banco, não uma verificação no código.</p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">detalha o bloco 5 do roteiro · fala: <b>Ronaldo Veloso Filho</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 6 ================================ -->
+    <section class="slide" id="slide-banco" role="group"
+             aria-roledescription="slide" aria-label="Slide 6 de 9: o banco recusa" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Qualidade técnica</p>
+        <h2 class="slide__title">A regra não depende do código estar certo</h2>
+        <p class="slide__lead">Uma restrição declarada e nunca exercitada é uma restrição que ninguém sabe se funciona. Estas foram exercitadas: cada uma tenta gravar dado impossível e espera recusa.</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="two">
+          <div class="term" role="img" aria-label="Terminal com a saída das 22 verificações de restrição, todas com ok">
+            <div class="term__bar">
+              <span class="term__dot" aria-hidden="true"></span>
+              <span class="term__dot" aria-hidden="true"></span>
+              <span class="term__dot" aria-hidden="true"></span>
+              <span>verificar-restricoes.sql</span>
+            </div>
+            <div class="term__body">
+              <p class="term__line term__cmd">psql -f api/prisma/verificar-restricoes.sql</p>
+              <p class="term__line term__ok">ocupadas maior que capacidade recusado</p>
+              <p class="term__line term__ok">alcance com duas âncoras recusado</p>
+              <p class="term__line term__ok">segunda participação ativa recusada</p>
+              <p class="term__line term__ok">reinscrição depois de cancelar permitida</p>
+              <p class="term__line term__ok">cartão em cobrança Pix recusado</p>
+              <p class="term__line term__ok">segunda cobrança aberta recusada</p>
+              <p class="term__line term__ok">segunda presença recusada</p>
+              <p class="term__line term__note">… 22 verificações, 22 ok, 0 falhou</p>
+            </div>
+          </div>
+
+          <div class="rules">
+            <div class="rule">
+              <span class="rule__k">20</span>
+              <div>
+                <h3 class="rule__t">restrições de valor</h3>
+                <p class="rule__d">Escritas à mão sobre o SQL gerado, porque o gerador não tem sintaxe para elas. A que impede vender mais vaga do que existe é a última linha de defesa do produto.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <span class="rule__k">2</span>
+              <div>
+                <h3 class="rule__t">unicidades parciais</h3>
+                <p class="rule__d">Uma inscrição ativa por pessoa e evento; uma cobrança aberta por inscrição. O <b>parcial</b> é essencial: sem ele, cancelar impediria se inscrever de novo.</p>
+              </div>
+            </div>
+            <div class="rule">
+              <span class="rule__k">1</span>
+              <div>
+                <h3 class="rule__t">verificação que espera <b>sucesso</b></h3>
+                <p class="rule__d">Reinscrever depois de cancelar tem de passar. Restrição que proíbe demais é tão defeituosa quanto restrição que proíbe de menos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time cue-time--apoio">apoio</span>
+        <span class="cue-who">detalha o bloco 6 do roteiro · fala: <b>Vitor Pantarotto</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 7 ================================ -->
+    <section class="slide" id="slide-evolucao" role="group"
+             aria-roledescription="slide" aria-label="Slide 7 de 9: a evolução entre os checkpoints" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Evolução do projeto</p>
+        <h2 class="slide__title">Mesma tela, mesmo fluxo, duas fontes</h2>
+        <p class="slide__lead">A troca não custou uma linha de tela. É o que a fronteira desenhada no checkpoint anterior existia para comprar — e a fatura só chega quando se tenta usar.</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="evo">
+          <div class="evo__col">
+            <p class="evo__cp">Checkpoint 5</p>
+            <p class="evo__what">Dado na memória do navegador</p>
+            <ul class="evo__list">
+              <li>30 rotas simuladas, com os mesmos códigos de status da API real</li>
+              <li>Escritas serializadas por uma fila de promessas — dentro de um processo</li>
+              <li>Invariantes verificadas por uma função que estoura</li>
+              <li>F5 devolve o seed</li>
+            </ul>
+          </div>
+
+          <p class="evo__arrow" aria-hidden="true">→</p>
+
+          <div class="evo__col evo__col--now">
+            <p class="evo__cp">Checkpoint 6</p>
+            <p class="evo__what">Dado no PostgreSQL</p>
+            <ul class="evo__list">
+              <li>As mesmas 30 rotas, mais 13 — nenhuma renomeada</li>
+              <li>Escritas serializadas por trava na <b>linha do evento</b> — entre processos</li>
+              <li>Invariantes garantidas por restrição, com <span class="mono">ROLLBACK</span></li>
+              <li>F5 não muda nada</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="evo__keep">As regras não foram reescritas: <b>foram movidas</b> para um pacote que os dois lados usam. A que decide se há vaga existe uma vez — e é a mesma que decide o rótulo do botão e se o servidor grava.</p>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">2:30–2:36</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>Lucas Baraldi</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 8 ================================ -->
+    <section class="slide" id="slide-numeros" role="group"
+             aria-roledescription="slide" aria-label="Slide 8 de 9: o que está medido" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">O que está medido</p>
+        <h2 class="slide__title">Quatro números, quatro comandos</h2>
+        <p class="slide__lead">Cada número tem um comando que o reproduz. Se o comando não roda, o número sai do slide.</p>
+      </div>
+
+      <div class="slide__body">
+        <ul class="stats">
+          <li class="stat">
+            <span class="stat__n">43</span>
+            <h3 class="stat__t">operações na API</h3>
+            <p class="stat__d">43 no contrato escrito e 43 nos controladores. As 30 do checkpoint anterior estão todas ali, com o mesmo nome.</p>
+            <span class="stat__cmd">api/openapi.yaml</span>
+          </li>
+          <li class="stat">
+            <span class="stat__n">460</span>
+            <h3 class="stat__t">testes automatizados</h3>
+            <p class="stat__d">Sem contar duas vezes: 134 do aplicativo, 243 das regras compartilhadas e 83 da API. Mais 6 casos ponta a ponta.</p>
+            <span class="stat__cmd">npm run test</span>
+          </li>
+          <li class="stat">
+            <span class="stat__n">22</span>
+            <h3 class="stat__t">restrições exercitadas</h3>
+            <p class="stat__d">Contra um PostgreSQL de verdade. 21 esperam recusa e 1 espera sucesso, porque restrição rígida demais também é defeito.</p>
+            <span class="stat__cmd">verificar-restricoes.sql</span>
+          </li>
+          <li class="stat">
+            <span class="stat__n">236,90<small> / 250 KB</small></span>
+            <h3 class="stat__t">pacote gzip</h3>
+            <p class="stat__d">Orçamento verificado a cada envio. Continua carregando a fonte simulada, porque ela sustenta o ambiente publicado sem servidor.</p>
+            <span class="stat__cmd">npm run check:size</span>
+          </li>
+        </ul>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">2:36–2:44</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+    <!-- ================================ 9 ================================ -->
+    <section class="slide" id="slide-fecho" role="group"
+             aria-roledescription="slide" aria-label="Slide 9 de 9: encerramento" aria-hidden="true">
+      <div class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false">
+          <path fill="var(--accent-strong)" fill-rule="evenodd" d="M 5.5 4 H 18.5 A 3.5 3.5 0 0 1 22 7.5 V 9.8 A 2.2 2.2 0 0 0 22 14.2 V 16.5 A 3.5 3.5 0 0 1 18.5 20 H 5.5 A 3.5 3.5 0 0 1 2 16.5 V 14.2 A 2.2 2.2 0 0 0 2 9.8 V 7.5 A 3.5 3.5 0 0 1 5.5 4 Z M 15.21 15.83 A 5 5 0 1 1 15.21 8.17 L 13.54 10.16 A 2.4 2.4 0 1 0 13.54 13.84 Z" />
+        </svg>
+      </div>
+
+      <div class="slide__head">
+        <p class="eyebrow">Campus · checkpoint 6</p>
+      </div>
+
+      <div class="slide__body">
+        <div class="close">
+          <div class="pitch">
+            <p>O Campus já nasce sabendo <b>para quem o evento é</b>: sua turma, seu curso, sua faculdade.</p>
+            <p class="names">O que faltava era onde o dado mora. Agora ele mora — e a concorrência sob carga está declarada como não medida, no checklist de entrega.</p>
+          </div>
+
+          <div class="links">
+            <div>
+              <span class="links__k">Subir</span>
+              <span class="links__v">docker compose up</span>
+            </div>
+            <div>
+              <span class="links__k">Repositório</span>
+              <span class="links__v">github.com/lukiin-z/campus</span>
+            </div>
+            <div>
+              <span class="links__k">Sem backend</span>
+              <span class="links__v">lukiin-z.github.io/campus</span>
+            </div>
+            <div>
+              <span class="links__k">Documentação</span>
+              <span class="links__v">docs/README.md</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide__foot">
+        <span class="cue-time">2:54–3:00</span>
+        <span class="cue-who">em quadro no vídeo · fala: <b>João Viviani Baldini</b></span>
+      </footer>
+    </section>
+
+  </main>
+
+  <button class="deck__edge deck__edge--prev" id="deck-edge-prev" tabindex="-1" aria-hidden="true"></button>
+  <button class="deck__edge deck__edge--next" id="deck-edge-next" tabindex="-1" aria-hidden="true"></button>
+
+  <div class="deck__hud">
+    <button class="deck__btn" id="deck-prev" type="button">
+      <span aria-hidden="true">‹</span><span class="sr-only">Slide anterior</span>
+    </button>
+    <p class="deck__counter" id="deck-counter" aria-live="polite" aria-atomic="true">1 / 9</p>
+    <button class="deck__btn" id="deck-next" type="button">
+      <span aria-hidden="true">›</span><span class="sr-only">Próximo slide</span>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var slides  = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total   = slides.length;
+  var bar     = document.getElementById('deck-bar');
+  var counter = document.getElementById('deck-counter');
+  var prevBtn = document.getElementById('deck-prev');
+  var nextBtn = document.getElementById('deck-next');
+  var index   = 0;
+
+  function render() {
+    for (var i = 0; i < total; i++) {
+      var on = (i === index);
+      slides[i].classList.toggle('is-active', on);
+      slides[i].setAttribute('aria-hidden', on ? 'false' : 'true');
+    }
+    counter.textContent = (index + 1) + ' / ' + total;
+    bar.style.setProperty('--progress', ((index + 1) / total * 100) + '%');
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === total - 1);
+    // `replaceState` falha em `file://` em alguns navegadores: o deep-link é
+    // conveniência, não pode derrubar a navegação do deck.
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(null, '', '#' + slides[index].id);
+      }
+    } catch (e) {
+      window.location.hash = slides[index].id;
+    }
+  }
+
+  function go(target) {
+    var next = Math.min(Math.max(target, 0), total - 1);
+    if (next !== index) { index = next; render(); }
+  }
+
+  prevBtn.addEventListener('click', function () { go(index - 1); });
+  nextBtn.addEventListener('click', function () { go(index + 1); });
+  document.getElementById('deck-edge-prev').addEventListener('click', function () { go(index - 1); });
+  document.getElementById('deck-edge-next').addEventListener('click', function () { go(index + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) { return; }
+    var k = e.key;
+    // Três formas de reconhecer a barra de espaço: `key` moderno, `key` legado
+    // e `code`/`keyCode`. Controle remoto de apresentação e evento sintético de
+    // teste emitem qualquer uma delas.
+    var espaco = (k === ' ' || k === 'Spacebar' || e.code === 'Space' || e.keyCode === 32);
+    // Espaço com foco num botão é o próprio botão: não duplicar o avanço.
+    if (espaco && e.target && e.target.closest && e.target.closest('button')) { return; }
+
+    if (k === 'ArrowRight' || k === 'PageDown' || espaco) { go(index + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { go(index - 1); }
+    else if (k === 'Home') { go(0); }
+    else if (k === 'End') { go(total - 1); }
+    else { return; }
+    e.preventDefault();
+  });
+
+  // Abrir direto num slide: 25-video-cp6-slides.html#slide-evolucao
+  var hash = window.location.hash.replace('#', '');
+  if (hash) {
+    for (var j = 0; j < total; j++) {
+      if (slides[j].id === hash) { index = j; break; }
+    }
+  }
+
+  render();
+}());
+</script>
+
+</body>
+</html>

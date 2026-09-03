@@ -9,10 +9,15 @@
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | Cinco camadas do cliente, servidor-alvo do CP6 e serviços externos. Tabela de dependências permitidas e proibidas |
 | 2.0 | 2026-09-02 | CP5 | Camada de rotas e a guarda `ExigeSessao` viram componentes próprios; `src/features/` entra como camada de composição; a fronteira do mock se abre em `handlers.ts`, `handlersCp5.ts`, `support.ts` e `db.ts`; os hooks e os 15 módulos de domínio aparecem por nome. A tabela de dependências passa a citar **a regra de ESLint que a executa**, e as duas lacunas dessa regra ficam registradas |
+| 3.0 | 2026-09-02 | CP6 | O diagrama passa a mostrar o **monorepo de três workspaces**: `packages/shared` como fronteira própria, com a regra executável de `scripts/check-contrato.mjs`; o workspace `api` com os módulos do NestJS, o Prisma e o PostgreSQL. A camada L5 deixa de ser "o mock" e passa a ser **duas implementações atrás da mesma interface**. O servidor sai de "alvo do CP6" e entra como componente entregue. A tabela de dependências ganha as linhas do pacote compartilhado e da API, e a primeira das duas lacunas do CP5 continua aberta |
 
 Visão em camadas dos componentes do sistema e das dependências entre eles. O objetivo é
-mostrar **onde está a fronteira que permite trocar o mock pela API real sem tocar em tela**
+mostrar **onde está a fronteira que permite trocar a fonte de dados sem tocar em tela**
 (RNF-016), que é a decisão técnica mais importante do projeto.
+
+No CP5 essa fronteira era uma promessa verificável em teste. No CP6 ela é o que segura duas
+implementações vivas ao mesmo tempo — o mock em memória, que sustenta o ambiente publicado
+sem backend, e a API real sobre PostgreSQL.
 
 ## 1. Componentes e camadas
 
@@ -50,15 +55,12 @@ flowchart TB
             S3["src/lib/queryClient.ts<br/>queryKeys centralizadas<br/>retry que nao repete erro de negocio"]
         end
 
-        subgraph L3["Dominio - src/domain - 15 modulos puros"]
+        subgraph L3["Apresentacao derivada - app/src/domain - 3 modulos"]
             direction LR
-            D1["capacity, waitlist,<br/>deadlines, participation"]
-            D2["payment, refund, pix,<br/>checkin, ticketToken"]
-            D3["auth, visibility, permissions,<br/>eventAction, eventSchema, format"]
-            D4["policy.ts<br/>o unico lugar com numeros"]
+            D3["format.ts - pt-BR<br/>eventAction.ts - rotulo do botao<br/>eventSchema.ts - forma do formulario"]
         end
 
-        subgraph L4["Contratos de dados - src/services/index.ts"]
+        subgraph L4["Contratos de dados - app/src/services/index.ts"]
             direction LR
             R1["AuthRepository<br/>EventsRepository<br/>ParticipationsRepository"]
             R2["PaymentsRepository<br/>CheckinRepository"]
@@ -66,43 +68,60 @@ flowchart TB
             R4["ApiError<br/>definirToken e obterToken"]
         end
 
-        subgraph L5["Implementacao atual - CP5"]
+        subgraph L5["Transporte e fontes - duas implementacoes, uma interface"]
             direction LR
-            M1["services/http/index.ts<br/>fetch sobre /api<br/>Authorization Bearer<br/>token em sessionStorage"]
-            M2["MSW<br/>mocks/browser.ts e mocks/server.ts"]
-            M6["mocks/handlers.ts - base do CP4<br/>eventos, participacoes, fila,<br/>feed, notificacoes"]
-            M7["mocks/handlersCp5.ts - novo<br/>auth, onboarding, pagamento,<br/>check-in, escrita no feed"]
-            M5["mocks/support.ts - fronteira<br/>usuarioAtual, eventosVisiveis,<br/>aplicarFiltros, erro, projecoes"]
+            M1["lib/api.ts - fabrica de cliente<br/>tempo limite, renovacao de sessao,<br/>ApiError versus NetworkError"]
+            M8["services/sessao.ts<br/>accessToken e refreshToken<br/>em sessionStorage"]
+            M0["services/http/index.ts<br/>implementa os 7 repositorios<br/>Authorization Bearer"]
+            M2["MSW - fonte mock<br/>mocks/browser.ts e server.ts"]
+            M6["mocks/handlers.ts - 14 rotas<br/>base do CP4"]
+            M7["mocks/handlersCp5.ts - 16 rotas<br/>auth, pagamento, check-in, feed"]
+            M5["mocks/support.ts<br/>usuarioAtual, eventosVisiveis,<br/>aplicarFiltros, erro, projecoes"]
             M4["mocks/db.ts<br/>transaction serializada<br/>assertInvariants"]
-            M3["mocks/seed.ts<br/>1 faculdade, 3 cursos, 4 turmas,<br/>12 usuarios, 11 eventos"]
+            M3["mocks/seed.ts<br/>1 faculdade, 3 cursos, 4 turmas,<br/>13 usuarios, 13 eventos"]
         end
     end
 
-    subgraph SERVIDOR["Servidor - alvo do CP6"]
-        direction TB
-        A1["API REST<br/>Node e Fastify"]
-        A2["Servicos de aplicacao<br/>casos de uso"]
-        A3["Rotinas de tempo<br/>expiracao de pagamento,<br/>expiracao de oferta,<br/>marcacao de ausente,<br/>conclusao do evento"]
-        A4["Autenticacao<br/>JWT e argon2id"]
-        A5["Assinatura HMAC<br/>do token de check-in"]
+    subgraph PKG["packages/shared - @campus/shared - fronteira verificada"]
+        direction LR
+        SH1["domain - 13 modulos puros<br/>capacity, waitlist, deadlines,<br/>participation, payment, refund"]
+        SH2["domain - continuacao<br/>pix, checkin, ticketToken,<br/>auth, visibility, permissions"]
+        SH3["types.ts - 14 entidades,<br/>15 enumeracoes, projecoes<br/>schemas.ts - Zod de forma e faixa"]
+        SH4["policy.ts<br/>o unico lugar com numeros"]
+        SH5{{"scripts/check-contrato.mjs<br/>so zod e import relativo<br/>28 arquivos, 68 imports"}}
     end
 
-    subgraph DADOS["Persistencia - CP6"]
-        DB[("PostgreSQL 16<br/>enums, CHECK compostos,<br/>indice unico parcial")]
+    subgraph SERVIDOR["api - campus-api - NestJS 10 sobre Express"]
+        direction TB
+        A0["main.ts + helmet + CORS<br/>config/ambiente.ts valida no boot<br/>sem JWT_SECRET nao sobe"]
+        A1["Modulos HTTP - 10 tags<br/>saude, autenticacao, academico,<br/>eventos, participacoes, pagamentos,<br/>checkin, feed, notificacoes, admin"]
+        A2["Servicos de aplicacao<br/>casos de uso - quem escreve"]
+        A6["comum - filtro de excecao,<br/>ValidationPipe com Zod,<br/>erros com codigo estavel"]
+        A3["Rotinas de tempo<br/>expiracao de pagamento e de oferta,<br/>marcacao de ausente,<br/>conclusao do evento"]
+        A4["Autenticacao<br/>JWT 15 min + refresh revogavel<br/>argon2id na senha"]
+        A5["Assinatura HMAC<br/>webhook e token de check-in"]
+        A7["seed - dados.ts e ids.ts<br/>o mesmo dado do mock"]
+    end
+
+    subgraph DADOS["Persistencia"]
+        PR["prisma/schema.prisma<br/>14 modelos, 10 enums<br/>PrismaService"]
+        MG["migrations/0001_init<br/>20 CHECK, 2 unicos parciais,<br/>8 indices parciais"]
+        DB[("PostgreSQL 16<br/>enums nativos,<br/>SELECT FOR UPDATE")]
+        VR{{"verificar-restricoes.sql<br/>22 verificacoes<br/>o banco recusa"}}
     end
 
     subgraph EXTERNOS["Servicos externos"]
         direction TB
         X1["Gateway de pagamento<br/>Pix e cartao"]
         X2["Servico de notificacao<br/>push e e-mail"]
-        X3["Object storage<br/>fotos do feed - CP6"]
+        X3["Object storage<br/>fotos do feed - fora do escopo v1"]
     end
 
     RT --> GD
     RT --> P1
     GD --> S1
     GD --> R4
-    GD --> D3
+    GD --> SH2
 
     P1 --> P2
     P1 --> P3
@@ -113,9 +132,9 @@ flowchart TB
     P1 --> F5
     P1 --> S1
     P1 --> S2
-    P1 --> D1
-    P1 --> D2
     P1 --> D3
+    P1 --> SH1
+    P1 --> SH2
 
     F1 --> S2
     F2 --> S2
@@ -128,13 +147,13 @@ flowchart TB
     F4 --> P2
     F5 --> P2
     F1 --> D3
-    F2 --> D2
-    F3 --> D2
+    F2 --> SH1
+    F3 --> SH2
     F4 --> D3
-    F5 --> D1
+    F5 --> SH1
 
-    P2 --> D2
-    P2 --> D1
+    P2 --> D3
+    P2 --> SH1
     P3 --> S1
     P3 --> S2
 
@@ -144,15 +163,20 @@ flowchart TB
     S2 --> R3
     S2 --> S1
 
-    D1 --> D4
-    D2 --> D4
-    D3 --> D4
+    D3 --> SH1
+    D3 --> SH3
+    SH1 --> SH4
+    SH2 --> SH4
+    SH3 --> SH4
+    SH5 -.-> |"reprova import<br/>fora da lista"| PKG
 
-    R1 -.-> |"implementada por"| M1
-    R2 -.-> |"implementada por"| M1
-    R3 -.-> |"implementada por"| M1
+    R1 -.-> |"implementada por"| M0
+    R2 -.-> |"implementada por"| M0
+    R3 -.-> |"implementada por"| M0
 
-    M1 --> |"HTTP no CP5"| M2
+    M0 --> M1
+    M1 --> M8
+    M1 -.-> |"fonte mock<br/>fetch interceptado"| M2
     M2 --> M6
     M2 --> M7
     M6 --> M7
@@ -162,49 +186,146 @@ flowchart TB
     M7 --> M4
     M5 --> M4
     M4 --> M3
-    M6 --> D1
-    M7 --> D2
-    M7 --> D3
-    M5 --> D1
-    M5 --> D3
+    M6 --> SH1
+    M7 --> SH2
+    M5 --> SH2
 
-    M1 ==> |"CP6 - mesma interface,<br/>MSW desligado"| A1
+    M1 ==> |"fonte api<br/>HTTP real sobre /api"| A0
 
+    A0 --> A1
+    A1 --> A6
     A1 --> A2
     A1 --> A4
-    A2 --> D1
-    A2 --> D2
-    A2 --> D3
+    A2 --> SH1
+    A2 --> SH2
+    A2 --> SH3
     A2 --> A5
-    A2 --> DB
-    A3 --> DB
-    A3 --> D1
-    A3 --> D2
+    A2 --> PR
+    A3 --> PR
+    A3 --> SH1
+    A3 --> SH2
+    A7 --> PR
+    PR --> MG
+    MG --> DB
+    PR --> DB
+    VR -.-> |"prova que recusa"| DB
     A2 --> X1
     A2 --> X2
-    A2 --> X3
-    X1 --> |"notificacao de pagamento"| A1
+    X1 --> |"POST /api/pagamentos/webhook<br/>assinado e idempotente"| A1
 ```
 
 ## 2. O que o diagrama mostra e por que assim
 
 ### A fronteira que importa está entre L4 e L5
 
-`src/services/index.ts` define **sete interfaces** — `AuthRepository`, `EventsRepository`,
-`ParticipationsRepository`, `PaymentsRepository`, `CheckinRepository`, `FeedRepository`,
-`NotificationsRepository` — mais `ApiError` e o par `definirToken` / `obterToken`. A
-apresentação, as features e a camada de estado dependem **apenas** dessas interfaces.
-Nenhuma página importa `fetch`, `axios`, `msw` ou `seed`.
+`app/src/services/index.ts` define **sete interfaces** — `AuthRepository`,
+`EventsRepository`, `ParticipationsRepository`, `PaymentsRepository`, `CheckinRepository`,
+`FeedRepository`, `NotificationsRepository` — mais `ApiError` e o par `definirToken` /
+`obterToken`. A apresentação, as features e a camada de estado dependem **apenas** dessas
+interfaces. Nenhuma página importa `fetch`, `axios`, `msw` ou `seed`.
 
-Consequência: a migração do CP6 é a seta `==>` do diagrama. `httpRepositories` já fala HTTP
-hoje — o que muda é **quem responde**: hoje o MSW intercepta e responde do mock em memória;
-no CP6 a requisição sai para a API real. Nenhum arquivo de `src/pages/`, `src/features/` ou
-`src/components/` é tocado. É o RNF-016, e a razão da
+**No CP6 essa fronteira deixou de ser promessa e passou a ter duas implementações vivas.**
+É a mudança mais importante deste diagrama entre os dois checkpoints. No CP5 havia uma
+implementação (`httpRepositories`) e um único servidor por baixo dela — o MSW, no mesmo
+processo. Agora há dois destinos possíveis para a mesma requisição:
+
+| Fonte | Quem responde | Para que continua existindo |
+|---|---|---|
+| **mock** | MSW em service worker, sobre `mocks/db.ts` em memória | O ambiente de teste publicado é conteúdo estático no GitHub Pages, **sem processo em execução**. Desligar o mock desligaria o link que a avaliação abre |
+| **api** | `campus-api` sobre PostgreSQL | Dado real, persistido, com transação e as restrições do banco |
+
+O plano do CP4 dizia "MSW desligado no CP6" — e essa parte do plano foi revista. As duas
+convivem porque atendem a necessidades diferentes, e conviver só é possível porque a
+interface entre L4 e L5 não mudou.
+
+O que **não** foi tocado na migração: nenhum arquivo de `app/src/pages/`,
+`app/src/features/` ou `app/src/components/`. É o RNF-016, e a razão da
 [ADR-0003](../adr/0003-camada-de-repositorio-com-msw.md).
+
+A seleção é `VITE_DATA_SOURCE`, e ela é **uma linha** —
+[`app/src/services/index.ts`](../../app/src/services/index.ts):
+
+```ts
+export const repositories: Repositories = escolherRepositorios(import.meta.env.VITE_DATA_SOURCE);
+export const usandoApiReal: boolean = import.meta.env.VITE_DATA_SOURCE === 'api';
+```
+
+O segundo `export` existe por um motivo que não é óbvio e é o tipo de detalhe que custa uma
+tarde: `main.tsx` precisa saber a fonte para **não** registrar o MSW. Com o worker no ar, o
+interceptador captura a requisição antes de ela sair da máquina, e o app conversaria com o
+mock **acreditando** estar falando com a API. Não haveria erro; haveria dado errado com cara
+de dado certo.
+
+O tipo da variável é declarado em
+[`app/src/vite-env.d.ts`](../../app/src/vite-env.d.ts) como `'mock' | 'api'`, e não como
+`string`: sem isso, um erro de digitação passaria pelo `tsc` e só apareceria em runtime, com
+o app silenciosamente caindo no padrão.
 
 A alternativa comum — repositório mock que devolve objetos direto, sem HTTP — foi recusada
 porque esconde tudo o que dá errado em rede real: estado de carregamento, erro, latência,
-código de status, `409` de conflito. O app que "nunca falha" no CP5 quebraria no CP6.
+código de status, `409` de conflito. O app que "nunca falha" no CP5 quebraria no CP6. A
+recusa se pagou: `app/src/lib/api.ts` existe hoje exatamente porque a API real **falha de
+verdade** — tempo limite, `401` por token expirado, resposta que não chega — e nada disso
+era exercitado quando o servidor rodava no mesmo processo.
+
+### `packages/shared` é a fronteira nova, e ela é verificada
+
+O domínio saiu de `app/src/domain/` e virou um workspace
+([ADR-0008](../adr/0008-monorepo-com-dominio-compartilhado.md)). O diagrama mostra o pacote
+como subgrafo próprio, **fora** do cliente, porque é isso que ele é: biblioteca consumida
+pelos dois lados.
+
+| No pacote | Fora do pacote |
+|---|---|
+| 13 módulos de regra: `capacity`, `waitlist`, `deadlines`, `participation`, `payment`, `refund`, `pix`, `checkin`, `ticketToken`, `auth`, `visibility`, `permissions`, `policy` | 3 módulos que **não são domínio**: `format` (pt-BR), `eventAction` (rótulo do botão), `eventSchema` (forma do formulário) |
+| `types.ts` — 14 entidades, 15 enumerações, projeções | Nada que importe React, `fetch`, Prisma, NestJS ou `msw` |
+| `schemas.ts` — Zod de forma e faixa, usado pelo formulário **e** pelo `ValidationPipe` | — |
+
+A caixa hexagonal `scripts/check-contrato.mjs` no diagrama não é decoração: é a regra
+executável. Ela reprova o build se qualquer arquivo do pacote importar algo fora de `zod` e
+imports relativos, **com o motivo nomeado** — "a API não roda React", "o app não tem banco",
+"hash de senha é do servidor, não do domínio puro". Ela também compara o `alias` do Vite com
+o `paths` do TypeScript, porque divergir entre os dois produz o pior sintoma possível: o
+`tsc` passa e o app serve código velho.
+
+```
+node scripts/check-contrato.mjs
+  28 arquivos do pacote compartilhado verificados
+  68 imports analisados
+  fronteira do contrato preservada
+```
+
+O motivo de a fronteira ser executável, e não confiada, está registrado: o CP5 produziu
+quatro divergências entre pares de código que **nasceram idênticos**, em um único dia de
+trabalho. A quinta seria a cópia do domínio na API.
+
+### O servidor saiu de "alvo do CP6" e entrou como componente
+
+No CP5 o subgrafo do servidor era intenção. Agora tem arquivo, e três peças merecem nota
+porque não são óbvias no desenho.
+
+**`config/ambiente.ts` derruba o processo no boot.** Não é validação de conveniência: sem
+`DATABASE_URL`, sem `JWT_SECRET` de 32+ caracteres ou sem `WEBHOOK_SECRET`, a API **não
+sobe**, e a mensagem diz qual variável falta. O modo de falha que isso impede é o pior de
+todos — a API sobe, responde `/health` com `ok`, e quebra na primeira assinatura de token;
+ou pior, **não** quebra, porque alguém deixou um valor padrão. Segredo com padrão não é
+segredo. `process.env` é lido nesse arquivo e em nenhum outro.
+
+**`comum/` é o que faz a forma de erro ser uma só.** Filtro de exceção, `ValidationPipe` que
+consome os schemas Zod do pacote compartilhado, e as classes de erro com código estável. Sem
+esse módulo, cada controlador inventaria seu formato de recusa — que é como um contrato de
+erro apodrece.
+
+**O Prisma aparece separado do banco, e o motivo é a migration.** `schema.prisma` declara 14
+modelos e 10 enums, mas **não tem sintaxe** para `CHECK`, índice único parcial nem índice
+parcial — as três garantias centrais do modelo. Elas vivem em `migrations/0001_init`, na
+metade escrita à mão sobre o SQL gerado: **20 `CHECK`**, `ux_participacao_ativa` (RN-015),
+`ux_pagamento_aguardando_por_participacao` (RN-027) e 8 índices parciais. Regerar a
+migration a partir do schema apagaria essa metade — está escrito no cabeçalho do arquivo.
+
+A segunda caixa hexagonal, `verificar-restricoes.sql`, é o que separa "a restrição existe" de
+"a restrição funciona": **22 verificações** que tentam gravar dado impossível e esperam que o
+PostgreSQL recuse.
 
 ### `obterToken` é exportado de `services/index.ts`, não de `services/http/`
 
@@ -237,7 +358,7 @@ Três observações do que de fato está lá:
   propósito: são o que permite mostrar check-in e troca de perfil ao vivo sem poluir o
   domínio com dado de apresentação.
 
-### A fronteira do mock agora tem quatro peças, não uma
+### A fonte mock tem quatro peças, não uma
 
 O `handlers.ts` do CP4 passou de 750 linhas, e a fronteira natural é a que separa o que
 existia no CP4 do que o CP5 acrescentou:
@@ -252,46 +373,79 @@ existia no CP4 do que o CP5 acrescentou:
 `usuarioAtual` merece destaque porque é a peça mais sensível de `support.ts`: resolve o
 usuário em **três níveis**, do mais específico ao padrão — cabeçalho `x-usuario-id`
 (afordância de teste para cenário multiusuário, CT-020), `Authorization: Bearer campus.sess.<id>`
-(o caminho que o app usa depois do login) e, por último, o usuário fixo do seed (para o mock
-também responder a `curl` e a teste de integração sem passar pela tela de login). No CP6 o
-primeiro nível deixa de existir e o segundo passa a ser JWT assinado.
+(o caminho que o app usa depois do login) e, por último, o usuário fixo do seed (para a
+fonte mock também responder a `curl` e a teste de integração sem passar pela tela de login).
 
-### A camada de domínio é usada pelos dois lados
+**A previsão do CP5 sobre esses três níveis não se cumpriu, e é o tipo de coisa que vale
+corrigir em vez de arredondar.** O CP5 escreveu que "no CP6 o primeiro nível deixa de existir
+e o segundo passa a ser JWT assinado". Os três continuam existindo — porque a fonte mock
+continua existindo, e ela precisa dos três para sustentar o ambiente publicado e o teste de
+concorrência. O que é verdade é mais preciso: **na fonte `api`** nenhum dos três vale. Lá a
+identidade sai do JWT verificado com `JWT_SECRET`, `x-usuario-id` é ignorado e não há usuário
+padrão — requisição sem token é `401`. Os dois mundos passam a ter regras de identidade
+diferentes de propósito: um é afordância de demonstração, o outro é autenticação.
 
-`src/domain/` (L3) aparece consumido **tanto** pelos handlers e por `support.ts` (L5)
-**quanto** pelos serviços de aplicação e pelas rotinas de tempo do servidor (A2, A3). Isso é
-deliberado: capacidade, fila, prazo, reembolso, pagamento, check-in, autenticação e alcance
-são funções puras sobre tipos de domínio, sem dependência de React, de banco ou de rede.
+### A camada de domínio é usada pelos dois lados — e agora isso é literal
 
-Efeito prático: os testes de `capacity.ts`, `waitlist.ts`, `payment.ts`, `refund.ts`,
-`participation.ts`, `visibility.ts` e `eventAction.ts` valem para os dois mundos, e as regras
-de [`../04-regras-de-negocio.md`](../04-regras-de-negocio.md) têm **uma** implementação, não
-duas versões que divergem com o tempo.
+O subgrafo `packages/shared` aparece consumido **por quatro** componentes: pela apresentação
+e pelas features do cliente, pelos handlers e por `support.ts` da fonte mock, pelos serviços
+de aplicação da API e pelas rotinas de tempo. Isso é deliberado: capacidade, fila, prazo,
+reembolso, pagamento, check-in, autenticação e alcance são funções puras sobre tipos de
+domínio, sem dependência de React, de banco ou de rede.
 
-Uma ressalva honesta: no CP6, com backend em Node, esse código pode ser compartilhado como
-pacote. Se o backend fosse em outra linguagem, as regras seriam reimplementadas no servidor
-(a implementação do cliente passaria a ser apenas conveniência de UI, e o servidor seria a
-autoridade — RNF-012). A decisão de manter Node no servidor é, em boa parte, por causa disso.
+Efeito prático medido: os **243 testes** do pacote passaram a cobrir o domínio da API sem
+que uma linha de teste fosse escrita para ela. O teste do domínio deixou de ser "teste do
+front".
+
+```
+npm run test:dominio        # 12 arquivos, 243 testes, ~2 s
+node scripts/check-contrato.mjs
+```
+
+No CP5 esta seção terminava com uma ressalva: "no CP6, com backend em Node, esse código
+**pode** ser compartilhado como pacote". A ressalva foi resolvida — ele **é** um pacote. A
+outra metade dela continua verdadeira e vale registrar: se o backend fosse em outra
+linguagem, as 29 regras seriam reimplementadas no servidor, a implementação do cliente
+passaria a ser conveniência de UI e o servidor seria a única autoridade (RNF-012). A decisão
+de manter Node no servidor é, em boa parte, por causa disso.
 
 ### `policy.ts` é o único lugar com números
 
 Todos os parâmetros de [RN-004 a RN-017](../04-regras-de-negocio.md) — janela de pagamento,
 janela de oferta, escala de reembolso, abertura e fechamento do check-in, faixa de
-capacidade, duração máxima, prazos padrão — vivem em `domain/policy.ts`. Nenhum módulo de
-domínio, e muito menos um componente de UI, carrega `60`, `24` ou `0.5` literalmente. Mudar
-uma política é editar um arquivo, e os testes que dependem dela apontam para a mesma fonte.
+capacidade, duração máxima, prazos padrão — vivem em
+[`packages/shared/src/domain/policy.ts`](../../packages/shared/src/domain/policy.ts).
+Nenhum módulo de domínio, e muito menos um componente de UI, carrega `60`, `24` ou `0.5`
+literalmente. Mudar uma política é editar um arquivo, e os testes que dependem dela apontam
+para a mesma fonte.
 
-### As rotinas de tempo são componente próprio (A3), e é o que falta no CP5
+**No CP6 o `policy.ts` ganhou um vizinho, e a distinção importa.** Os números de
+**configuração de operação** — TTL do token, janela de limite de taxa, porta, origens de
+CORS — vivem em [`api/src/config/ambiente.ts`](../../api/src/config/ambiente.ts), lidos de
+variável de ambiente e validados no boot. O critério é: número que é **regra de negócio**
+fica no pacote e vale nos dois lados; número que muda por ambiente fica na configuração da
+API. Uma janela de pagamento de 60 minutos é regra; um TTL de access token de 15 minutos é
+operação.
+
+### As rotinas de tempo são componente próprio (A3) — e no CP6 têm onde rodar
 
 Quatro transições do [diagrama de estados](06-diagrama-estados.md) não têm ator humano:
 expiração de pagamento, expiração de oferta, marcação de ausente e conclusão do evento. As
-quatro têm função de decisão escrita e testada em `domain/` — `paymentExpired`,
-`offerExpired`, `shouldBeConcluded` — e **nenhuma é chamada por handler nenhum**: não existe
-processo agendado dentro de um navegador.
+quatro têm função de decisão escrita e testada no pacote — `paymentExpired`, `offerExpired`,
+`shouldBeConcluded`.
 
-Está separado da API porque o modo de falha é diferente: se a API cai, ninguém se inscreve;
-se as rotinas param, vagas ficam presas e a fila congela — sintoma silencioso, que precisa de
-alarme próprio.
+No CP5 **nenhuma era chamada por handler nenhum**, porque não existe processo agendado
+dentro de um navegador — foi o defeito 11 de [`../17-jornada.md`](../17-jornada.md), e a
+correção paliativa foi `mocks/expiracao.ts`, que aplica os prazos na borda de cada
+requisição. Isso funciona para a demonstração e não é um processo: se ninguém abrir o app, o
+prazo não vence.
+
+No CP6 elas têm onde rodar de verdade, sobre os índices parciais que existem para elas:
+`ix_participacao_expira` (`WHERE status='PENDENTE_PAGAMENTO'`) e `ix_participacao_oferta`
+(`WHERE status='OFERTA_PENDENTE'`). Estão separadas da API porque o modo de falha é
+diferente: se a API cai, ninguém se inscreve e todos percebem em segundos; se as rotinas
+param, vagas ficam presas e a fila congela — sintoma silencioso, que precisa de alarme
+próprio.
 
 ### O gateway aparece duas vezes, nas duas direções
 
@@ -300,65 +454,92 @@ notificação de confirmação (assíncrona, iniciada pelo gateway). São caminh
 requisitos distintos: o primeiro precisa de retorno rápido para a tela; o segundo precisa de
 verificação de assinatura e idempotência ([RN-014](../04-regras-de-negocio.md)).
 
-No CP5 o gateway não existe: `POST /api/pagamentos/:id/simular` ocupa o lugar de `X1 → A1`,
-e é chamado pela própria demo. O nome do método no repositório é `simularDesfecho` de
-propósito — para ninguém confundir simulação com fluxo real
+No CP5 o gateway não existia: `POST /api/pagamentos/:id/simular` ocupava o lugar de
+`X1 → A1`, e era chamado pela própria demo. O nome do método no repositório é
+`simularDesfecho` de propósito — para ninguém confundir simulação com fluxo real
 ([ADR-0006](../adr/0006-abstracao-de-gateway-de-pagamento.md)).
+
+**No CP6 a entrada existe de verdade**, e é o que mudou aqui: `POST /api/pagamentos/webhook`
+está no contrato, autenticado por assinatura HMAC no cabeçalho `X-Assinatura` — a **única**
+superfície do sistema autenticada por assinatura em vez de token. O `simular` continua
+existindo e continua declarado no contrato, com "só fora de produção" na própria descrição:
+ele é o que permite demonstrar confirmação, recusa e notificação duplicada ao vivo, sem
+provedor.
 
 Desenhar uma seta bidirecional esconderia que a notificação é uma **entrada** no sistema —
 superfície pública que precisa ser tratada como não confiável.
 
-### O storage só existe no CP6
+### O storage continua sem uso, e agora isso é decisão fechada
 
-`X3` está no diagrama sem uso no CP4/CP5: as capas de evento e as imagens do feed são
-geradas localmente a partir de `capaSeed` / `imagemSeed` (gradiente determinístico em SVG).
-Isso elimina *upload*, armazenamento e moderação de imagem dos dois primeiros checkpoints —
-e faz o app funcionar sem rede externa nenhuma, o que também serve à demo.
+`X3` está no diagrama sem consumidor: as capas de evento e as imagens do feed são geradas
+localmente a partir de `capaSeed` / `imagemSeed` (gradiente determinístico em SVG). No CP5
+isso era adiamento; no CP6 é escopo fechado — não há `upload`, `storage` nem moderação de
+imagem na v1, e `NovaPublicacao` carrega legenda e semente, não arquivo. O efeito colateral
+que vale registrar é que o app funciona **sem nenhuma rede externa**, o que serve à
+demonstração e ao ambiente de avaliação.
 
 ## 3. Dependências permitidas e proibidas
 
 A regra é: **a dependência sempre aponta para dentro**. Rotas → apresentação → features →
 estado → domínio. Nada aponta de volta.
 
-A coluna "executada por" cita a regra de
-[`app/.eslintrc.cjs`](../../app/.eslintrc.cjs) que reprova a linha. `npm run lint` roda com
-`--max-warnings 0`: aviso quebra o CI (RNF-017).
+A coluna "executada por" cita a regra que reprova a linha. `npm run lint` roda com
+`--max-warnings 0`: aviso quebra o CI (RNF-017). No CP6 há **dois** verificadores de
+fronteira, e eles cobrem escopos diferentes:
+
+| Verificador | Escopo | O que reprova |
+|---|---|---|
+| [`app/.eslintrc.cjs`](../../app/.eslintrc.cjs) | dentro do workspace `app` | *import* proibido entre camadas do cliente, valor literal em `className` |
+| [`scripts/check-contrato.mjs`](../../scripts/check-contrato.mjs) | o workspace `packages/shared` | qualquer *import* que não seja `zod` ou relativo — com o motivo nomeado |
+| `api/.eslintrc.cjs` | dentro do workspace `api` | `process.env` fora de `src/config/` |
 
 | De | Para | Permitido? | Executada por | Motivo |
 |---|---|---|---|---|
 | `pages/` | `components/ui/` e `components/layout/` | ✅ | — | Uso normal do design system |
-| `pages/` | `domain/` | ✅ | — | Só funções puras: `resolvePrimaryAction`, `formatPrice`, `checkInWindow`, `eventFormSchema` |
+| `pages/` | `@campus/shared` e `app/src/domain/` | ✅ | — | Só funções puras: `resolvePrimaryAction`, `formatPrice`, `checkInWindow`, `eventFormSchema` |
 | `pages/` | `hooks/` e `store/` | ✅ | — | A ponte para os dados |
 | `pages/` | `services/` (interface) | ✅ | — | Direto só para `obterToken`; dado sempre via hook |
-| `pages/` | `mocks/` | ❌ | `no-restricted-imports` em `src/pages/**/*.tsx`, grupo `**/mocks/**` | Acoplaria a tela ao mock e quebraria o RNF-016 |
+| `pages/` | `mocks/` | ❌ | `no-restricted-imports` em `src/pages/**/*.tsx`, grupo `**/mocks/**` | Acoplaria a tela a **uma** das fontes e quebraria o RNF-016 |
 | `pages/` | `axios`, `msw` | ❌ | mesma regra, grupo `axios`, `msw`, `msw/*` | Toda chamada passa por repositório |
-| `components/ui/` | `domain/format`, `domain/payment`, `domain/participation` | ✅ | — | Só rótulo e formatação: `formatRelative`, `formatPrice`, `STATUS_PARTICIPACAO_ROTULO` |
+| `pages/` | `lib/api.ts` | ❌ | não coberto | Cliente HTTP é da camada L5. Ver a lacuna 3 |
+| `components/ui/` | `format`, `payment`, `participation` | ✅ | — | Só rótulo e formatação: `formatRelative`, `formatPrice`, `STATUS_PARTICIPACAO_ROTULO` |
 | `components/ui/` | `services/`, `store/`, `mocks/` | ❌ | `no-restricted-imports` em `src/components/ui/**/*.tsx` | Componente de design system é apresentacional: recebe dados por props |
 | `components/ui/` | valor de cor, fonte, raio ou espaçamento literal | ❌ | `no-restricted-syntax` sobre `className` com `[` e sobre `style` | Só token do `tailwind.config.ts` (RNF-017) |
 | `components/layout/` | `hooks/`, `store/` | ✅ | — | `AppShell` e `TopBar` leem a sessão e os toasts. Não estão sob a regra de `components/ui/**`, e isso é intencional |
-| `domain/` | React, `react-router-dom`, `services/`, `mocks/`, `components/` | ❌ | `no-restricted-imports` em `src/domain/**/*.ts` | Domínio é puro e testável sem DOM. É o que permite reusar a regra no servidor no CP6 |
-| `domain/` | `domain/policy.ts` | ✅ | — | Fonte única de parâmetros |
-| `domain/` | `zod` | ✅ | — | `eventSchema.ts` é a única exceção, e ele **chama** as funções de domínio em vez de reimplementar a regra |
-| `services/` (interface) | implementação concreta | ⚠️ | — | Inversão de dependência. O `import { httpRepositories } from './http'` está no fim de `services/index.ts`, isolado como *container* e comentado como o único ponto a mudar no CP6 |
-| `mocks/` | `domain/` | ✅ | — | O mock **aplica** as regras, para se comportar como a API real |
-| `mocks/handlers*.ts` | `mocks/support.ts` e `mocks/db.ts` | ✅ | — | Fronteira interna do mock |
+| `packages/shared/` | `zod` e import relativo | ✅ | `check-contrato.mjs` | Única dependência de runtime, e é isomórfica |
+| `packages/shared/` | React, Prisma, NestJS, `msw`, `argon2`, `node:*` | ❌ | `check-contrato.mjs`, com o motivo por padrão | "a API não roda React", "o app não tem banco", "API de Node não existe no navegador" |
+| `packages/shared/` | `vitest` | ⚠️ | `check-contrato.mjs` | **Só** em arquivo `.test.ts`. Permiti-lo em produção abriria a porta para `vi.mock` dentro do domínio |
+| `app/src/types/domain.ts` | declaração própria de tipo | ❌ | `check-contrato.mjs` | O arquivo é reexportação. Tipo que atravessa a rede pertence ao pacote |
+| `app/src/domain/` | `@campus/shared` | ✅ | — | Os três módulos de apresentação **chamam** o domínio em vez de reimplementar a regra |
+| `services/` (interface) | implementação concreta | ⚠️ | — | Inversão de dependência. O `import { httpRepositories } from './http'` está no fim de `services/index.ts`, isolado como *container* — é o ponto onde a seleção de fonte entra |
+| `mocks/` | `@campus/shared` | ✅ | — | A fonte mock **aplica** as regras, para se comportar como a API real |
+| `mocks/handlers*.ts` | `mocks/support.ts` e `mocks/db.ts` | ✅ | — | Fronteira interna da fonte mock |
+| `api/src/**` | `process.env` | ❌ | `api/.eslintrc.cjs` | Configuração entra por `src/config/ambiente.ts`, que valida no boot. Uma segunda porta de entrada é uma variável que ninguém validou |
+| `api/src/**` | `@campus/shared` | ✅ | — | As regras vêm do pacote. Reescrevê-las na API é o que a ADR-0008 recusou |
 
-### As duas lacunas da fronteira executável
+### As lacunas da fronteira executável
 
 Registradas aqui porque fronteira que o CI não verifica é fronteira que depende da boa
-vontade do revisor — exatamente o que este projeto decidiu não fazer:
+vontade do revisor — exatamente o que este projeto decidiu não fazer.
 
-1. **`src/features/**` não tem `override` no ESLint.** Hoje um módulo de feature pode
-   importar `mocks/` ou `axios` e o lint passa. A regra de `src/pages/**/*.tsx` precisa ser
-   estendida para `src/features/**/*.{ts,tsx}` — é uma linha de configuração, e sem ela a
-   camada nova nasce fora da barreira.
+1. **`src/features/**` continua sem `override` no ESLint.** Aberta desde o CP5, e ainda
+   aberta. Um módulo de feature pode importar `mocks/` ou `axios` e o lint passa. A regra de
+   `src/pages/**/*.tsx` precisa ser estendida para `src/features/**/*.{ts,tsx}` — é uma
+   linha de configuração.
 2. **O grupo `**/hooks/use*Query*` da regra de `components/ui/**` não casa com arquivo
    nenhum.** Nenhum hook do projeto se chama `use...Query...`: eles são `useCampusData`,
    `useAuth`, `usePagamento`, `useCheckin`, `useFeedSocial`. O padrão é morto; o que de fato
    protege essa camada são os grupos `**/services/**`, `**/store/**` e `**/mocks/**`, que
    funcionam. Trocar por `**/hooks/**` fecharia a intenção original.
+3. **Nova no CP6: `app/src/lib/api.ts` não está em nenhum grupo proibido.** O cliente HTTP
+   com renovação de sessão é camada L5, e uma tela poderia importá-lo direto, contornando os
+   repositórios. Fechável acrescentando `**/lib/api` ao grupo da regra de `src/pages/**`.
+4. **Nova no CP6: uma cópia de cada ferramenta é verificação fraca.** Duas cópias de `vite`
+   no monorepo produziram erro de tipo *nominal* cuja causa não aparece na mensagem
+   ([ADR-0008](../adr/0008-monorepo-com-dominio-compartilhado.md)). Hoje isso é `npm ls vite`
+   na mão; um `npm ls --depth=1` no CI fecharia.
 
-Nenhuma das duas é falha de modelagem — são **desvios entre o diagrama e a regra
+Nenhuma das quatro é falha de modelagem — são **desvios entre o diagrama e a regra
 executável**, e o critério do projeto é que a regra executável vença. Ficam como dívida com
 dono e tamanho conhecidos.
 
@@ -374,14 +555,35 @@ dono e tamanho conhecidos.
 | Zustand (sessão e UI) | [`app/src/store/`](../../app/src/store) |
 | Hooks de dados | [`app/src/hooks/`](../../app/src/hooks) |
 | Cache e `queryKeys` | [`app/src/lib/queryClient.ts`](../../app/src/lib/queryClient.ts) |
-| Domínio | [`app/src/domain/`](../../app/src/domain) |
+| Apresentação derivada (3 módulos) | [`app/src/domain/`](../../app/src/domain) |
 | Contratos de repositório | [`app/src/services/index.ts`](../../app/src/services/index.ts) |
-| Implementação HTTP | [`app/src/services/http/index.ts`](../../app/src/services/http/index.ts) |
-| Handlers do CP4 | [`app/src/mocks/handlers.ts`](../../app/src/mocks/handlers.ts) |
-| Handlers do CP5 | [`app/src/mocks/handlersCp5.ts`](../../app/src/mocks/handlersCp5.ts) |
-| Fronteira compartilhada do mock | [`app/src/mocks/support.ts`](../../app/src/mocks/support.ts) |
+| Fábrica de cliente HTTP | [`app/src/lib/api.ts`](../../app/src/lib/api.ts) |
+| Guarda dos dois tokens | [`app/src/services/sessao.ts`](../../app/src/services/sessao.ts) |
+| Implementação dos repositórios | [`app/src/services/http/index.ts`](../../app/src/services/http/index.ts) |
+| Handlers do CP4 — 14 rotas | [`app/src/mocks/handlers.ts`](../../app/src/mocks/handlers.ts) |
+| Handlers do CP5 — 16 rotas | [`app/src/mocks/handlersCp5.ts`](../../app/src/mocks/handlersCp5.ts) |
+| Fronteira compartilhada da fonte mock | [`app/src/mocks/support.ts`](../../app/src/mocks/support.ts) |
 | Estado em memória e transação | [`app/src/mocks/db.ts`](../../app/src/mocks/db.ts) |
-| Seed | [`app/src/mocks/seed.ts`](../../app/src/mocks/seed.ts) |
-| Tipos de domínio | [`app/src/types/domain.ts`](../../app/src/types/domain.ts) |
-| Fronteira executável | [`app/.eslintrc.cjs`](../../app/.eslintrc.cjs) |
-| API, serviços de aplicação, rotinas de tempo, banco | não existem ainda — CP6, ver [`../13-roadmap-cp5-cp6.md`](../13-roadmap-cp5-cp6.md) |
+| Seed do mock | [`app/src/mocks/seed.ts`](../../app/src/mocks/seed.ts) |
+| Reexportação dos tipos | [`app/src/types/domain.ts`](../../app/src/types/domain.ts) |
+| **Domínio, tipos e schemas** | [`packages/shared/src/`](../../packages/shared/src) |
+| **Parâmetros de negócio** | [`packages/shared/src/domain/policy.ts`](../../packages/shared/src/domain/policy.ts) |
+| **Contrato da API** | [`api/openapi.yaml`](../../api/openapi.yaml) · leitura em [`../21-api-contrato.md`](../21-api-contrato.md) |
+| **Configuração validada no boot** | [`api/src/config/ambiente.ts`](../../api/src/config/ambiente.ts) |
+| **Erros com código estável e filtro único** | [`api/src/comum/`](../../api/src/comum) |
+| **Esquema e cliente de dados** | [`api/prisma/schema.prisma`](../../api/prisma/schema.prisma) |
+| **As garantias que o Prisma não declara** | [`api/prisma/migrations/0001_init/migration.sql`](../../api/prisma/migrations/0001_init/migration.sql) |
+| **A prova de que o banco recusa** | [`api/prisma/verificar-restricoes.sql`](../../api/prisma/verificar-restricoes.sql) |
+| **Seed da API** | [`api/src/seed/`](../../api/src/seed) |
+| Fronteira executável do cliente | [`app/.eslintrc.cjs`](../../app/.eslintrc.cjs) |
+| Fronteira executável do pacote | [`scripts/check-contrato.mjs`](../../scripts/check-contrato.mjs) |
+
+Os módulos HTTP são um diretório cada em `api/src/`: `saude`, `auth`, `academico`, `eventos`,
+`participacoes`, `pagamentos`, `checkin`, `feed`, `notificacoes` — mais `comum`, `config`,
+`prisma`, `expiracao` e `seed`, que não são tags do contrato. A rota de administração de
+turmas mora em `academico`, porque é o mesmo agregado.
+
+O inventário medido do que a API entregou, com o comando que reproduz cada número, fica em
+[`../24-checklist-entrega-cp6.md`](../24-checklist-entrega-cp6.md) — que é onde uma medição
+pode ser refeita, e não neste diagrama. Diagrama que carrega número medido envelhece na
+primeira execução.

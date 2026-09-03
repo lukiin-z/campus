@@ -8,6 +8,7 @@
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | 23 casos de uso, 7 atores, relações `include` e `extend` justificadas, cobertura UC ↔ RF e especificação textual de UC-001 a UC-005 |
 | 1.1 | 2026-09-02 | CP5 | Os casos de uso passam a ser **coloridos pelo estado da implementação** — 7 fechados, 9 parciais, 7 não iniciados. A tabela de cobertura ganha a coluna de estado, derivada requisito por requisito de [`../02-requisitos.md`](../02-requisitos.md) §1.1, e a seção 2.1 explica o que "fechado" significa aqui |
+| 1.2 | 2026-09-02 | CP6 | Os 23 casos de uso e as relações `include`/`extend` foram conferidos contra as **43 operações** de [`../21-api-contrato.md`](../21-api-contrato.md) e continuam válidos: o CP6 não acrescentou caso de uso, acrescentou endpoint para casos que já estavam modelados. Os caminhos de `app/src/domain/` citados no texto foram reapontados para `packages/shared/src/domain/`. O estado de implementação por caso de uso **não** foi reavaliado nesta revisão — a fonte dele é `../02-requisitos.md` §1.1, mantida por outra frente |
 
 ## 1. Atores
 
@@ -238,13 +239,21 @@ UC-002 (inscrever) → UC-003 (pagar) → UC-005 (check-in) → UC-013 (publicar
 demonstração, e não foi coincidência: é o recorte de
 [`../03-escopo.md`](../03-escopo.md).
 
-**2. Os sete não iniciados são, quase todos, administração — e todos têm domínio pronto.**
-Editar, cancelar, aprovar, moderar, reembolsar, gerenciar turmas. `canEditEvent`,
+**2. Os sete não iniciados eram, quase todos, administração — e todos tinham domínio
+pronto.** Editar, cancelar, aprovar, moderar, reembolsar, gerenciar turmas. `canEditEvent`,
 `canCancelEvent`, `canApproveCollegeEvent`, `canRemovePost` e `computeRefund` existem em
-`app/src/domain/`, são funções puras e — no caso de `computeRefund` — cobertas por teste.
-**O que falta é sempre o endpoint, nunca a regra.** É o desenho do
+`packages/shared/src/domain/`, são funções puras e cobertas por teste.
+**O que faltava era sempre o endpoint, nunca a regra.** É o desenho do
 [ADR-0003](../adr/0003-camada-de-repositorio-com-msw.md) funcionando: a decisão primeiro,
 a autoridade depois.
+
+**E o CP6 fechou exatamente esses sete pelo lado do contrato**, com uma operação para cada:
+`PATCH /eventos/{id}`, `POST /eventos/{id}/cancelamento`, `POST /eventos/{id}/aprovacao`,
+`POST /publicacoes/{id}/remocao`, `POST /participacoes/{id}/reembolso`,
+`GET /admin/eventos-pendentes` e `GET /admin/turmas/{id}/codigo` — ver
+[`../21-api-contrato.md` §4.2](../21-api-contrato.md#42-as-13-operações-que-o-cp6-acrescentou).
+A previsão do CP5 se cumpriu no formato em que foi escrita: a regra estava pronta, entrou o
+endpoint.
 
 **3. Cinco dos nove parciais são parciais pelo mesmo motivo: falta uma rotina de tempo ou um
 endpoint de escrita.** UC-003 e UC-004 esperam a expiração (`paymentExpired`, `offerExpired`);

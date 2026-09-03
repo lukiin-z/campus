@@ -9,15 +9,27 @@
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | 13 tabelas campo a campo, 9 tipos enumerados e inventário de dados pessoais |
 | 1.1 | 2026-09-02 | CP5 | `usuario.foto_url` sai, entra `avatar_seed` — e sai também do inventário LGPD, porque não é dado pessoal. `participacao.motivo_cancelamento` passa a tipo enumerado, com o quinto valor que o código tem. `pagamento` recebe as três colunas do resumo de cartão que o CP5 guarda, e a nota "nome do titular nunca existirá aqui" **foi corrigida: existe**. Tipos enumerados vão de 9 para 10. Nova seção 16 com os 20 tipos que **não** são tabela |
+| 2.0 | 2026-09-02 | CP6 | Conferido contra `api/prisma/schema.prisma` e a migration `0001_init`. Entra a seção **4b `sessao`** — 14 tabelas. Em `usuario`: `senha_hash` deixa de ser "coluna do CP6" e passa a existir, `avatar_seed` vira `integer`, entra `atualizado_em`, e **`excluido_em` sai** porque o schema não a tem — com o registro de que RNF-021 segue não atendido nessa parte. Três `CHECK` que esta tabela descrevia em `usuario` também não existem, e isso está dito. A nota de tipo passa a citar `packages/shared/src/types.ts`, para onde os tipos migraram |
 
-Especificação campo a campo das 13 entidades persistidas. Tipos em PostgreSQL 16 (alvo do
-CP6); o equivalente em TypeScript está em
-[`app/src/types/domain.ts`](../../app/src/types/domain.ts).
+Especificação campo a campo das **14 entidades persistidas**. Tipos em PostgreSQL 16, agora
+conferidos contra [`api/prisma/schema.prisma`](../../api/prisma/schema.prisma) e
+[`api/prisma/migrations/0001_init/migration.sql`](../../api/prisma/migrations/0001_init/migration.sql)
+— não mais contra a intenção. O equivalente em TypeScript está em
+[`packages/shared/src/types.ts`](../../packages/shared/src/types.ts), para onde os tipos
+migraram no CP6 ([ADR-0008](../adr/0008-monorepo-com-dominio-compartilhado.md));
+`app/src/types/domain.ts` continua existindo como reexportação de uma linha.
 
-Aquele arquivo declara 45 tipos, e só 13 são tabela. Os outros — projeções de leitura e
+Aquele arquivo declara 45 tipos, e só 14 são tabela. Os outros — projeções de leitura e
 entradas de escrita — estão na **seção 16**, sem coluna, sem tipo de banco e sem restrição,
 porque não têm. A distinção é a seção 0 de
 [`02-diagrama-classes.md`](02-diagrama-classes.md).
+
+> **Onde esta página pode divergir, e como se descobre.** A coluna **Constraint** é a mais
+> frágil: ela descrevia `CHECK` que o modelo *deveria* ter, e a revisão do CP6 encontrou
+> três em `usuario` que não existem na migration. Os que **existem** são 20, todos com nome
+> `ck_*`, listados em
+> [`03-modelo-dados-er.md` §3](03-modelo-dados-er.md#restrições-de-valor-check). Se uma
+> linha desta tabela citar um `CHECK` que não esteja lá, é esta tabela que está errada.
 
 ## Convenções
 
@@ -104,24 +116,65 @@ subclasse por papel ([RN-023](../04-regras-de-negocio.md)).
 | `id` | `uuid` | Sim | `gen_random_uuid()` | Identificador | `PK` |
 | `nome` | `varchar(120)` | Sim | — | Nome de exibição, editável (RF-006) | `CHECK length >= 2` |
 | `email` | `varchar(180)` | Sim | — | E-mail institucional; identidade da conta | `UK`, `CHECK` domínio pertence a `faculdade.dominios_email` |
-| `senha_hash` | `varchar(255)` | Sim | — | Hash Argon2id. **Nunca** a senha (RNF-010). Coluna do CP6: no CP5 o mock autentica contra `SENHA_DEMO`, e a interface `Usuario` do cliente **não tem** este campo | — |
-| `avatar_seed` | `smallint` | Sim | aleatório | Semente da cor do avatar de iniciais. Não há *upload* de foto na v1, então não há URL nem storage | `CHECK >= 1` |
+| `senha_hash` | `varchar(255)` | Sim | — | Hash Argon2id. **Nunca** a senha (RNF-010). Existe desde o CP6; nenhuma projeção de leitura o inclui, e o único lugar que o lê é a verificação de credencial | — |
+| `avatar_seed` | `integer` | Sim | aleatório | Semente da cor do avatar de iniciais. Não há *upload* de foto na v1, então não há URL nem storage | — |
 | `faculdade_id` | `uuid` | Sim | — | Vínculo institucional | `FK faculdade(id) ON DELETE RESTRICT` |
 | `curso_id` | `uuid` | Cond. | `NULL` | Preenchido ao concluir o onboarding | `FK curso(id) ON DELETE RESTRICT` |
 | `turma_id` | `uuid` | Cond. | `NULL` | Preenchido ao informar código de turma válido | `FK turma(id) ON DELETE RESTRICT` |
-| `papeis` | `papel_usuario[]` | Sim | `'{ALUNO}'` | Papéis administrativos cumulativos ([RN-024](../04-regras-de-negocio.md)) | `CHECK 'ALUNO' = ANY(papeis)` |
+| `papeis` | `papel_usuario[]` | Sim | `'{ALUNO}'` | Papéis administrativos cumulativos ([RN-024](../04-regras-de-negocio.md)) | — |
 | `email_verificado` | `boolean` | Sim | `false` | Conta só opera após verificação (RF-001) | — |
 | `visivel_entre_confirmados` | `boolean` | Sim | `true` | Opt-out de aparecer na lista pública de confirmados (RF-009) | — |
-| `criado_em` | `timestamptz` | Sim | `now()` | — | — |
-| `excluido_em` | `timestamptz` | Não | `NULL` | Exclusão lógica LGPD (RNF-021): dados pessoais anonimizados, linha mantida para integridade | Índice parcial `WHERE excluido_em IS NULL` |
+| `criado_em` | `timestamptz(3)` | Sim | `now()` | — | — |
+| `atualizado_em` | `timestamptz(3)` | Sim | `@updatedAt` | Mantido pelo Prisma a cada escrita | — |
 
 **Campos deliberadamente ausentes:** CPF, telefone, endereço, data de nascimento, gênero.
 Minimização de dados pessoais (RNF-020) — nada disso é necessário para o produto funcionar,
 e o que não é coletado não pode vazar.
 
+**`excluido_em` foi projetado e não existe** (correção do CP6). O CP4 e o CP5 descreveram
+aqui uma coluna de exclusão lógica sustentando RNF-021. `api/prisma/schema.prisma` não a tem
+— reconferir com `grep -n "excluido" api/prisma/schema.prisma`, que não devolve nada. O
+raciocínio segue registrado em
+[`03-modelo-dados-er.md`](03-modelo-dados-er.md#2-o-que-o-diagrama-mostra-e-por-que-assim),
+decisão 4, e **RNF-021 continua não atendido** nessa parte. Três `CHECK` que a versão
+anterior desta tabela também descrevia (`length >= 2` em `nome`, o domínio de `email`,
+`'ALUNO' = ANY(papeis)`) não estão na migration: as três colunas têm só tipo e nulidade. A
+validação de domínio de e-mail acontece em `decideLogin` e no `ValidationPipe`, não no
+banco.
+
 **`curso_id` e `turma_id` são condicionais** porque a conta existe entre a verificação do
 e-mail e a conclusão do onboarding. Enquanto forem nulos, o usuário só vê a tela de
 onboarding.
+
+---
+
+## 4b. `sessao`
+
+Sessão de refresh (RNF-020). **Tabela nova no CP6** — não existia no modelo do CP4 porque o
+CP5 não tinha servidor: o token era opaco e a sessão morria com a aba.
+
+| Campo | Tipo | Obrig. | Default | Descrição | Constraint |
+|---|---|---|---|---|---|
+| `id` | `uuid` | Sim | `gen_random_uuid()` | Identificador | `PK` |
+| `usuario_id` | `uuid` | Sim | — | Titular da sessão | `FK usuario(id) ON DELETE CASCADE` |
+| `refresh_hash` | `varchar(255)` | Sim | — | Hash do refresh token. **Nunca** o token | `UK` |
+| `user_agent` | `varchar(400)` | Não | `NULL` | Para a pessoa reconhecer a sessão numa lista de dispositivos. Não participa de decisão de autorização | — |
+| `expira_em` | `timestamptz(3)` | Sim | — | 30 dias por padrão (`JWT_REFRESH_TTL_DAYS`) | — |
+| `revogada_em` | `timestamptz(3)` | Não | `NULL` | Nulo enquanto a sessão vale. É o que torna o refresh revogável | — |
+| `criado_em` | `timestamptz(3)` | Sim | `now()` | — | Índice `(usuario_id, expira_em)` |
+
+**Por que o hash, e não o token.** Mesma razão de `senha_hash`: um vazamento do banco não
+dá sessão a ninguém, porque o que está lá não serve para autenticar. É a diferença entre
+guardar um segredo e guardar a prova de que se conhece o segredo.
+
+**Por que `CASCADE` e não `RESTRICT`.** É a única FK para `usuario` do modelo que apaga em
+cascata, e é deliberado: não há nada a preservar numa sessão depois de o titular deixar de
+existir. Participação, publicação e presença são `RESTRICT` porque carregam história;
+sessão não carrega nenhuma.
+
+**Não é dado pessoal**, e por isso não entra no inventário da seção 15 — `user_agent`
+descreve o navegador, não a pessoa. O que a tabela liga a uma pessoa é o `usuario_id`, que
+já está inventariado na linha de `usuario`.
 
 ---
 
@@ -381,10 +434,11 @@ integridade referencial aqui não se paga.
 | `tipo_notificacao` | `NOVO_EVENTO`, `VAGA_LIBERADA`, `PAGAMENTO_CONFIRMADO`, `PAGAMENTO_EXPIRADO`, `EVENTO_ALTERADO`, `EVENTO_CANCELADO`, `CHECKIN_REALIZADO`, `EVENTO_APROVADO` | RF-039 |
 | `motivo_cancelamento` | `ALUNO_DESISTIU`, `EVENTO_CANCELADO`, `VINCULO_PERDIDO`, `REMOVIDO_PELO_ORGANIZADOR`, `OFERTA_RECUSADA` | [RN-010](../04-regras-de-negocio.md), [RN-022](../04-regras-de-negocio.md) |
 
-São **dez** tipos, e os dez existem como *union type* de mesmo nome em
-[`app/src/types/domain.ts`](../../app/src/types/domain.ts), na mesma ordem.
-`motivo_cancelamento` era `text` no CP4 e o código já o tipava como enumeração — o código
-venceu.
+São **dez** tipos, e os dez existem em três lugares na mesma ordem: como *union type* em
+[`packages/shared/src/types.ts`](../../packages/shared/src/types.ts), como `enum` do Prisma
+em [`api/prisma/schema.prisma`](../../api/prisma/schema.prisma) (com `@@map` para o nome
+snake_case) e como `CREATE TYPE` na migration. `motivo_cancelamento` era `text` no CP4 e o
+código já o tipava como enumeração — o código venceu.
 
 ### As cinco enumerações do código que **não** são tipos do banco
 
@@ -436,10 +490,12 @@ porque `foto_url` nunca existiu no código: não há *upload*, não há storage,
 
 ## 16. Tipos que **não** são tabela
 
-`app/src/types/domain.ts` declara 45 tipos. As 13 tabelas deste dicionário são os que têm
-identidade e linha. Os 20 abaixo não têm coluna, não têm restrição e não viram `CREATE
-TABLE` — estão listados porque **a tela conversa com eles**, e porque a tentação de
-"guardar" um deles é o erro mais caro que este modelo pode sofrer.
+`packages/shared/src/types.ts` declara 45 tipos. Treze deles são tabela, e a décima quarta
+tabela — `sessao` — **não tem tipo compartilhado**, de propósito: o `refresh_hash` nunca
+atravessa a rede, e tipo compartilhado é, por definição, tipo que os dois lados conhecem. Os
+20 abaixo não têm coluna, não têm restrição e não viram `CREATE TABLE` — estão listados
+porque **a tela conversa com eles**, e porque a tentação de "guardar" um deles é o erro mais
+caro que este modelo pode sofrer.
 
 ### Projeções de leitura — o que a API devolve
 

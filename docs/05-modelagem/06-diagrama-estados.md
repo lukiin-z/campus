@@ -8,6 +8,7 @@
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | Dois ciclos de vida com as transições **previstas** pelas regras de negócio, e as 13 transições proibidas documentadas |
 | 2.0 | 2026-09-02 | CP5 | Cada transição passa a citar **o endpoint e a função que a executam**. A entrada deixa de ser um único `<<choice>>`: `LISTA_ESPERA` tem endpoint próprio. Novas seções "Quem executa cada transição no CP5" e "Transições que o CP5 ainda não executa", esta última com as quatro que dependem de rotina de tempo. O ciclo de `Evento` ganha a mesma distinção |
+| 2.1 | 2026-09-02 | CP6 | Conferido contra o contrato e o schema. Os caminhos de `app/src/domain/` foram reapontados para `packages/shared/src/domain/`, e o tipo `status_participacao` do PostgreSQL entra ao lado do *union type* como terceira declaração dos oito estados. As transições que o CP5 não executava ganharam endpoint no CP6 — `POST /eventos/{id}/cancelamento` (RN-022), `POST /eventos/{id}/aprovacao` (RN-003) e `POST /participacoes/{id}/presenca-manual` (RN-018) — e as quatro que dependem de rotina de tempo continuam dependendo dela |
 
 Dois ciclos de vida: `Participacao` e `Evento`. São as duas entidades cujo comportamento
 **é** definido pelo estado — e onde uma transição faltante ou indevida produz overbooking,
@@ -22,8 +23,9 @@ transição inventada. E, a partir do CP5, cada transição do diagrama correspo
 ## 1. Ciclo de vida de `Participacao`
 
 Oito estados, como em `STATUS_PARTICIPACAO` de
-[`app/src/types/domain.ts`](../../app/src/types/domain.ts). O rótulo de cada transição diz
-qual endpoint a dispara e qual função de domínio a decide.
+[`packages/shared/src/types.ts`](../../packages/shared/src/types.ts) e no tipo
+`status_participacao` do PostgreSQL. O rótulo de cada transição diz qual endpoint a dispara e
+qual função de domínio a decide.
 
 ```mermaid
 stateDiagram-v2
@@ -174,10 +176,18 @@ diz qual.
 
 | Transição | Função de decisão | Estado | Como é disparada, ou o que falta |
 |---|---|---|---|
-| `PENDENTE_PAGAMENTO → EXPIRADA` | `paymentExpired` em `domain/payment.ts` | ✅ **executa** | `mocks/expiracao.ts#aplicarExpiracoes`, chamada em toda requisição por `support.ts#abrirRequisicao`. A vaga é liberada e a cobrança passa a ser recusada com `409 NAO_AGUARDA_PAGAMENTO` |
-| `OFERTA_PENDENTE → EXPIRADA` | `offerExpired` em `domain/waitlist.ts` | ✅ **executa** | Mesma passagem. A vaga é reoferecida ao próximo da fila por `planPromotion`, e o motivo do encerramento fica `OFERTA_RECUSADA` |
-| `CONFIRMADA → AUSENTE` | `shouldBeConcluded` em `domain/deadlines.ts` | ❌ não executa | Falta a conclusão do evento. Quem não fez check-in continua `CONFIRMADA` depois do evento; `AUSENTE` só aparece no seed |
-| qualquer estado ativo `→ CANCELADA` por cancelamento do **evento** | — | ❌ não executa | Falta o endpoint de cancelamento de evento. A cascata de RN-022 não é exercitável no CP5 |
+| `PENDENTE_PAGAMENTO → EXPIRADA` | `paymentExpired` em `payment.ts` | ✅ **executa** | `mocks/expiracao.ts#aplicarExpiracoes`, chamada em toda requisição por `support.ts#abrirRequisicao`. A vaga é liberada e a cobrança passa a ser recusada com `409 NAO_AGUARDA_PAGAMENTO` |
+| `OFERTA_PENDENTE → EXPIRADA` | `offerExpired` em `waitlist.ts` | ✅ **executa** | Mesma passagem. A vaga é reoferecida ao próximo da fila por `planPromotion`, e o motivo do encerramento fica `OFERTA_RECUSADA` |
+| `CONFIRMADA → AUSENTE` | `shouldBeConcluded` em `deadlines.ts` | ❌ não executa | Falta a conclusão do evento. Quem não fez check-in continua `CONFIRMADA` depois do evento; `AUSENTE` só aparece no seed |
+| qualquer estado ativo `→ CANCELADA` por cancelamento do **evento** | — | ❌ não executava no CP5 | **Resolvido no CP6:** `POST /eventos/{id}/cancelamento` existe no contrato, e a cascata de RN-022 passa a ter endpoint. O `CHECK ck_evento_cancelado_tem_motivo` torna o motivo obrigatório no banco |
+
+Os módulos citados na coluna de decisão vivem em `packages/shared/src/domain/` desde o CP6.
+
+**O que o CP6 mudou neste quadro, e o que não mudou.** A quarta linha ganhou endpoint. As
+duas primeiras continuam funcionando por expiração preguiçosa **na fonte mock**, e na fonte
+api passam a ser rotina de tempo sobre `ix_participacao_expira` e `ix_participacao_oferta`.
+A terceira — `CONFIRMADA → AUSENTE` — **continua sem gatilho nas duas fontes**: `AUSENTE`
+segue aparecendo só no seed, e é a transição mais antiga em aberto do projeto.
 
 **Por que na borda da requisição e não em processo agendado.** O CP5 roda dentro de um
 service worker no navegador de quem abriu a página: um temporizador ali expiraria a vaga de
@@ -209,7 +219,7 @@ O que o diagrama **não** tem é tão informativo quanto o que ele tem.
 | `PENDENTE_PAGAMENTO → PRESENTE` | Check-in exige `CONFIRMADA`. Entrar sem pagar é a falha que RN-017, condição 4, previne |
 
 Essas oito proibições estão codificadas na tabela `ALLOWED` de
-[`app/src/domain/participation.ts`](../../app/src/domain/participation.ts), exposta por
+[`packages/shared/src/domain/participation.ts`](../../packages/shared/src/domain/participation.ts), exposta por
 `canTransition(from, to)` e `allowedTransitions(from)`. O teste CT-029 tenta cada uma delas
 e espera recusa.
 

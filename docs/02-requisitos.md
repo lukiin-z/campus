@@ -298,7 +298,7 @@ toda divergência entre documento e código se resolve mudando o documento.
 
 **RF-034 — "o sistema recusa com *ingresso já utilizado às 20h14*".**
 
-A conferência encontrou uma versão de [`app/src/domain/checkin.ts`](../app/src/domain/checkin.ts)
+A conferência encontrou uma versão de [`packages/shared/src/domain/checkin.ts`](../packages/shared/src/domain/checkin.ts)
 em que `decideCheckIn` verificava `participacao.status !== 'CONFIRMADA'` **antes** de
 `presencaExistente`. Como o handler grava a presença e muda a participação para `PRESENTE`
 na mesma transação, a segunda leitura do mesmo QR caía sempre no ramo de status e devolvia
@@ -359,7 +359,7 @@ o que falta para medir. Nenhum número desta coluna é estimativa.
 | ID | Requisito | Métrica verificável | Como medir | Valor medido (2026-09-02) | MoSCoW | CP |
 |---|---|---|---|---|---|---|
 | RNF-013 | Reserva de vaga atômica | **Zero** casos de participações que ocupam vaga acima da capacidade, sob 50 inscrições concorrentes | Teste de concorrência: 50 requisições paralelas para 1 vaga → exatamente 1 confirmação | ✅ **Cumprido e coberto por teste.** `inscricao.test.ts` CT-020: 50 inscrições concorrentes na última vaga confirmam **exatamente uma**; as outras 49 recebem a oferta de lista de espera. É a atomicidade que impede a verificação de alcance de RNF-012 ser contornada por corrida | Must | 5 |
-| RNF-014 | Notificação de pagamento idempotente | Reprocessar a mesma notificação do gateway **N vezes** produz o mesmo resultado e uma única confirmação | Teste que envia a mesma notificação 3× e verifica um único pagamento `CONFIRMADO` | ✅ **Cumprido e coberto por teste.** [`domain/payment.test.ts`](../app/src/domain/payment.test.ts) CT-010: "a MESMA notificação repetida é ignorada — nenhuma transição, nenhum aviso". `planWebhook` devolve `IGNORAR_DUPLICADA`, e o handler não escreve nada nesse caso | Must | 6 |
+| RNF-014 | Notificação de pagamento idempotente | Reprocessar a mesma notificação do gateway **N vezes** produz o mesmo resultado e uma única confirmação | Teste que envia a mesma notificação 3× e verifica um único pagamento `CONFIRMADO` | ✅ **Cumprido e coberto por teste.** [`domain/payment.test.ts`](../packages/shared/src/domain/payment.test.ts) CT-010: "a MESMA notificação repetida é ignorada — nenhuma transição, nenhum aviso". `planWebhook` devolve `IGNORAR_DUPLICADA`, e o handler não escreve nada nesse caso | Must | 6 |
 
 ### Manutenibilidade
 

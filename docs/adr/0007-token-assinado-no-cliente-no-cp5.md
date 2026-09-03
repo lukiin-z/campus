@@ -60,7 +60,7 @@ sem passar pela tela de login.
 ### 2. Token de ingresso — `campus.v1.<payload base64url>.<assinatura>`
 
 Formato de JWS compacto, implementado em
-[`app/src/domain/ticketToken.ts`](../../app/src/domain/ticketToken.ts). O payload carrega
+[`packages/shared/src/domain/ticketToken.ts`](../../packages/shared/src/domain/ticketToken.ts). O payload carrega
 `participacaoId`, `eventoId`, `usuarioId` e `emitidoEm`. A assinatura é um FNV-1a de 32 bits
 sobre corpo + rótulo fixo.
 
@@ -83,7 +83,7 @@ e `emitirToken`/`lerToken` migram para a API. Nenhum consumidor muda — nem a t
 
 A assinatura do CP5 detecta **adulteração casual**, não ataque. Isso está escrito em três
 lugares, de propósito: no cabeçalho de
-[`ticketToken.ts`](../../app/src/domain/ticketToken.ts), no nome da constante
+[`ticketToken.ts`](../../packages/shared/src/domain/ticketToken.ts), no nome da constante
 (`SEGREDO_DEMO`, com o comentário "rótulo, não segredo — está no bundle de propósito") e
 aqui. A senha única `campus123` de todos os usuários do seed segue a mesma lógica e está
 documentada em [`../18-ambiente-de-teste.md`](../18-ambiente-de-teste.md).
@@ -169,7 +169,7 @@ Uma função em serviço gratuito emitindo e verificando tokens.
 ## Como reverter
 
 Reverter para a alternativa A (identificador opaco) custa pouco em código e muito em
-teste: apagar `app/src/domain/ticketToken.ts` (192 linhas), simplificar o parâmetro `token`
+teste: apagar `packages/shared/src/domain/ticketToken.ts` (192 linhas), simplificar o parâmetro `token`
 de `decideCheckIn` e reescrever `ticketToken.test.ts` (13 testes) mais os trechos de
 `handlersCp5.ts` que classificam a leitura. Estimativa: meio dia. **Não recomendado** — o
 motivo da recusa da alternativa A continua valendo.
@@ -182,7 +182,7 @@ recebe o token já pronto. `classificarLeitura` e `decideCheckIn` não mudam.
 
 | O que se verifica | Como |
 |---|---|
-| Token adulterado é recusado | `app/src/domain/ticketToken.test.ts` — corpo alterado com assinatura mantida, assinatura trocada, emissor trocado, versão trocada |
+| Token adulterado é recusado | `packages/shared/src/domain/ticketToken.test.ts` — corpo alterado com assinatura mantida, assinatura trocada, emissor trocado, versão trocada |
 | `lerToken` nunca lança | O mesmo arquivo, caso "devolve null — nunca lança — para entrada lixo", com 8 entradas |
 | As três formas de leitura convergem | `classificarLeitura` tem teste por forma, e `handlersCp5.ts` deriva a participação pelas três |
 | Nenhum segredo real no repositório | Hook de pré-commit de varredura de segredos (`~/.claude/hooks/`) e revisão de PR. **Verificação fraca por natureza**: `SEGREDO_DEMO` é uma string no fonte e nenhum scanner distingue rótulo de segredo — o que protege é o nome e o comentário |

@@ -168,7 +168,7 @@ ou de dado; **P2** = regra periférica ou de histórico.
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-004 | RF-019, RF-020 | Unitário | P0 | `app/src/domain/capacity.test.ts` |
+| RN-004 | RF-019, RF-020 | Unitário | P0 | `packages/shared/src/domain/capacity.test.ts` |
 
 ```gherkin
 Funcionalidade: Reserva de vaga em evento com lugar livre
@@ -189,7 +189,7 @@ Funcionalidade: Reserva de vaga em evento com lugar livre
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-004 | RF-020 | Unitário | P0 | `app/src/domain/capacity.test.ts` |
+| RN-004 | RF-020 | Unitário | P0 | `packages/shared/src/domain/capacity.test.ts` |
 
 ```gherkin
 Funcionalidade: Contagem de vagas ocupadas
@@ -225,7 +225,7 @@ Funcionalidade: Contagem de vagas ocupadas
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-004 | RF-019, RF-020 · RNF-013 | Unitário (fila de escrita da camada mockada) | P0 | `app/src/domain/capacity.test.ts` |
+| RN-004 | RF-019, RF-020 · RNF-013 | Unitário (fila de escrita da camada mockada) | P0 | `packages/shared/src/domain/capacity.test.ts` |
 
 Este é o caso que o [modelo de dados](05-modelagem/03-modelo-dados-er.md) descreve com
 `SELECT ... FOR UPDATE`: no CP5 a mesma serialização vem de uma fila de operações de
@@ -249,7 +249,7 @@ Funcionalidade: Reserva atômica sob concorrência
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-005 | RF-013, RF-025 | Unitário | P1 | `app/src/domain/capacity.test.ts` |
+| RN-005 | RF-013, RF-025 | Unitário | P1 | `packages/shared/src/domain/capacity.test.ts` |
 
 ```gherkin
 Funcionalidade: Alteração de capacidade de evento publicado
@@ -283,7 +283,7 @@ Funcionalidade: Alteração de capacidade de evento publicado
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-006 | RF-024 | Unitário | P0 | `app/src/domain/waitlist.test.ts` |
+| RN-006 | RF-024 | Unitário | P0 | `packages/shared/src/domain/waitlist.test.ts` |
 
 ```gherkin
 Funcionalidade: Entrada na lista de espera
@@ -305,7 +305,7 @@ Funcionalidade: Entrada na lista de espera
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-007 | RF-025 | Unitário | P0 | `app/src/domain/waitlist.test.ts` |
+| RN-007 | RF-025 | Unitário | P0 | `packages/shared/src/domain/waitlist.test.ts` |
 
 ```gherkin
 Funcionalidade: Promoção FIFO da lista de espera
@@ -341,7 +341,7 @@ Funcionalidade: Promoção FIFO da lista de espera
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-007 | RF-025 | Unitário | P0 | `app/src/domain/waitlist.test.ts` |
+| RN-007 | RF-025 | Unitário | P0 | `packages/shared/src/domain/waitlist.test.ts` |
 
 ```gherkin
 Funcionalidade: Reordenação da fila
@@ -367,7 +367,7 @@ Funcionalidade: Reordenação da fila
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-008 | RF-026, RF-027 | Unitário | P0 | `app/src/domain/waitlist.test.ts` |
+| RN-008 | RF-026, RF-027 | Unitário | P0 | `packages/shared/src/domain/waitlist.test.ts` |
 
 ```gherkin
 Funcionalidade: Expiração da oferta de vaga
@@ -397,7 +397,7 @@ Funcionalidade: Expiração da oferta de vaga
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-012 | RF-028, RF-030 | Unitário | P0 | `app/src/domain/payment.test.ts` |
+| RN-012 | RF-028, RF-030 | Unitário | P0 | `packages/shared/src/domain/payment.test.ts` |
 
 ```gherkin
 Funcionalidade: Janela de pagamento da reserva
@@ -431,7 +431,7 @@ Funcionalidade: Janela de pagamento da reserva
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-013 | RF-031 | Unitário | P0 | `app/src/domain/refund.test.ts` |
+| RN-013 | RF-031 | Unitário | P0 | `packages/shared/src/domain/refund.test.ts` |
 
 ```gherkin
 Funcionalidade: Escala de reembolso — faixa integral
@@ -457,7 +457,7 @@ Funcionalidade: Escala de reembolso — faixa integral
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-013 | RF-031, RF-014 | Unitário | P0 | `app/src/domain/refund.test.ts` |
+| RN-013 | RF-031, RF-014 | Unitário | P0 | `packages/shared/src/domain/refund.test.ts` |
 
 ```gherkin
 Funcionalidade: Escala de reembolso — faixas parcial e zero
@@ -497,7 +497,7 @@ Funcionalidade: Escala de reembolso — faixas parcial e zero
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-014 | RF-029 · RNF-014, RNF-022 | Unitário | P0 | `app/src/domain/payment.test.ts` |
+| RN-014 | RF-029 · RNF-014, RNF-022 | Unitário | P0 | `packages/shared/src/domain/payment.test.ts` |
 
 ```gherkin
 Funcionalidade: Notificação de pagamento
@@ -538,7 +538,7 @@ Funcionalidade: Notificação de pagamento
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-001 | RF-011, RF-015, RF-016, RF-036 | Unitário | P0 | `app/src/domain/visibility.test.ts` |
+| RN-001 | RF-011, RF-015, RF-016, RF-036 | Unitário | P0 | `packages/shared/src/domain/visibility.test.ts` |
 
 ```gherkin
 Funcionalidade: Visibilidade por alcance
@@ -687,7 +687,7 @@ Funcionalidade: Aprovação de evento de alcance FACULDADE
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-009 | RF-023 | Unitário | P1 | `app/src/domain/deadlines.test.ts` |
+| RN-009 | RF-023 | Unitário | P1 | `packages/shared/src/domain/deadlines.test.ts` |
 
 ```gherkin
 Funcionalidade: Prazo de inscrição
@@ -723,7 +723,7 @@ Funcionalidade: Prazo de inscrição
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-010 | RF-021, RF-031 | Unitário | P1 | `app/src/domain/deadlines.test.ts` |
+| RN-010 | RF-021, RF-031 | Unitário | P1 | `packages/shared/src/domain/deadlines.test.ts` |
 
 ```gherkin
 Funcionalidade: Prazo de cancelamento
@@ -793,7 +793,7 @@ Funcionalidade: Coerência de datas do evento
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-015 | RF-022 | Unitário | P0 | `app/src/domain/participation.test.ts` |
+| RN-015 | RF-022 | Unitário | P0 | `packages/shared/src/domain/participation.test.ts` |
 
 ```gherkin
 Funcionalidade: Unicidade da participação ativa
@@ -832,7 +832,7 @@ Funcionalidade: Unicidade da participação ativa
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-016 | RF-010, RF-019 | Unitário | P1 | `app/src/domain/participation.test.ts` |
+| RN-016 | RF-010, RF-019 | Unitário | P1 | `packages/shared/src/domain/participation.test.ts` |
 
 ```gherkin
 Funcionalidade: Organizador e contagem de vagas
@@ -863,7 +863,7 @@ Funcionalidade: Organizador e contagem de vagas
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-017 | RF-033, RF-034 · RNF-011 | Unitário | P0 | `app/src/domain/checkin.test.ts` |
+| RN-017 | RF-033, RF-034 · RNF-011 | Unitário | P0 | `packages/shared/src/domain/checkin.test.ts` |
 
 ```gherkin
 Funcionalidade: Validação do token de check-in
@@ -903,7 +903,7 @@ Funcionalidade: Validação do token de check-in
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-017 | RF-034 · RNF-011 | Unitário | P0 | `app/src/domain/checkin.test.ts` |
+| RN-017 | RF-034 · RNF-011 | Unitário | P0 | `packages/shared/src/domain/checkin.test.ts` |
 
 ```gherkin
 Funcionalidade: Uso único do ingresso
@@ -932,7 +932,7 @@ Funcionalidade: Uso único do ingresso
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-018 | RF-034, RF-035 | Unitário | P1 | `app/src/domain/checkin.test.ts` |
+| RN-018 | RF-034, RF-035 | Unitário | P1 | `packages/shared/src/domain/checkin.test.ts` |
 
 ```gherkin
 Funcionalidade: Registro de presença
@@ -1106,7 +1106,7 @@ Funcionalidade: Efeito em cascata do cancelamento
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-023 | — · RNF-012 | Unitário | P0 | `app/src/domain/participation.test.ts`, `app/src/domain/event.test.ts` |
+| RN-023 | — · RNF-012 | Unitário | P0 | `packages/shared/src/domain/participation.test.ts`, `app/src/domain/event.test.ts` |
 
 O mapeamento de [`04-regras-de-negocio.md`](04-regras-de-negocio.md) aponta RN-023 para
 CT-029, e o [diagrama de estados](05-modelagem/06-diagrama-estados.md) atribui a CT-029 a
@@ -1163,7 +1163,7 @@ Funcionalidade: Papel por evento e tabela fechada de transições
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-024 | RF-041, RF-042, RF-043 · RNF-012 | Unitário | P0 | `app/src/domain/permissions.test.ts` |
+| RN-024 | RF-041, RF-042, RF-043 · RNF-012 | Unitário | P0 | `packages/shared/src/domain/permissions.test.ts` |
 
 ```gherkin
 Funcionalidade: Matriz de permissões por ator
@@ -1282,7 +1282,7 @@ não o número de `it()`.
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-002 | RF-002, RF-003 | Unitário | P0 | `app/src/domain/auth.test.ts` |
+| RN-002 | RF-002, RF-003 | Unitário | P0 | `packages/shared/src/domain/auth.test.ts` |
 
 ```gherkin
 Funcionalidade: Login com e-mail institucional
@@ -1325,7 +1325,7 @@ Funcionalidade: Login com e-mail institucional
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-003 | RF-004, RF-005 | Unitário | P0 | `app/src/domain/auth.test.ts` |
+| RN-003 | RF-004, RF-005 | Unitário | P0 | `packages/shared/src/domain/auth.test.ts` |
 
 ```gherkin
 Funcionalidade: Vínculo com a turma pelo código de convite
@@ -1360,7 +1360,7 @@ Funcionalidade: Vínculo com a turma pelo código de convite
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-012, RN-014 | RF-027, RF-028 | Unitário | P1 | `app/src/domain/pix.test.ts` |
+| RN-012, RN-014 | RF-027, RF-028 | Unitário | P1 | `packages/shared/src/domain/pix.test.ts` |
 
 ```gherkin
 Funcionalidade: Payload EMV da cobrança Pix simulada
@@ -1390,7 +1390,7 @@ Funcionalidade: Payload EMV da cobrança Pix simulada
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-014 | RF-029, RNF-022 | Unitário | P0 | `app/src/domain/pix.test.ts` |
+| RN-014 | RF-029, RNF-022 | Unitário | P0 | `packages/shared/src/domain/pix.test.ts` |
 
 ```gherkin
 Funcionalidade: Redução do cartão ao resumo que pode trafegar
@@ -1420,7 +1420,7 @@ Funcionalidade: Redução do cartão ao resumo que pode trafegar
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-017 | RF-033, RF-034 | Unitário | P0 | `app/src/domain/ticketToken.test.ts` |
+| RN-017 | RF-033, RF-034 | Unitário | P0 | `packages/shared/src/domain/ticketToken.test.ts` |
 
 ```gherkin
 Funcionalidade: Integridade do token do ingresso
@@ -1454,7 +1454,7 @@ Funcionalidade: Integridade do token do ingresso
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-017, RN-018 | RF-033, RF-034 | Unitário | P0 | `app/src/domain/ticketToken.test.ts` |
+| RN-017, RN-018 | RF-033, RF-034 | Unitário | P0 | `packages/shared/src/domain/ticketToken.test.ts` |
 
 ```gherkin
 Funcionalidade: Classificação da leitura na porta do evento

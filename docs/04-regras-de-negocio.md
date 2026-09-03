@@ -44,7 +44,7 @@ construídos. Ver [regras acrescentadas pelo CP5](#regras-acrescentadas-pelo-cp5
 ### Parâmetros do domínio
 
 Valores configuráveis por evento, com padrão do sistema. Estão centralizados em
-`app/src/domain/policy.ts` para que nenhuma regra tenha número mágico espalhado.
+`packages/shared/src/domain/policy.ts` para que nenhuma regra tenha número mágico espalhado.
 
 | Parâmetro | Padrão | Faixa permitida |
 |---|---|---|
@@ -140,7 +140,7 @@ vagasDisponiveis = capacidade - ocupadas
 durante toda a janela de confirmação (RN-007, item 3). Se não ocupasse, a vaga voltaria ao
 pool e alguém poderia tomá-la antes de o primeiro da fila responder — recriando exatamente
 o overbooking que esta regra proíbe. Implementado em `occupiesSpot()` de
-`app/src/domain/capacity.ts`.
+`packages/shared/src/domain/capacity.ts`.
 
 `PENDENTE_PAGAMENTO` ocupa vaga de propósito: reservar sem segurar a vaga permitiria
 vender a mesma vaga duas vezes. O custo dessa escolha é a vaga presa até expirar, que a
@@ -370,7 +370,7 @@ outro evento", "o check-in abre às 18h00", "ingresso já utilizado às 20h14").
 genérica de erro na porta de um evento é problema operacional, não detalhe de UX.
 
 **Correção do CP5 — eram 6 condições, são 7.** A implementação em
-[`app/src/domain/checkin.ts`](../app/src/domain/checkin.ts) recusa também o evento
+[`packages/shared/src/domain/checkin.ts`](../packages/shared/src/domain/checkin.ts) recusa também o evento
 `CANCELADO`, com o motivo `EVENTO_CANCELADO` e a mensagem "Este evento foi cancelado: o
 check-in está encerrado." A condição não estava no CP4 e **o código está certo**: sem ela,
 um evento cancelado com ingressos já emitidos aceitaria presença.
@@ -429,7 +429,7 @@ pode publicar, os três em vigor ao mesmo tempo:
 
 | Onde | Critério aplicado |
 |---|---|
-| Este documento (CP4) e [`domain/permissions.ts#canPostToEvent`](../app/src/domain/permissions.ts) | Organizador sempre; qualquer outro só se `PRESENTE` **e** o evento já começou |
+| Este documento (CP4) e [`domain/permissions.ts#canPostToEvent`](../packages/shared/src/domain/permissions.ts) | Organizador sempre; qualquer outro só se `PRESENTE` **e** o evento já começou |
 | `GET /feed/eventos-publicaveis` em [`handlersCp5.ts`](../app/src/mocks/handlersCp5.ts) | Organizador, ou participação `CONFIRMADA` **ou** `PRESENTE` |
 | `POST /publicacoes` em `handlersCp5.ts` | Organizador, ou **qualquer participação ativa** — o que inclui `LISTA_ESPERA`, `PENDENTE_PAGAMENTO` e `OFERTA_PENDENTE`, via `isActive()` |
 
@@ -659,7 +659,7 @@ silêncio. Na porta, "não entendi o que você leu" e "este ingresso não vale" 
 mesma resposta visível.
 
 > Requisitos: RF-034 · RNF-011 · Implementado em
-> [`domain/ticketToken.ts#classificarLeitura`](../app/src/domain/ticketToken.ts) e no
+> [`domain/ticketToken.ts#classificarLeitura`](../packages/shared/src/domain/ticketToken.ts) e no
 > handler `POST /eventos/:id/checkin`
 
 ---

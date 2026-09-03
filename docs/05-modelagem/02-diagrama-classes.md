@@ -1,8 +1,9 @@
 # Diagrama de classes
 
 **Responsável:** Ronaldo Veloso Filho
-**Espelhado em código:** [`app/src/types/domain.ts`](../../app/src/types/domain.ts) — divergência
-entre este diagrama e aquele arquivo é defeito, não detalhe.
+**Espelhado em código:** [`packages/shared/src/types.ts`](../../packages/shared/src/types.ts)
+— divergência entre este diagrama e aquele arquivo é defeito, não detalhe.
+`app/src/types/domain.ts` continua existindo, como reexportação de uma linha.
 
 ## Histórico de revisões
 
@@ -10,19 +11,31 @@ entre este diagrama e aquele arquivo é defeito, não detalhe.
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | 13 classes de entidade (o texto dizia 14), 9 enumerações, atributos tipados, multiplicidades, composição e agregação, e sete decisões de modelagem |
 | 2.0 | 2026-09-02 | CP5 | O documento passa a separar **três categorias de tipo** em dois diagramas: entidade persistida, projeção de leitura e entrada de escrita. Corrigidos cinco atributos que o código nunca teve (`Usuario.senhaHash`, `Usuario.fotoUrl`, `Turma.totalAlunos`) ou que tinham tipo errado (`capaSeed`, `imagemSeed`). Enumerações vão de 9 para **15**. `PoliticaReembolso` e `ResumoCartao` entram como objetos-valor. A tabela "método → implementação" foi refeita: **cinco linhas apontavam para arquivos que não existem** |
+| 3.0 | 2026-09-02 | CP6 | **Todos os caminhos mudaram**: os tipos e os 13 módulos de regra migraram de `app/src/domain/` para `packages/shared/src/` ([ADR-0008](../adr/0008-monorepo-com-dominio-compartilhado.md)), e as 16 linhas da tabela "método → implementação" foram reapontadas. Três dos métodos removidos no CP5 **voltam**, porque o CP6 lhes deu endpoint: `Evento.cancelar`, `Turma.gerarCodigo` e a transição de `Participacao`. A seção 6 registra que `Usuario.senhaHash` deixou de ser "alvo do CP6": a coluna existe, e continua fora do tipo do cliente de propósito |
 
 ## 0. Três categorias de tipo, e por que não vão no mesmo diagrama
 
-`app/src/types/domain.ts` declara 45 tipos. Jogar todos em um `classDiagram` produziria a
+`packages/shared/src/types.ts` declara 45 tipos. Jogar todos em um `classDiagram` produziria a
 impressão — falsa e caríssima — de que cada um é uma tabela. As três categorias têm ciclos
 de vida, donos e destinos completamente diferentes:
 
-| Categoria | O que é | Quantos | Vira tabela no CP6? | Onde está neste documento |
+| Categoria | O que é | Quantos | Tem tabela? | Onde está neste documento |
 |---|---|---|---|---|
 | **Entidade persistida** | Tem identidade própria, sobrevive à requisição, tem linha no banco | 13 | Sim, uma tabela cada | Diagrama 1 |
 | **Objeto-valor** | Não tem identidade; é um pedaço de estado de outra coisa | 3 | Coluna(s) da entidade dona, nunca tabela | Diagrama 1, com `<<value object>>` |
 | **Projeção de leitura** | O que a API **devolve** para a tela, com relacionamento já resolvido | 10 + 1 união | Não. É `SELECT` com `JOIN`, ou serializador | Diagrama 2 |
 | **Entrada de escrita / filtro** | O que a tela **envia**. Vive o tempo de uma requisição | 7 + 3 filtros | Não. É corpo de requisição ou *query string* | Diagrama 2 |
+
+> **Treze entidades aqui, quatorze tabelas no ER — e a diferença é deliberada.** A tabela
+> `sessao` do CP6 ([`03-modelo-dados-er.md` §4b](03-modelo-dados-er.md#2-o-que-o-diagrama-mostra-e-por-que-assim))
+> **não** tem tipo em `packages/shared/src/types.ts`, e não deve ter: o `refresh_hash` nunca
+> atravessa a rede, e um tipo compartilhado é, por definição, um tipo que os dois lados
+> conhecem. Estado que só o servidor conhece pertence ao Prisma, não ao pacote.
+>
+> Não confundir com `SessaoUsuario`, que existe e é **projeção**: usuário + faculdade +
+> curso + turma resolvidos, o que `GET /sessao` devolve. Os dois nomes são parecidos e as
+> duas coisas são opostas — uma é o segredo que fica no servidor, a outra é o que a tela
+> recebe.
 
 A regra que separa as duas últimas da primeira é simples e verificável: **se o tipo
 `extends` uma entidade, ou se compõe pedaços de várias, é projeção.** `EventoView extends
@@ -793,29 +806,66 @@ Os métodos do diagrama não são "getters": cada um encapsula uma regra de neg�
 app React eles são funções puras da camada de domínio, não métodos de instância — a
 tradução está aqui para que o diagrama continue verificável.
 
-**Esta tabela foi refeita no CP5, e é o achado mais concreto desta revisão: cinco linhas
-da versão do CP4 apontavam para arquivos que nunca existiram.**
+**Esta tabela foi refeita no CP5, e é o achado mais concreto daquela revisão: cinco linhas
+da versão do CP4 apontavam para arquivos que nunca existiram.** No CP6 ela foi reapontada
+inteira: os módulos saíram de `app/src/domain/` e vivem em `packages/shared/src/domain/`.
+**Nenhuma função mudou de nome, de assinatura ou de comportamento** — a migração foi mover,
+não reescrever, e é por isso que a coluna do meio mudou de prefixo e nada mais.
+
+Caminho completo: `packages/shared/src/domain/<módulo>.ts`, exportado por `@campus/shared`.
 
 | Método no diagrama | Implementação real | Regra |
 |---|---|---|
-| `Evento.vagasDisponiveis()` | `domain/capacity.ts → availableSpots(event)` | RN-004 |
-| `Evento.estaLotado()` | `domain/capacity.ts → isFull(event)` | RN-006 |
-| `Evento.inscricoesAbertas()` | `domain/deadlines.ts → enrollmentOpen(event, now)` | RN-009 |
-| `Evento.taxaOcupacao()` | `domain/capacity.ts → occupancyRate(event)` | — |
-| `Evento.janelaDeCheckin()` | `domain/deadlines.ts → checkInWindow(event)` e `checkInOpen(event, now)` | RN-017 |
-| `Participacao.ocupaVaga()` | `domain/capacity.ts → occupiesSpot(status)` | RN-004 |
-| `Participacao.estaAtiva()` | `domain/participation.ts → isActive(status)` | RN-015 |
-| `Participacao.minutosParaPagar()` | `domain/payment.ts → minutesLeftToPay(participacao, now)` | RN-012 |
-| `Participacao.transicaoPermitida(d)` | `domain/participation.ts → canTransition(from, to)` | RN-015, diagrama de estados |
-| `Pagamento.planejarWebhook(n)` | `domain/payment.ts → planWebhook(pagamento, participacao, notificacao)` | RN-014 |
-| `Pagamento.calcularReembolso(t)` | `domain/refund.ts → computeRefund(...)` | RN-013 |
-| `Usuario.podeVer(evento)` | `domain/visibility.ts → canSee(usuario, event, options)` | RN-001 |
-| `Usuario.ehOrganizadorDe(e)` | `domain/permissions.ts → isOrganizer(usuario, event)` | RN-023 |
-| `Usuario.onboardingPendente()` | `domain/auth.ts → onboardingPendente(usuario)` | RF-004, RF-005 |
-| `Publicacao.podeSerRemovidaPor(u)` | `domain/permissions.ts → canRemovePost(usuario, post, event)` | RN-020 |
-| `Faculdade.validarDominio(e)` | `domain/auth.ts → dominioInstitucional(email, dominios)` | RN-002, RF-002 |
+| `Evento.vagasDisponiveis()` | `capacity.ts → availableSpots(event)` | RN-004 |
+| `Evento.estaLotado()` | `capacity.ts → isFull(event)` | RN-006 |
+| `Evento.inscricoesAbertas()` | `deadlines.ts → enrollmentOpen(event, now)` | RN-009 |
+| `Evento.taxaOcupacao()` | `capacity.ts → occupancyRate(event)` | — |
+| `Evento.janelaDeCheckin()` | `deadlines.ts → checkInWindow(event)` e `checkInOpen(event, now)` | RN-017 |
+| `Participacao.ocupaVaga()` | `capacity.ts → occupiesSpot(status)` | RN-004 |
+| `Participacao.estaAtiva()` | `participation.ts → isActive(status)` | RN-015 |
+| `Participacao.minutosParaPagar()` | `payment.ts → minutesLeftToPay(participacao, now)` | RN-012 |
+| `Participacao.transicaoPermitida(d)` | `participation.ts → canTransition(from, to)` | RN-015, diagrama de estados |
+| `Pagamento.planejarWebhook(n)` | `payment.ts → planWebhook(pagamento, participacao, notificacao)` | RN-014 |
+| `Pagamento.calcularReembolso(t)` | `refund.ts → computeRefund(...)` | RN-013 |
+| `Usuario.podeVer(evento)` | `visibility.ts → canSee(usuario, event, options)` | RN-001 |
+| `Usuario.ehOrganizadorDe(e)` | `permissions.ts → isOrganizer(usuario, event)` | RN-023 |
+| `Usuario.onboardingPendente()` | `auth.ts → onboardingPendente(usuario)` | RF-004, RF-005 |
+| `Publicacao.podeSerRemovidaPor(u)` | `permissions.ts → canRemovePost(usuario, post, event)` | RN-020 |
+| `Faculdade.validarDominio(e)` | `auth.ts → dominioInstitucional(email, dominios)` | RN-002, RF-002 |
 
-### Métodos removidos nesta revisão, e por quê
+Os três módulos que **sobraram** em `app/src/domain/` não aparecem nesta tabela, e é
+coerente: `format.ts`, `eventAction.ts` e `eventSchema.ts` não implementam método de
+entidade nenhum. São apresentação — formatação pt-BR, rótulo do botão principal e a forma
+do **formulário**, que é diferente da forma do corpo da requisição.
+
+### O que a migração mudou de verdade, e o que não mudou
+
+| Não mudou | Mudou |
+|---|---|
+| Nome, assinatura e comportamento das 16 funções | O caminho do arquivo, em 16 linhas desta tabela |
+| Os testes — os mesmos casos, movidos com as funções | Passaram a rodar em `node` em vez de jsdom: ~2 s contra ~9 s |
+| A relação método do diagrama → função | Quem consome: agora são **quatro** consumidores, não um |
+
+O terceiro item é o que justifica a migração inteira. `isFull` decide o rótulo do botão na
+tela **e** decide se a API grava. Duas cópias divergiriam na primeira correção feita de um
+lado só — e o CP5 produziu quatro divergências desse tipo em um dia
+([ADR-0008](../adr/0008-monorepo-com-dominio-compartilhado.md)).
+
+### Métodos removidos no CP5, e o que o CP6 devolveu
+
+Três das linhas abaixo eram "volta no CP6", e voltaram. O registro fica porque a razão da
+remoção continua sendo a lição: **o CP5 removeu o método porque não havia código, não porque
+a modelagem estivesse errada.**
+
+| Método do CP4 | Situação no CP5 | Estado no CP6 |
+|---|---|---|
+| `Evento.cancelar(motivo)` | Removido: `domain/event.ts` não existia | **Existe como operação**, não como método: `POST /eventos/{id}/cancelamento`. O motivo é obrigatório por `CHECK ck_evento_cancelado_tem_motivo`, e o cancelamento em cascata é RN-022 |
+| `Turma.gerarCodigo()` / `.revogarCodigo()` | Removidos: `domain/classGroup.ts` não existia; os códigos vinham do seed | **Existe como operação**: `GET /admin/turmas/{id}/codigo` gera o novo e desativa o anterior (RF-043). Sobre o método `GET` nessa rota, ver [`../21-api-contrato.md` §6](../21-api-contrato.md#6-divergências-abertas-entre-o-contrato-e-o-resto) |
+| `Participacao.confirmar()` / `.expirar()` | Removidos: a transição era escrita pelo handler | Continua **não** sendo método. `POST /participacoes/{id}/confirmar` é a operação; a transição permitida é `canTransition`, e quem escreve é o serviço de aplicação dentro da transação |
+| `Participacao.podeFazerCheckin()` | Substituído por `decideCheckIn` | Igual. A decisão recebe sete entradas e devolve motivo — não é predicado de instância |
+| `Pagamento.confirmar(txId)` / `.estornar()` | Substituídos por `planejarWebhook` | Igual, e agora com a entrada real: `POST /pagamentos/webhook`, autenticado por HMAC e idempotente pela `chave_idempotencia` |
+
+### Métodos e atributos removidos na revisão do CP5, e por quê
 
 | Método do CP4 | Apontava para | Situação real | Decisão |
 |---|---|---|---|
@@ -840,7 +890,7 @@ e reusar a mesma regra no servidor no CP6 ([ADR-0003](../adr/0003-camada-de-repo
 |---|---|
 | `Usuario.cpf`, `.telefone`, `.endereco`, `.dataNascimento` | Minimização de dados pessoais (RNF-020). Nada disso é necessário para o produto funcionar |
 | `Usuario.fotoUrl` | Sem *upload* na v1: a identidade visual é o avatar de iniciais, gerado de `avatarSeed` |
-| `Usuario.senhaHash` | Existe no [modelo ER](03-modelo-dados-er.md) como alvo do CP6 (`argon2id`, RNF-019) e **não** no tipo do cliente. O CP5 autentica contra `SENHA_DEMO` no mock, e o tipo não deve sugerir que o cliente vê hash |
+| `Usuario.senhaHash` | **Existe no banco desde o CP6** — `usuario.senha_hash`, Argon2id — e continua fora do tipo do cliente, de propósito. A regra passou a ser convenção do repositório: nenhuma projeção de leitura inclui a coluna, e o único lugar que a lê é a verificação de credencial. Um tipo que a expusesse convidaria a serializá-la em resposta |
 | `Pagamento.numeroCartao`, `.cvv` | Nunca entram no modelo (RNF-022). O que sobrevive ao formulário é `ResumoCartao` — ver decisão 9 |
 | `Pagamento.brCode` | Payload Pix é derivado por `gerarCobrancaPix`, não armazenado ([RN-028](../04-regras-de-negocio.md)) |
 | `Evento.imagemUrl` (arquivo enviado) | Na v1 a capa é gerada localmente a partir de `capaSeed`, sem *upload* nem armazenamento de mídia |

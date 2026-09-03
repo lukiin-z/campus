@@ -42,7 +42,7 @@ antes de ser corrigido. Checklist que só lista sucesso não é checklist — é
 | Regra de negócio no "servidor", não na tela | Inscrição fora do alcance é recusada pela API, e `obter()` por ID direto devolve `null` — [`inscricao.test.ts`](../app/src/services/inscricao.test.ts) CT-012. Esconder na UI não conta (RNF-012) |
 | Capacidade sem estouro | **50 inscrições concorrentes na última vaga confirmam exatamente uma** — `inscricao.test.ts` CT-020. É o teste que prova RNF-013 |
 | Lista de espera que anda sozinha | Cancelar libera a vaga, promove o primeiro da fila e recalcula as posições **na mesma transação** — CT-004 e CT-005 |
-| Pagamento simulado com idempotência | A mesma notificação do gateway repetida não produz segunda confirmação — [`payment.test.ts`](../app/src/domain/payment.test.ts) CT-010. A cobrança também é idempotente por participação (RN-027) |
+| Pagamento simulado com idempotência | A mesma notificação do gateway repetida não produz segunda confirmação — [`payment.test.ts`](../packages/shared/src/domain/payment.test.ts) CT-010. A cobrança também é idempotente por participação (RN-027) |
 | Camada de dados trocável | Nenhuma tela importa `fetch`, `axios`, `msw` ou `mocks/` — garantido por `no-restricted-imports` em [`.eslintrc.cjs`](../app/.eslintrc.cjs), verificado pelo CI. O container concreto é **uma linha** em [`services/index.ts`](../app/src/services/index.ts) |
 | Status honesto por requisito | [`02-requisitos.md` §1.1](02-requisitos.md#11-status-de-implementação-no-cp5) classifica os 43 RF em `implementado` (21), `mockado` (4), `parcial` (3) e `adiado` (15), com o arquivo que sustenta cada classificação |
 
@@ -200,7 +200,7 @@ feitos por qualquer integrante; os marcados com 👤 dependem de pessoa e não d
 
 ### Ganho fácil de qualidade, se houver tempo
 
-- [ ] 🔧 Escrever `src/domain/permissions.test.ts` — 12 funções puras exportadas com **0%**
+- [ ] 🔧 Escrever `packages/shared/src/domain/permissions.test.ts` — 12 funções puras exportadas com **0%**
       de cobertura. RN-024 é a regra com mais superfície e menos prova do projeto, e são
       funções de decisão booleana: o tipo mais barato de testar que existe
 - [ ] 🔧 Escrever teste para `src/domain/eventSchema.ts` (0% hoje) — é o que valida o

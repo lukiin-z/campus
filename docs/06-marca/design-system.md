@@ -710,7 +710,7 @@ capacidade, código de check-in.
 |---|---|
 | `texto` | Título do evento, local |
 | `e-mail` | `inputmode="email"`, `autocomplete="email"`, validação de domínio institucional (RF-001) |
-| `número` | `inputmode="numeric"`, capacidade entre 2 e 2000 (`app/src/domain/policy.ts`) |
+| `número` | `inputmode="numeric"`, capacidade entre 2 e 2000 (`packages/shared/src/domain/policy.ts`) |
 | `moeda` | Prefixo `R$`, `inputmode="decimal"` |
 | `data` / `hora` | Nativo do sistema; prazos coerentes validados no domínio (RN-011) |
 | `busca` | Ícone 16 px à esquerda, botão limpar 44 × 44 à direita |
@@ -1404,7 +1404,7 @@ agora com o nome dele dentro.
 | Aviso | `body-xs` em `text-muted`: "Uso único. Não compartilhe esta imagem." |
 | Ações | `Button secondary` "Adicionar ao calendário" e "Compartilhar", empilhadas em `block` no mobile |
 
-A janela de validade é calculada com os parâmetros de `app/src/domain/policy.ts`:
+A janela de validade é calculada com os parâmetros de `packages/shared/src/domain/policy.ts`:
 `CHECKIN_OPENS_HOURS_BEFORE` 4 e `CHECKIN_CLOSES_HOURS_AFTER` 2. Para `evt-001` (sábado, 12 de
 setembro, 13h) o texto é: **"Válido das 9h às 15h de sábado, 12 de setembro."**
 

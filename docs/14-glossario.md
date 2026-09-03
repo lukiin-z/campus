@@ -7,6 +7,18 @@ outro, alguém vai modelar duas.
 
 **Responsável:** Lucas Zolla · **Guardião no código:** Ronaldo Veloso Filho
 
+## Histórico de revisões
+
+| Versão | Data | Checkpoint | O que mudou |
+|---|---|---|---|
+| 1.0 | 2026-09-01 | CP4 | Linguagem ubíqua: 10 seções, termo em português, identificador em inglês, "não confundir com" e a lista de termos proibidos |
+| 1.1 | 2026-09-02 | CP6 | Nova seção **9b** com os termos que o CP6 acrescentou ao vocabulário: monorepo, workspace, pacote compartilhado, migração, `SELECT … FOR UPDATE`, `CHECK`, índice único parcial, Argon2id, access e refresh token, healthcheck e GHCR. `Repositório (camada)` passa a dizer que há **duas** implementações, e entra `Fonte de dados` (`VITE_DATA_SOURCE`). `Seed` deixa de ser um e passa a ser dois, com o mesmo conteúdo |
+
+Os termos novos do CP6 estão na seção 9b, e cada um tem a mesma exigência dos outros: a
+coluna "não confundir com" existe porque **quase todo termo de infraestrutura tem um vizinho
+que parece a mesma coisa e não é** — transação e trava, monorepo e monólito, expirar e
+revogar, `depends_on` e healthcheck. É onde o vocabulário costuma escorregar.
+
 ## Como usar
 
 | Coluna | Significado |
@@ -119,9 +131,27 @@ outro, alguém vai modelar duas.
 | **Design token** | token | Valor nomeado de design (cor, fonte, raio, sombra, espaçamento) declarado uma vez em `tailwind.config.ts` e consumido por nome. Fonte única de verdade visual | Variável CSS solta: token tem nome semântico e equivalente no Figma |
 | **Cartão-ingresso picotado** | `TicketCard` | Componente de assinatura da marca: borda tracejada com recortes circulares laterais, imitando ingresso destacável | `EventListItem`, que é a linha compacta da lista de eventos |
 | **Badge de alcance** | `ScopeBadge` | Etiqueta que mostra o alcance do evento (minha turma / meu curso / faculdade) | `Chip`, que é filtro clicável |
-| **Repositório (camada)** | `EventsRepository`, `AuthRepository`... | Interface que isola as telas da origem dos dados. Hoje mock, no CP6 API real, sem tocar em tela (RNF-016) | Repositório Git |
+| **Repositório (camada)** | `EventsRepository`, `AuthRepository`... | Interface que isola as telas da origem dos dados. No CP6 tem **duas** implementações — mock e API real — e nenhuma tela sabe qual está em uso (RNF-016) | Repositório Git |
 | **MSW** | Mock Service Worker | Biblioteca que intercepta chamadas HTTP no navegador, para o app "falar HTTP" desde o CP5 ([ADR-0003](adr/0003-camada-de-repositorio-com-msw.md)) | Mock em memória: o MSW é a camada de rede acima dele |
-| **Seed** | `seed` | Conjunto de dados fictícios coerentes usado no protótipo e nas telas do Figma. Mesmos nomes, datas e vagas nos dois lugares | Dado de teste unitário, que é construído por caso |
+| **Fonte de dados** | `VITE_DATA_SOURCE` | Qual implementação de repositório responde: `mock` (em memória, no navegador) ou `api` (a API real sobre PostgreSQL). É uma variável de ambiente, e o valor é declarado como união de dois literais para erro de digitação não passar pelo `tsc` | Ambiente (`NODE_ENV`): a fonte é *de onde vem o dado*, não *onde o código roda* |
+
+## 9b. Monorepo, build e operação — termos do CP6
+
+| Termo | Em código | Definição | Não confundir com |
+|---|---|---|---|
+| **Monorepo** | — | Um repositório com vários pacotes versionados juntos. Aqui são três: `packages/shared`, `app` e `api` ([ADR-0008](adr/0008-monorepo-com-dominio-compartilhado.md)) | Monólito: monorepo é sobre **onde o código mora**; monólito é sobre **como ele é implantado**. O Campus é um monorepo com três artefatos implantáveis |
+| **Workspace** | `workspaces` no `package.json` da raiz | Um pacote dentro do monorepo, com `package.json` próprio, resolvido por nome (`@campus/shared`) e instalado por um único `npm ci` na raiz | Pasta comum: workspace tem identidade de pacote, e ferramenta usada por mais de um **não** pode ser declarada em dois |
+| **Pacote compartilhado** | `@campus/shared` | O workspace com os tipos, as 13 funções de regra e os schemas Zod que o app e a API usam. Única dependência de runtime: `zod`. A fronteira é verificada por `scripts/check-contrato.mjs` | Biblioteca utilitária: aqui só entra o que **atravessa a rede** ou é regra de negócio |
+| **Migração** | `migration` | Arquivo SQL versionado que leva o banco de um estado ao seguinte. A `0001_init` tem a primeira metade gerada e a segunda **escrita à mão**, com os `CHECK` e os índices parciais que o Prisma não declara | *Migrate* de dados: aqui migração é mudança de **esquema**, não de conteúdo |
+| **Seed** | `seed` | Carga de dados fictícios coerentes. No CP6 são **dois**, com o mesmo conteúdo: `app/src/mocks/seed.ts` para a fonte mock e `api/src/seed/` para o banco | Dado de teste unitário, que é construído por caso |
+| **`SELECT … FOR UPDATE`** | — | Leitura que **trava a linha** até o fim da transação. É o que serializa quem disputa a última vaga: a segunda requisição espera, lê `ocupadas` já atualizado e vai para a fila (RN-004, RNF-013) | Transação: transação delimita o conjunto de escritas; a trava é o que impede a corrida **dentro** dela. Também não confundir com travar a **tabela** — a trava é da linha do evento, e eventos diferentes não se bloqueiam |
+| **Restrição `CHECK`** | `ck_*` | Condição que o PostgreSQL exige de toda linha, recusando a escrita quando ela falha. São 20, e a de `ocupadas <= capacidade` é a última linha de defesa contra vender vaga que não existe | Validação de entrada: o `CHECK` vale mesmo quando o código está errado. É por isso que ele existe |
+| **Índice único parcial** | `ux_*` | `UNIQUE` com cláusula `WHERE`. É o que torna "uma participação **ativa** por aluno e evento" verdadeiro sem proibir a reinscrição depois de cancelar (RN-015, RN-027) | `UNIQUE` total, que proibiria o histórico |
+| **Argon2id** | `argon2` | Função de derivação de senha, com salt por usuário e parâmetros gravados junto do hash. É o que `usuario.senha_hash` guarda (RNF-010) | Criptografia: hash de senha não é reversível, e não existe "descriptografar a senha" |
+| **Access token** | `accessToken` | JWT de vida curta (15 min) que autentica cada requisição no cabeçalho `Authorization: Bearer` | Refresh token, que não autentica requisição nenhuma |
+| **Refresh token** | `refreshToken` | Cadeia opaca e de vida longa (30 dias) que serve **só** para obter um par novo em `POST /auth/refresh`. É **revogável**, e o banco guarda o hash dele — nunca o token (RNF-020) | Access token; e não confundir "revogável" com "expirável": expirar é o tempo passar, revogar é alguém decidir |
+| **Healthcheck** | `healthcheck` | Comando que o Docker executa para decidir se um serviço está **pronto**, e não apenas iniciado. No banco é `pg_isready`; na API é uma chamada a `/api/health` | `depends_on` sozinho, que espera o container **iniciar** — e um Postgres iniciado ainda não aceita conexão |
+| **GHCR** | — | *GitHub Container Registry* (`ghcr.io`): registro de imagens de container do GitHub, alternativa ao Docker Hub para publicar as imagens do projeto | Registro npm, que publica pacote e não imagem |
 
 ## 10. Processo e avaliação
 

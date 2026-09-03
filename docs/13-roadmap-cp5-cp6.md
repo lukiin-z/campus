@@ -423,9 +423,9 @@ Escrito ao fim do CP5, com o estado real verificado — não com a intenção do
 
 | Frente | Evidência |
 |---|---|
-| Login institucional e onboarding por código de turma (RF-001 a RF-005) | `app/src/domain/auth.ts`, rotas `/login` e `/onboarding`, CT-032 e CT-033 |
-| Pagamento simulado com Pix e cartão (RF-026 a RF-030) | `app/src/domain/pix.ts`, `POST /api/participacoes/:id/pagamento`, webhook simulado, CT-034 e CT-035 |
-| Ingresso com token e check-in nas três formas de leitura (RF-031 a RF-035) | `app/src/domain/ticketToken.ts`, painel do organizador, CT-036 e CT-037 |
+| Login institucional e onboarding por código de turma (RF-001 a RF-005) | `packages/shared/src/domain/auth.ts`, rotas `/login` e `/onboarding`, CT-032 e CT-033 |
+| Pagamento simulado com Pix e cartão (RF-026 a RF-030) | `packages/shared/src/domain/pix.ts`, `POST /api/participacoes/:id/pagamento`, webhook simulado, CT-034 e CT-035 |
+| Ingresso com token e check-in nas três formas de leitura (RF-031 a RF-035) | `packages/shared/src/domain/ticketToken.ts`, painel do organizador, CT-036 e CT-037 |
 | Escrita no feed com verificação dupla (RF-036 a RF-039) | `POST /api/publicacoes` e `POST /api/publicacoes/:id/comentarios` |
 | Central de notificações (RF-040) | Rota `/notificacoes` com destino por tipo |
 | App instalável | Manifest e ícones em `app/public/`, verificados no CI |

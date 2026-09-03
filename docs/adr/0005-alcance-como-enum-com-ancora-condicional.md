@@ -75,7 +75,7 @@ export type EscopoEvento =
 ```
 
 RN-002 fica sendo uma comparação de ordinal (`TURMA < CURSO < FACULDADE`) mais a checagem de
-que a âncora não mudou — uma função pura em `src/domain/visibility.ts`, testável sem banco.
+que a âncora não mudou — uma função pura em `packages/shared/src/domain/visibility.ts`, testável sem banco.
 
 ## Alternativas consideradas
 

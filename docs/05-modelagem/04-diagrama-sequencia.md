@@ -8,6 +8,7 @@
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | Três sequências desenhadas a partir da **intenção** do produto: Pix com webhook, lista de espera e check-in por QR. Participantes genéricos (`App`, `API`, `Dominio`, `BD`, `Gateway`, `Notif`) e nomes de função hipotéticos |
 | 2.0 | 2026-09-02 | CP5 | Sete sequências desenhadas a partir do **código que existe**. Participantes passam a ser os arquivos reais; toda função citada existe em `app/src/domain/`; todo endpoint e todo código de status são os de `app/src/mocks/`. Novas: login, onboarding com a guarda de três estados, inscrição com vaga, pagamento simulado, check-in e publicação no feed |
+| 3.0 | 2026-09-02 | CP6 | As sete sequências passam a valer para **duas fontes**, e o que muda entre elas fica explícito. Nova seção 3.1 com o caminho da API real na inscrição, incluindo o `SELECT ... FOR UPDATE` — que no CP5 era a fila serializada do mock e agora é trava de linha no PostgreSQL. **É a diferença mais importante entre os dois checkpoints.** Os caminhos de `app/src/domain/` foram reapontados para `packages/shared/src/domain/`, e a seção de participantes ganhou as peças novas: `lib/api.ts`, `services/sessao.ts`, o Prisma e o banco |
 
 ## O que estas sequências descrevem
 
@@ -29,22 +30,41 @@ eventos e editar perfil não ganham nada com sequência e por isso não estão a
 
 | Participante | Arquivo | Papel |
 |---|---|---|
-| `Tela` | `app/src/pages/*.tsx` | Componente de página. Não conhece HTTP nem o mock |
+| `Tela` | `app/src/pages/*.tsx` | Componente de página. Não conhece HTTP nem a fonte de dados |
 | `Hook` | `app/src/hooks/*.ts` | Ponte tela → dados. Política de cache e de invalidação |
-| `Svc` | `app/src/services/http/index.ts` | Implementação dos repositórios. Monta `Authorization: Bearer`, converte erro em `ApiError` |
-| `API` | `app/src/mocks/handlers.ts` e `handlersCp5.ts` | "API" do CP5 sobre MSW. Devolve os mesmos status da API do CP6 |
+| `Svc` | `app/src/services/http/index.ts` | Implementação dos repositórios. Converte erro em `ApiError` |
+| `Cli` | `app/src/lib/api.ts` + `app/src/services/sessao.ts` | Cliente HTTP: tempo limite, renovação de sessão, `ApiError` versus `NetworkError`, e os dois tokens |
+| `API` | `app/src/mocks/handlers.ts` e `handlersCp5.ts` | Fonte **mock** sobre MSW. Devolve os mesmos status da API real |
 | `Sup` | `app/src/mocks/support.ts` | Fronteira do mock: `usuarioAtual`, `eventosVisiveis`, `erro`, projeções |
-| `Dom` | `app/src/domain/*.ts` | Funções puras de decisão. Nenhuma escreve nada |
+| `Dom` | `packages/shared/src/domain/*.ts` | Funções puras de decisão. Nenhuma escreve nada |
 | `BD` | `app/src/mocks/db.ts` | Estado em memória + `transaction()` serializada + `assertInvariants()` |
 
-Duas propriedades do `BD` valem para **todas** as sequências abaixo:
+E, na fonte **api** (seção 3.1):
+
+| Participante | Arquivo | Papel |
+|---|---|---|
+| `Nest` | `api/src/` — módulos por tag | Controlador HTTP. Valida com o Zod do pacote e traduz erro pelo filtro único |
+| `App` | serviços de aplicação | Orquestra o caso de uso e **abre a transação**. É quem escreve |
+| `PG` | Prisma → PostgreSQL 16 | `SELECT ... FOR UPDATE`, `CHECK`, índices únicos parciais |
+
+**As sete sequências valem para as duas fontes**, e é isso que a fronteira entre L4 e L5
+compra ([`07-diagrama-componentes.md`](07-diagrama-componentes.md)): a ordem das mensagens, os
+códigos de status e as respostas de desvio são os mesmos. O que muda é **quem** responde, e
+o único ponto em que a diferença é observável está na seção 3.1.
+
+Duas propriedades do `BD` valem para todas as sequências abaixo, quando a fonte é a mock:
 
 - **`transaction()` serializa as escritas.** É a versão em memória do `SELECT ... FOR UPDATE`
   de [RN-004](../04-regras-de-negocio.md): duas inscrições simultâneas para a última vaga
-  produzem exatamente uma confirmação (RNF-013, CT-020).
+  produzem exatamente uma confirmação (RNF-013, CT-020). **Uma boa simulação, e não
+  equivalente** — ela serializa tudo dentro de um processo; a trava de linha serializa a linha
+  do evento entre processos. A comparação linha a linha está em
+  [`03-modelo-dados-er.md` §6](03-modelo-dados-er.md#a-diferença-que-mais-separa-o-cp5-do-cp6).
 - **`assertInvariants()` roda ao fim de cada transação** e estoura se `ocupadas > capacidade`,
   se houver duas participações ativas do mesmo aluno no mesmo evento (RN-015) ou duas
-  presenças para a mesma participação (RN-018).
+  presenças para a mesma participação (RN-018). Na fonte api o equivalente não é uma função
+  que estoura: são `ck_evento_ocupadas_le_capacidade`, `ux_participacao_ativa` e o `UNIQUE` de
+  `presenca`, que fazem `ROLLBACK`.
 
 ---
 
@@ -379,6 +399,122 @@ quem já se inscreveu mantém a que aceitou ([RN-013](../04-regras-de-negocio.md
 **`409` para "já inscrito" e `422` para o resto.** `409` é conflito com o estado atual do
 recurso — existe uma inscrição sua ali. Prazo encerrado e fora do alcance não são conflito:
 são entrada inválida.
+
+---
+
+## 3.1 A mesma inscrição, contra a API real
+
+Este é o único ponto do documento em que as duas fontes precisam de dois diagramas, e o
+motivo é o que separa o CP5 do CP6: **a serialização deixou de ser uma fila de promessas no
+navegador e passou a ser trava de linha no PostgreSQL.**
+
+A sequência 3 continua valendo do lado do cliente — mesma tela, mesmo hook, mesmo
+repositório, mesmos status. O que aparece abaixo é o que está atrás da chamada.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Aluno
+    participant Tela as EventoDetalhePage
+    participant Svc as httpRepositories.participations
+    participant Cli as lib/api.ts + services/sessao.ts
+    participant Nest as api - modulo participacoes
+    participant App as servico de aplicacao
+    participant Dom as campus/shared - capacity,<br/>deadlines, visibility, participation
+    participant PG as PostgreSQL 16
+
+    Aluno->>Tela: toca no botao principal
+    Tela->>Svc: participations.inscrever evt-001
+    Svc->>Cli: request POST /api/eventos/evt-001/participacoes
+    Cli->>Cli: le accessToken do sessionStorage
+
+    alt access token expirado
+        Cli->>Nest: POST /api/auth/refresh com o refreshToken no corpo
+        Nest->>PG: SELECT sessao WHERE refresh_hash = hash
+        PG-->>Nest: linha valida, revogada_em nulo
+        Nest-->>Cli: 201 par novo de tokens
+        Cli->>Cli: grava os dois e repete a requisicao original
+    end
+
+    Cli->>Nest: POST com Authorization Bearer
+    Nest->>Nest: valida o corpo com o schema Zod do pacote
+    Nest->>App: inscrever usuarioId, eventoId
+
+    App->>PG: BEGIN
+    App->>PG: SELECT capacidade, ocupadas FROM evento<br/>WHERE id = eventoId FOR UPDATE
+
+    Note over App,PG: A trava e da LINHA do evento. Quem disputa a mesma vaga espera.<br/>Quem se inscreve em outro evento nao espera nada - RN-004
+
+    PG-->>App: capacidade 40, ocupadas 39
+    App->>Dom: canSee, findActiveParticipation,<br/>enrollmentOpen, isFull
+    Dom-->>App: visivel, prazo aberto, nenhuma ativa, tem 1 vaga
+    App->>Dom: paymentDeadline e currentPolicy
+    Dom-->>App: prazo truncado e politica congelada
+    App->>PG: INSERT participacao PENDENTE_PAGAMENTO
+    App->>PG: UPDATE evento SET ocupadas = ocupadas + 1
+
+    Note over PG: ck_evento_ocupadas_le_capacidade e a rede EMBAIXO da trava:<br/>se a aplicacao tiver um furo, o banco recusa em vez de gravar
+
+    App->>PG: COMMIT
+    PG-->>App: ok - a trava e liberada no commit
+    App-->>Nest: ResultadoInscricao PENDENTE_PAGAMENTO
+    Nest-->>Cli: 201 com tipo e participacao
+    Cli-->>Svc: corpo tipado
+    Svc-->>Tela: ResultadoInscricao
+
+    Note over App,PG: A segunda requisicao pela ultima vaga
+    App->>PG: SELECT ... FOR UPDATE - espera o COMMIT acima
+    PG-->>App: capacidade 40, ocupadas 40
+    App->>Dom: isFull
+    Dom-->>App: lotado
+    App->>PG: ROLLBACK - nada foi escrito
+    App-->>Nest: SEM_VAGA
+    Nest-->>Cli: 409 SEM_VAGA com acao LISTA_ESPERA e totalFila
+```
+
+### O que este diagrama mostra que a sequência 3 não mostra
+
+**A renovação de sessão é um passo real, e ela é invisível para a tela.** O bloco `alt` no
+começo não existia no CP5: havia um token opaco que valia até a aba fechar. Com access token
+de 15 minutos, **toda** requisição pode disparar uma renovação, e o cliente repete a original
+depois. A tela não sabe que isso aconteceu — e é por isso que o tratamento vive em
+`lib/api.ts` e não em cada hook. Uma renovação tratada em 7 repositórios seriam 7 lugares
+para esquecer.
+
+**A trava é da linha, não da tabela.** `SELECT ... FOR UPDATE` em `evento WHERE id = :id`
+bloqueia quem disputa **aquele** evento. Duas inscrições em eventos diferentes não se
+atrapalham. A fila do mock não tinha essa propriedade: ela serializava toda escrita do app,
+o que é mais forte que o necessário — funciona, e não escala nem distingue.
+
+**A ordem `SELECT FOR UPDATE` → decidir → escrever → `COMMIT` é a regra de negócio.**
+Inverter dois passos produz overbooking. Se o `isFull` fosse consultado antes do `BEGIN`, as
+duas requisições leriam `ocupadas = 39` e as duas gravariam — e o `CHECK` pegaria a segunda,
+mas com erro de banco em vez de `409 SEM_VAGA` com `acao`. A diferença entre as duas coisas é
+a diferença entre um botão que oferece a fila e uma tela de erro genérico.
+
+**O `CHECK` é a rede embaixo da trava, e não a trava.** Ele existe para o caso de a lógica
+da aplicação ter um furo: aí o banco recusa em vez de gravar dado impossível. As duas defesas
+são necessárias, e por razões diferentes — a trava produz a resposta certa, o `CHECK` impede o
+estado errado.
+
+**A segunda requisição faz `ROLLBACK` e responde `409`, não erro.** Ela abriu transação, leu,
+decidiu que não havia vaga e desfez. Nada foi escrito, e o cliente recebe uma resposta que a
+tela sabe tratar — com `acao: LISTA_ESPERA`, que é o que faz o botão mudar de rótulo em vez de
+mostrar falha.
+
+### O que **não** muda entre as duas fontes
+
+| Igual nas duas | Por que isso importa |
+|---|---|
+| `POST /api/eventos/:id/participacoes` | Mesmo caminho, mesmo método, mesmo corpo |
+| `201`, `409 SEM_VAGA` + `acao`, `409 JA_INSCRITO`, `422`, `404` | Mesmos status, mesmos códigos estáveis |
+| `canSee`, `findActiveParticipation`, `enrollmentOpen`, `isFull`, `paymentDeadline`, `currentPolicy` | **As mesmas funções**, do mesmo arquivo. Não há uma versão do servidor |
+| As cinco verificações dentro da transação | A ordem é a regra, e ela é a mesma |
+| A suíte de [`inscricao.test.ts`](../../app/src/services/inscricao.test.ts) | Passa contra as duas sem alterar asserção — é a prova de que a fronteira é real |
+
+A última linha é o critério: **se cada fonte exigisse um teste diferente, a fronteira não
+existia.** Está registrado como verificação em
+[`../08-arquitetura.md` §8](../08-arquitetura.md#o-teste-que-prova-que-nenhuma-tela-foi-tocada).
 
 ---
 
@@ -840,7 +976,7 @@ para produzir, e o único que carrega o **horário do primeiro uso**, nunca cheg
 consome a API.
 
 O defeito foi visto na porta simulada, no navegador, e a ordem foi invertida em
-[`domain/checkin.ts`](../../app/src/domain/checkin.ts). Hoje a segunda leitura devolve
+[`domain/checkin.ts`](../../packages/shared/src/domain/checkin.ts). Hoje a segunda leitura devolve
 `JA_UTILIZADO` com "Ingresso já utilizado às 19:13." — que é o que o operador precisa ler.
 A troca é segura porque a presença tem relação 1:1 com a participação: existir presença já
 implica que a entrada aconteceu, e `PRESENTE` sem linha de presença continua caindo na
@@ -1023,23 +1159,23 @@ lidos dos próprios `it(...)`, não do plano de testes.
 
 | Sequência | Caso de teste | Arquivo |
 |---|---|---|
-| 1 — login e as três recusas | CT-032 — `decideLogin` com domínio pessoal, senha errada e e-mail não verificado | `app/src/domain/auth.test.ts` |
-| 2 — onboarding e os quatro motivos | CT-033 — `decideOnboarding` com código inválido, inativo, de outro curso e curso inexistente | `app/src/domain/auth.test.ts` |
-| 3 — quem ocupa vaga | CT-001 — `occupiesSpot` para os oito estados | `app/src/domain/capacity.test.ts` |
-| 3 — vaga e lotação a partir do seed | CT-002 — 18/40 tem 22 livres; 80/80 está lotado | `app/src/domain/capacity.test.ts` |
-| 3 — janela de pagamento | CT-007 — `paymentDeadline` truncado pelo prazo e por `inicio - 1h` | `app/src/domain/payment.test.ts` |
+| 1 — login e as três recusas | CT-032 — `decideLogin` com domínio pessoal, senha errada e e-mail não verificado | `packages/shared/src/domain/auth.test.ts` |
+| 2 — onboarding e os quatro motivos | CT-033 — `decideOnboarding` com código inválido, inativo, de outro curso e curso inexistente | `packages/shared/src/domain/auth.test.ts` |
+| 3 — quem ocupa vaga | CT-001 — `occupiesSpot` para os oito estados | `packages/shared/src/domain/capacity.test.ts` |
+| 3 — vaga e lotação a partir do seed | CT-002 — 18/40 tem 22 livres; 80/80 está lotado | `packages/shared/src/domain/capacity.test.ts` |
+| 3 — janela de pagamento | CT-007 — `paymentDeadline` truncado pelo prazo e por `inicio - 1h` | `packages/shared/src/domain/payment.test.ts` |
 | 3 — a inscrição pelo endpoint, com desvios | CT-002, CT-018, CT-003, CT-012, CT-027 — contra os handlers do MSW | `app/src/services/inscricao.test.ts` |
 | 3 — concorrência pela última vaga | **CT-020 — 50 inscrições simultâneas confirmam exatamente uma** (RNF-013) | `app/src/services/inscricao.test.ts` |
 | 3 — botão principal por estado | CT-003, CT-015, CT-027 — `resolvePrimaryAction` | `app/src/domain/eventAction.test.ts` |
-| 4 — fila FIFO e posição de entrada | CT-003 — `orderedWaitlist`, `nextWaitlistPosition` | `app/src/domain/waitlist.test.ts` |
-| 4 — promoção e janela da oferta | CT-004 — promove só o primeiro; janela truncada; janela inviável não emite oferta | `app/src/domain/waitlist.test.ts` |
-| 4 — posições avançam | CT-005 — `recomputePositions` depois da promoção | `app/src/domain/waitlist.test.ts` |
+| 4 — fila FIFO e posição de entrada | CT-003 — `orderedWaitlist`, `nextWaitlistPosition` | `packages/shared/src/domain/waitlist.test.ts` |
+| 4 — promoção e janela da oferta | CT-004 — promove só o primeiro; janela truncada; janela inviável não emite oferta | `packages/shared/src/domain/waitlist.test.ts` |
+| 4 — posições avançam | CT-005 — `recomputePositions` depois da promoção | `packages/shared/src/domain/waitlist.test.ts` |
 | 4 — cancelar promove na mesma operação | CT-004, CT-005 — pelo endpoint `DELETE /api/participacoes/:id` | `app/src/services/inscricao.test.ts` |
-| 5 — quatro desfechos do webhook | **CT-010 — `planWebhook` exaustivo, incluindo os dois que não escrevem** | `app/src/domain/payment.test.ts` |
-| 5 — cobrança Pix e redução do cartão | CT-034, CT-035 — `gerarCobrancaPix`, CRC16, `resumirCartao` | `app/src/domain/pix.test.ts` |
-| 6 — token do ingresso e as três leituras | CT-036, CT-037 — `emitirToken`, `lerToken`, `classificarLeitura` | `app/src/domain/ticketToken.test.ts` |
-| 6 — as recusas de `decideCheckIn` e a ordem entre elas | CT-022, CT-023, CT-024 — cada condição com seu motivo, a ordem das verificações, a mensagem por status e os códigos de contingência | `app/src/domain/checkin.test.ts` |
-| 7 — alcance como autoridade | CT-011 a CT-014 — `canSee` por turma, curso, faculdade e participação ativa | `app/src/domain/visibility.test.ts` |
+| 5 — quatro desfechos do webhook | **CT-010 — `planWebhook` exaustivo, incluindo os dois que não escrevem** | `packages/shared/src/domain/payment.test.ts` |
+| 5 — cobrança Pix e redução do cartão | CT-034, CT-035 — `gerarCobrancaPix`, CRC16, `resumirCartao` | `packages/shared/src/domain/pix.test.ts` |
+| 6 — token do ingresso e as três leituras | CT-036, CT-037 — `emitirToken`, `lerToken`, `classificarLeitura` | `packages/shared/src/domain/ticketToken.test.ts` |
+| 6 — as recusas de `decideCheckIn` e a ordem entre elas | CT-022, CT-023, CT-024 — cada condição com seu motivo, a ordem das verificações, a mensagem por status e os códigos de contingência | `packages/shared/src/domain/checkin.test.ts` |
+| 7 — alcance como autoridade | CT-011 a CT-014 — `canSee` por turma, curso, faculdade e participação ativa | `packages/shared/src/domain/visibility.test.ts` |
 | 7 — alcance na escrita do feed | ❌ **sem teste.** `POST /api/publicacoes` não é exercitado por nenhum teste de integração | — |
 | 3 — fluxo ponta a ponta | E2E: abrir feed, abrir evento, inscrever-se, ver confirmação | `app/e2e/inscricao.spec.ts` |
 

@@ -8,6 +8,7 @@
 |---|---|---|---|
 | 1.0 | 2026-09-01 | CP4 | Dois fluxos, desenhados a partir da **intenção**: criação e publicação de evento, e decisão do botão principal com nove estados |
 | 2.0 | 2026-09-02 | CP5 | Cinco fluxos, desenhados a partir do **código**. O de criação passa a mostrar a guarda de três estados, os prazos automáticos e as duas etapas que o CP5 não implementou; o do botão passa a ter os **onze** `PrimaryActionKind` reais. Novos: pagamento com a janela de RN-012, check-in na porta com a contingência do código digitado, e onboarding do primeiro acesso |
+| 2.1 | 2026-09-02 | CP6 | Conferido: os cinco fluxos de decisão continuam válidos contra o contrato do CP6, porque descrevem **decisões**, e nenhuma decisão mudou — o que mudou é quem as executa. Os caminhos citados no texto foram reapontados: as funções de regra vivem em `packages/shared/src/domain/`, e `resolvePrimaryAction` continua em `app/src/domain/eventAction.ts`, porque é rótulo de botão e não domínio ([ADR-0008](../adr/0008-monorepo-com-dominio-compartilhado.md)) |
 
 O ciclo de vida da `Participacao` — os 8 estados de `STATUS_PARTICIPACAO` e as transições
 que o código executa — está em [`06-diagrama-estados.md`](06-diagrama-estados.md), que é
