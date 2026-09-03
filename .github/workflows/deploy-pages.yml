@@ -111,8 +111,25 @@ jobs:
           # index.html. O 404.html do Pages é o jeito suportado de fazer isso.
           cp app/dist/index.html site/404.html
 
+      # `enablement: true` faz a action CRIAR o site do Pages com
+      # `build_type: workflow`, em vez de exigir que alguém acerte o dropdown
+      # em Settings antes.
+      #
+      # Sem isso o job morre em "Get Pages site failed ... verify that the
+      # repository has Pages enabled and configured to build using GitHub
+      # Actions" — e a mensagem tem duas causas possíveis que ela não distingue:
+      # Pages desligado, ou Pages ligado no modo ERRADO. Foi a segunda aqui: o
+      # Source estava em "Deploy from a branch" (`build_type: legacy`), que é o
+      # padrão de quem só clica em ativar.
+      #
+      # O `GITHUB_TOKEN` deste job tem `pages: write` (ver `permissions:` acima),
+      # que é o suficiente para a chamada. O efeito prático é que quem clonar
+      # este repositório e habilitar Actions publica o site sem passo manual —
+      # que é o mesmo critério de instalabilidade aplicado à própria publicação.
       - name: Configura o Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Empacota o artefato
         uses: actions/upload-pages-artifact@v3
