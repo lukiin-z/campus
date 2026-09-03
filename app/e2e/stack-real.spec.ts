@@ -210,20 +210,22 @@ test.describe('stack real', () => {
     await page.getByRole('button', { name: 'Confirmar', exact: true }).click();
 
     /*
-     * `getByRole('status')`, e não `getByText`: o texto "Pagamento confirmado"
-     * aparece em DOIS lugares quando a confirmação acaba de acontecer — o
-     * bloco de status da tela e o toast que `usePagamento` dispara. O
-     * `getByText` resolvia para dois elementos e o Playwright reprovava com
-     * `strict mode violation`.
+     * A asserção é sobre a frase que SÓ a tela tem.
      *
-     * Aqui isso passou e na CI reprovou, e a diferença é só o instante: na
-     * máquina lenta o toast já havia sumido quando a asserção rodou. Prender o
-     * caso ao papel do elemento é o que o torna independente de quando o toast
-     * desaparece — e o bloco de status é o que a pessoa continua vendo depois.
+     * "Pagamento confirmado" aparece em dois lugares no instante da
+     * confirmação: o bloco de status da tela e o toast de `usePagamento`. Aqui
+     * passava e na CI reprovava — na máquina lenta o toast ainda estava na tela
+     * quando a asserção rodou.
+     *
+     * A primeira tentativa de conserto trocou `getByText` por
+     * `getByRole('status')` e reprovou igual: o toast de sucesso **também** é
+     * `role="status"` (`ToastViewport.tsx` reserva `alert` para erro). Duas
+     * correções pela mesma causa, e a segunda foi escrita sem abrir o toast.
+     *
+     * "o ingresso já foi emitido" existe apenas em `PagamentoPage`, e é a
+     * informação que a pessoa precisa ver — o toast some sozinho, o bloco fica.
      */
-    await expect(
-      page.getByRole('status').filter({ hasText: 'Pagamento confirmado' }),
-    ).toBeVisible();
+    await expect(page.getByText(/o ingresso já foi emitido/i)).toBeVisible();
 
     // --- 5. o ingresso ---
     await page.getByRole('link', { name: 'Ver meu ingresso' }).click();
