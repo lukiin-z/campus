@@ -299,6 +299,16 @@ jobs:
       - name: Instala dependências
         run: npm ci
 
+      # O projeto `api-*` do Playwright COMPILA a API no `webServer`, e a API
+      # importa tipos gerados. Sem estes dois passos o build morre em
+      # `Module '"@prisma/client"' has no exported member 'Evento'` e em dezenas
+      # de `TS7006` — mensagens que não mencionam geração de cliente.
+      - name: Compila o pacote compartilhado
+        run: npm run build -w @campus/shared
+
+      - name: Gera o cliente do Prisma
+        run: npm run prisma:generate -w campus-api
+
       # Só o Chromium: os três projetos do Playwright pesariam 4× por uma
       # informação que o alvo do produto (web mobile) não precisa.
       #

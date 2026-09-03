@@ -318,7 +318,7 @@ O de número 20 é o mais instrutivo do checkpoint: a linha parecia certa, passa
 `tsc`, passava no lint, e foi escrita com a intenção correta. O que a pegou foi um teste
 que afirmava o comportamento — não uma releitura.
 
-#### Os defeitos da integração, 22 a 33
+#### Os defeitos da integração, 22 a 35
 
 Estes apareceram depois, quando as frentes voltaram e as peças foram ligadas. A tabela
 separa **o que os produziu**, porque é a única coluna com valor transferível.
@@ -336,6 +336,8 @@ separa **o que os produziu**, porque é a única coluna com valor transferível.
 | 30 | O job `api` da CI reprovava com `P1012` | `prisma validate` exige `DATABASE_URL` porque o `datasource` a lê com `env(...)`, e nenhum job a definia | Simular o job localmente |
 | 31 | Duas verdades sobre o mesmo corpo de resposta | `ResultadoLoginApi` na API e `TokensDeSessao` no pacote, forma idêntica. E `ParticipanteConfirmado` tinha duas declarações **já divergentes**: `status: string` no app, `StatusParticipacao` na API | Procurar por tipo declarado dos dois lados |
 | 32 | Regerar o código de convite da turma respondia erro no modo `api`, sem nada acusar | O cliente mandava `GET` onde a API serve `POST`. O caminho existia, então conferir só o caminho daria verde | O primeiro teste do cliente HTTP, no primeiro caso que ele rodou |
+| 34 | O job de E2E da CI morria em `Module '"@prisma/client"' has no exported member 'Evento'` e dezenas de `TS7006` | O projeto novo do Playwright **compila a API** no `webServer`, e o job não gerava o cliente do Prisma nem construía o pacote compartilhado. Nenhuma das mensagens menciona geração de cliente | A CI, no primeiro push com o job |
+| 35 | A contraprova da trava **reprovou na CI e passava aqui** | Ela afirmava que a corrida se manifesta sem `SELECT ... FOR UPDATE`. No runner do GitHub nenhuma das 49 recusas perdeu o `totalFila`; nesta máquina, de 7 a 22 perdiam em cinco execuções seguidas. Os dois resultados são verdadeiros — uma corrida que não se manifesta numa máquina rápida continua sendo uma corrida. Afirmar que ela se manifesta é escrever um teste intermitente, que é pior que teste ausente: treina quem lê a saída a ignorar vermelho. A degradação passou a ser **medida e registrada**, e as asserções ficaram com o que não depende de escalonamento; a contraprova determinística é a réplica ingênua com `pg_sleep`, que coloca 5 de 5 numa vaga sempre | A CI, rodando o mesmo teste em outra máquina |
 | 33 | O front funcionava **em exatamente uma máquina** | `VITE_API_URL` tinha padrão `http://localhost:3000/api`, e o JavaScript roda no navegador de quem ABRE a página: em qualquer VM ou servidor, `localhost:3000` é a porta 3000 *dele*. Para um critério que se chama instalabilidade, o pior padrão possível | Ler a aba de rede do navegador durante o passeio pelas telas |
 
 Quatro citações a **RNF-021** no código apontavam para o requisito errado — o limite de
@@ -399,7 +401,7 @@ do repositório.
 
 #### O que este checkpoint provou sobre o processo
 
-Doze defeitos novos, e a coluna "o que encontrou" da tabela de 5.4 não tem uma única
+Quatorze defeitos novos, e a coluna "o que encontrou" da tabela de 5.4 não tem uma única
 entrada dizendo "releitura do código". As fontes foram: um teste rodando pela primeira vez,
 um relatório de cobertura por função, a aba de rede do navegador, um job de CI reprovando,
 um `docker compose up` de verdade e — duas vezes — um navegador que se recusava a fazer

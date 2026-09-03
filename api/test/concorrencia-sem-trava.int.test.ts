@@ -149,24 +149,47 @@ it(`sem a trava, ${SIMULTANEAS} simultâneas na última vaga NÃO produzem o des
   );
 
   /*
-   * A afirmação é sobre a DIFERENÇA, e é deliberadamente frouxa em relação ao
-   * número exato: quantas transações escapam depende do escalonamento do
-   * PostgreSQL, e um `toBe(3)` aqui seria um teste intermitente. O que não
-   * depende de escalonamento é que ALGUMA propriedade de CT-020 se perde — e
-   * qualquer uma delas basta para provar que o caso com a trava mede algo.
+   * ## Por que a degradação é MEDIDA e não afirmada
+   *
+   * A primeira versão deste caso afirmava que alguma propriedade de CT-020 se
+   * perde sem a trava, e reprovou na CI: no runner do GitHub, **nenhuma se
+   * perdeu** — as 49 recusas mantiveram o `totalFila`. Na máquina de
+   * desenvolvimento, de 7 a 22 delas perdiam, em cinco execuções seguidas.
+   *
+   * Os dois resultados são verdadeiros, e a diferença é o ponto: quantas
+   * transações escapam depende do escalonamento do PostgreSQL, do número de
+   * núcleos e da latência do disco. Uma corrida que não se manifesta numa
+   * máquina rápida **continua sendo uma corrida** — o que muda é a chance de
+   * observá-la nesta execução.
+   *
+   * Afirmar que ela se manifesta transformaria este arquivo num teste
+   * intermitente, e teste intermitente é pior que teste ausente: ele treina
+   * quem lê a saída a ignorar vermelho.
+   *
+   * Então aqui a degradação é registrada no `console.log` acima e as asserções
+   * ficam com o que **não** depende de escalonamento. A contraprova
+   * DETERMINÍSTICA da trava é outra, e mora em `concorrencia.int.test.ts`: a
+   * réplica ingênua (ler `ocupadas`, `pg_sleep`, escrever `lido + 1`) força a
+   * intercalação e coloca 5 de 5 pessoas em 1 vaga, sempre.
    */
-  const desfechoDeCT020 =
-    criadas === 1 &&
-    conflitos.length === SIMULTANEAS - 1 &&
-    servidor === 0 &&
-    comTotalFila === SIMULTANEAS - 1 &&
-    depois.ocupadas === capacidade &&
-    ativas <= capacidade;
+  const perdeuAlgumaPropriedade =
+    criadas !== 1 || conflitos.length !== SIMULTANEAS - 1 || comTotalFila !== SIMULTANEAS - 1;
 
-  expect(desfechoDeCT020).toBe(false);
+  console.log(
+    perdeuAlgumaPropriedade
+      ? '[SEM TRAVA] a corrida se manifestou nesta execução: o desfecho de CT-020 se perdeu'
+      : '[SEM TRAVA] a corrida NÃO se manifestou nesta execução — máquina rápida o bastante ' +
+          'para as transações não se intercalarem. Ver a contraprova determinística em ' +
+          'concorrencia.int.test.ts',
+  );
 
-  // E a garantia que o banco mantém mesmo sem a trava: nunca passa da
-  // capacidade. É o `CHECK` fazendo o trabalho de rede de segurança — o que ele
-  // não faz é produzir a resposta certa para o cliente.
+  /*
+   * O que vale em qualquer máquina, com trava ou sem: o banco não deixa passar
+   * da capacidade. É o `CHECK` fazendo o trabalho de rede de segurança — o que
+   * ele não faz é produzir a resposta certa para o cliente, e é isso que a trava
+   * acrescenta.
+   */
   expect(depois.ocupadas).toBeLessThanOrEqual(capacidade);
+  expect(ativas).toBeLessThanOrEqual(capacidade);
+  expect(servidor).toBe(0);
 });
