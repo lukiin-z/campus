@@ -51,7 +51,7 @@ git log --oneline cp4..cp5 # os commits do CP5
 |---|---|---|---|
 | `cp4` | 2026-09-01 | 8 | Idealização: documentação, UML, marca, pitch, Trello, base técnica |
 | `cp5` | 2026-09-02 | 13 (+5) | Protótipo funcional: 12 rotas navegáveis com dados simulados, ambiente de teste, PWA |
-| `cp6` | 2026-09-03 | 27 (+14) | Entrega final: monorepo, API NestJS + PostgreSQL, 1 012 testes, stack em um comando |
+| `cp6` | 2026-09-03 | 31 (+18) | Entrega final: monorepo, API NestJS + PostgreSQL, 713 testes, stack em um comando |
 
 ---
 
@@ -369,7 +369,15 @@ deixa passar uma regressão que apaga metade da cobertura. Subiu para 90/85 no p
 
 | O que | Número |
 |---|---|
-| Testes verdes | **1 012** — 308 no pacote, 525 no app (inclui os do pacote), 83 unitários da API, 96 de integração contra PostgreSQL, 9 de Playwright |
+| Testes verdes | **713 casos distintos** — 308 no pacote, 217 só do app, 83 unitários da API, 96 de integração contra PostgreSQL, 9 de Playwright |
+
+> A primeira versão desta linha dizia **1 012**, e o número estava inflado: a suíte do app
+> **também roda** os arquivos do pacote (o `include` do `vite.config.ts` os inclui de
+> propósito, para o app ser exercitado contra a mesma fonte que a API usa), então somar
+> "308 no pacote + 525 no app" conta os mesmos 308 duas vezes. Medido: a suíte do app
+> reporta 525, dos quais 217 são de arquivos em `app/src` — e 525 − 217 = 308, exatamente
+> a suíte do pacote. É um erro de contagem meu, e fica registrado porque somar duas saídas
+> de teste que se sobrepõem é fácil de fazer e difícil de notar depois.
 | Cobertura do pacote compartilhado | 99,32% de linhas · 94,62% de ramos · 97,97% de funções |
 | Cobertura do app | 96,68% · 85,04% · 90,97% |
 | Cobertura do domínio da API | 84,53% de linhas · 77,49% de funções · 70,12% de ramos (meta era ≥ 70%) |

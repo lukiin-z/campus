@@ -19,7 +19,7 @@ o CP6 impõe: **o critério de peso mais alto agora é "funcionalidade com dados
 
 | # | Critério | Peso | Artefato que atende | Evidência verificável |
 |---|---|---|---|---|
-| 1 | **Funcionalidade completa** — recursos principais com dados reais | **30%** | [`api/`](../api) + [`app/`](../app) sobre PostgreSQL | **43 operações** no contrato ([`api/openapi.yaml`](../api/openapi.yaml)) e **43 rotas implementadas** nos controladores — conferir com `grep -rhcE "@(Get\|Post\|Patch\|Delete)\(" api/src/*/*.controller.ts`. Dado persistido em **14 tabelas** com **22 restrições** declaradas e exercitadas por [`verificar-restricoes.sql`](../api/prisma/verificar-restricoes.sql). **377 testes** no app (`npm run test -w campus-app`), **243** no pacote (`npm run test:dominio`) e **83** na API (`npm run test -w campus-api`) — **460 sem contar duas vezes**, ver a seção 3. Mais **6 casos E2E** declarados em `app/e2e/` |
+| 1 | **Funcionalidade completa** — recursos principais com dados reais | **30%** | [`api/`](../api) + [`app/`](../app) sobre PostgreSQL | **43 operações** no contrato ([`api/openapi.yaml`](../api/openapi.yaml)) e **43 rotas implementadas** nos controladores — conferir com `grep -rhcE "@(Get\|Post\|Patch\|Delete)\(" api/src/*/*.controller.ts`. Dado persistido em **14 tabelas** com **22 restrições** declaradas e exercitadas por [`verificar-restricoes.sql`](../api/prisma/verificar-restricoes.sql). **525 testes** no app (`npm run test -w campus-app`), **308** no pacote (`npm run test:dominio`), **83** unitários e **96 de integração contra PostgreSQL** na API — **713 sem contar duas vezes**, ver a seção 3. Mais **9 casos E2E executados** (6 no mock, 3 contra a stack real) |
 | 2 | **Qualidade técnica** — organização, boas práticas, sem erro crítico | **20%** | Monorepo de 3 workspaces, 5 verificadores próprios, 5 jobs de CI | `npm run lint` — **0 erro, 0 aviso** nos dois workspaces (`--max-warnings 0`). `node scripts/check-contrato.mjs` — a fronteira de `@campus/shared` é **executável**: 28 arquivos, 68 imports analisados, e a mensagem de erro diz o motivo. Cobertura **97,11%** de linhas no app e **91,93%** no pacote. Arquitetura e trade-offs em [`08-arquitetura.md`](08-arquitetura.md), decisões em [`adr/`](adr/README.md) — **8 ADRs** com alternativas recusadas e como reverter. **Ressalva: o `build` reprova neste momento** (seção 3), e "sem erro crítico" só é verdade depois de os seis imports entrarem |
 | 3 | **Instalabilidade** — pacote instalável funcionando fora do ambiente do grupo | **20%** | [`docker-compose.yml`](../docker-compose.yml), [`Dockerfile.api`](../Dockerfile.api), [`Dockerfile.web`](../Dockerfile.web), [`23-instalacao.md`](23-instalacao.md) | **Um comando**: `docker compose up`. Três serviços em cadeia, com `depends_on: service_healthy` e `pg_isready` como *healthcheck* — não `depends_on` solto, que espera o container iniciar e não o banco aceitar conexão. A API aplica `prisma migrate deploy`, roda o seed e sobe. App em `:8080`, API em `:3000/api`. PWA instalável (RNF-006) — o manifest é verificado no CI |
 | 4 | **Documentação final** — completa, atualizada, coerente | **15%** | [`docs/README.md`](README.md) — **25 documentos**, 8 ADRs, 21 diagramas | `node scripts/validate-docs.mjs` verifica **todo link relativo, toda âncora, todo bloco Mermaid e todo SVG** de 54 arquivos, e reprova marcador de trabalho inacabado. Novos no CP6: [`21-api-contrato.md`](21-api-contrato.md), [`22-manual-de-uso.md`](22-manual-de-uso.md), [`23-instalacao.md`](23-instalacao.md), este checklist e [`25-video-cp6-roteiro.md`](25-video-cp6-roteiro.md). Cada documento revisado abre com **histórico de revisões** datado |
@@ -55,7 +55,7 @@ o CP6 impõe: **o critério de peso mais alto agora é "funcionalidade com dados
 | E as invariantes são **exercitadas** | [`api/prisma/verificar-restricoes.sql`](../api/prisma/verificar-restricoes.sql): 11 blocos, **22 assertivas** contra PostgreSQL 16 real. 21 esperam recusa; 1 espera sucesso (reinscrição depois de cancelar), porque índice que proíbe demais também está errado |
 | Idempotência garantida por restrição | `UNIQUE (chave_idempotencia)` em `pagamento` (RN-014) e o parcial `WHERE status='AGUARDANDO'` (RN-027). Duplo toque em "pagar" devolve a cobrança existente em vez de gerar dois Pix |
 | Sessão revogável | Tabela `sessao` com `refresh_hash` e `revogada_em` (RNF-020). Guarda o **hash**, nunca o token: um vazamento do banco não dá sessão a ninguém |
-| A mesma regra nos dois lados, uma vez | `packages/shared` — 13 módulos, **243 testes**, consumidos pelo app, pela fonte mock, pela API e pelas rotinas de tempo. A fronteira é verificada por `check-contrato.mjs` |
+| A mesma regra nos dois lados, uma vez | `packages/shared` — 13 módulos, **308 testes**, consumidos pelo app, pela fonte mock, pela API e pelas rotinas de tempo. A fronteira é verificada por `check-contrato.mjs` |
 | As duas fontes de dados funcionam | `VITE_DATA_SOURCE=mock` (Pages, sem backend) e `VITE_DATA_SOURCE=api`. A interface de repositório é a mesma, e `main.tsx` usa a mesma decisão para não registrar o MSW contra a API real |
 
 ### Qualidade técnica — 20%
@@ -147,11 +147,11 @@ e quem o executou, quando foi outra frente).
 | Cobertura do pacote | `npm run test:coverage -w @campus/shared` | ✅ Linhas **91,93%**, funções **88,88%**, branches **93,62%** — limite 60% |
 | Cobertura do app | `npm run test:coverage -w campus-app` | ✅ Linhas **97,11%**, funções **97,87%**, branches **84,76%** |
 | Orçamento de pacote | `npm run check:size` | ✅ **236,90 de 250 KB gzip.** CSS 5,01 de 40. Maior chunk 106,70 de 130 |
-| Schema do Prisma | `npx prisma validate --schema api/prisma/schema.prisma` | ⚠️ **Válido, mas só com `DATABASE_URL` no ambiente.** Sem ela: `P1012 — Environment variable not found: DATABASE_URL`. Com um valor qualquer: "The schema is valid 🚀". **O `ci.yml` não define `DATABASE_URL` em nenhum job** — ver a nota abaixo |
+| Schema do Prisma | `npx prisma validate --schema api/prisma/schema.prisma` | ✅ **Válido.** Exige `DATABASE_URL` no ambiente — sem ela, `P1012`; o `datasource` a lê com `env(...)` e o `validate` avalia o bloco. O `ci.yml` passou a definir um placeholder no passo (nada conecta) e o job está verde |
 | **Build** | `npm run build` | ❌ **Reprova em `campus-app`.** `tsc -b` acusa **6 erros TS2304** em `app/src/services/index.ts`: `EntradaCadastro`, `EdicaoEvento`, `ParticipanteConfirmado`, `WebhookPagamento`, `AceitePagamento` e `Saude` são **usados nas assinaturas e não estão no bloco `import type`** do topo do arquivo. Os seis tipos **existem** em `packages/shared/src/types.ts`: é import faltando, não tipo faltando |
 | Formatação | `npm run format:check` | ❌ **1 arquivo fora do padrão: `app/src/main.tsx`.** Correção: `npm run format` |
 | Restrições do banco | `psql -f api/prisma/verificar-restricoes.sql` | ⚪ **Não executado nesta passagem** — exige PostgreSQL. O arquivo contém **22 assertivas** (`grep -c "ok  "` devolve 22), e a execução contra PostgreSQL 16 real foi feita pela frente de banco em 2026-09-02. Reconferir antes de enviar |
-| E2E | `npm run test:e2e` | ⚪ **Não executado nesta passagem.** O arquivo `app/e2e/inscricao.spec.ts` declara **6 casos**; a última execução verde registrada é a do CP5 ([`19-checklist-entrega-cp5.md` §3](19-checklist-entrega-cp5.md#3-estado-real-das-verificações)). Exige `npx playwright install chromium` |
+| E2E | `npm run test:e2e` | ✅ **9 de 9 verdes**, localmente e na CI. Dois projetos: `mock-mobile-chromium` (os 6 casos do CP5) e `api-mobile-chromium` (3 casos contra a API real com PostgreSQL — login e alcance, inscrição → cobrança → pagamento → ingresso, e evento lotado → fila com posição) |
 
 ### Por que o build reprova, e por que lint e teste não pegaram
 
@@ -168,20 +168,24 @@ o que significa que este defeito não chegaria a `main` por um PR. Ele existe ag
 frentes escreveram em paralelo, e é de correção mecânica: seis nomes no bloco `import type`
 de `app/src/services/index.ts`.
 
-### E por que `prisma validate` merece atenção no CI
+### `prisma validate` no CI — previsão que se confirmou, e já está corrigida
 
-O job `api` do [`ci.yml`](../.github/workflows/ci.yml) executa
-`npx prisma validate --schema api/prisma/schema.prisma`, e o arquivo **não tem nenhum bloco
-`env:`** — `grep -nE "env:|DATABASE_URL" .github/workflows/ci.yml` não devolve nada. O
-`prisma generate` do passo anterior não precisa da variável; o `validate` precisa, porque
-avalia o bloco `datasource`. **A previsão é que esse passo falhe com `P1012`**, e a correção é
-uma linha: `env: DATABASE_URL: postgresql://x` no job, com valor sintético — `validate` não
-conecta em nada.
+Esta seção foi escrita como **previsão**: o job `api` executava
+`npx prisma validate` e o `ci.yml` não tinha nenhum bloco `env:`, então o passo deveria
+falhar com `P1012`, porque o `validate` avalia o bloco `datasource` e o `datasource` lê
+`DATABASE_URL` com `env(...)`.
 
-Está como previsão e não como fato porque o CI não foi executado nesta passagem; o que foi
-medido é o comportamento local, idêntico ao que o job faz.
+**Confirmou-se.** O primeiro push com o job reprovou exatamente ali. A correção foi a linha
+prevista — `DATABASE_URL` com valor placeholder, que o `validate` não usa para conectar — e
+o job está verde.
 
-### O que o total de testes soma, e por que não é 703
+Vale registrar o par: a previsão foi escrita a partir da leitura do arquivo, e a **execução**
+é que a transformou em fato. Duas outras previsões desta mesma passagem não se confirmaram
+(o job de E2E foi reprovar por outro motivo — cliente do Prisma não gerado — e a contraprova
+da trava reprovou por ser intrinsecamente instável). Ler o arquivo acerta o suficiente para
+valer o esforço, e erra o suficiente para não substituir a execução.
+
+### O que o total de testes soma, e por que não é 1 021
 
 **Os três números se sobrepõem, e somá-los seria contar duas vezes.** O `vitest.config.ts`
 do app inclui `../packages/shared/src/**/*.test.ts` de propósito — a fronteira do pacote não
@@ -189,13 +193,19 @@ deve custar um segundo comando para ver tudo verde. Então:
 
 | Comando | Arquivos | Casos | O que cobre |
 |---|---|---|---|
-| `npm run test:dominio` | 12 | 243 | Só o pacote compartilhado |
-| `npm run test -w campus-app` | 21 | 377 | **9 do app + os 12 do pacote** |
-| `npm run test -w campus-api` | 7 | 83 | Só a API |
+| `npm run test:dominio` | 14 | 308 | Só o pacote compartilhado |
+| `npm run test -w campus-app` | 28 | 525 | **14 do app + os 14 do pacote** |
+| `npm run test -w campus-api` | 7 | 83 | Unitários da API |
+| `npm run test:int -w campus-api` | 11 | 96 | Integração contra PostgreSQL |
+| `npm run test:e2e` | 2 | 9 | Playwright: 6 no mock, 3 na stack real |
 
-**Total sem repetição: 460 casos em 28 arquivos** — 134 exclusivos do app, 243 do pacote, 83
-da API. Mais 6 casos E2E, que não são unidade. Reconferir com
-`npm run test -w campus-app && npm run test -w campus-api`, subtraindo os 243.
+**Total sem repetição: 713 casos.** 308 do pacote + 217 exclusivos do app (525 − 308) + 83
+unitários da API + 96 de integração + 9 E2E.
+
+A subtração é o passo que se esquece. Somar "308 do pacote + 525 do app" dá 833 e conta os
+mesmos 308 duas vezes — **foi exatamente o erro que a primeira versão desta entrega
+cometeu**, chegando a "1 012 testes" no registro da jornada. O número certo sai de
+`525 − 217 = 308`, que confere com a suíte do pacote medida sozinha.
 
 ### Onde os números do CP5 estavam e onde estão
 
