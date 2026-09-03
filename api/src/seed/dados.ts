@@ -11,6 +11,7 @@ import type {
   TipoNotificacao,
   TipoPergunta,
 } from '@prisma/client';
+import { POLICY, defaultDeadlines, offerDeadline, paymentDeadline } from '@campus/shared';
 import { uuidLegado } from './ids';
 
 /**
@@ -51,26 +52,18 @@ import { uuidLegado } from './ids';
 // O domínio compartilhado
 // ---------------------------------------------------------------------------
 
-/**
- * `@campus/shared` é carregado por `import()` dinâmico, e não por `import`
- * estático, por uma razão que não é estilo.
+/*
+ * Aqui havia um `import()` dinâmico com um comentário longo explicando que
+ * `import` estático de `@campus/shared` falhava com
+ * `ERR_PACKAGE_PATH_NOT_EXPORTED` em módulo CommonJS.
  *
- * O pacote declara em `exports` apenas a condição `import` (é `"type":
- * "module"`), e a API é CommonJS. Um `import` estático aqui é resolvido pelo
- * resolvedor CJS, que procura a condição `require`, não a encontra e falha com
- * `ERR_PACKAGE_PATH_NOT_EXPORTED` — verificado nesta máquina. O `import()`
- * dinâmico usa o resolvedor ESM, que honra a condição `import`, e funciona.
- *
- * Isto **não** é um problema só do seed: qualquer módulo CJS da API que
- * importe `@campus/shared` estático bate na mesma parede. A correção definitiva
- * é no `package.json` do pacote (build duplo, ou a condição `require`), fora do
- * alcance deste arquivo.
+ * Era verdade quando foi escrito, e deixou de ser: o pacote passou a declarar a
+ * condição `require`, `dist/index.js` é CommonJS e `scripts/check-contrato.mjs`
+ * **executa** um `require` e um `import` dele a cada verificação. Com a causa
+ * removida, o `import()` dinâmico virou complexidade sem motivo — e um
+ * comentário afirmando um defeito já corrigido é pior do que nenhum comentário,
+ * porque manda a próxima pessoa contornar um problema que não existe.
  */
-async function dominio() {
-  const { POLICY, defaultDeadlines, offerDeadline, paymentDeadline } =
-    await import('@campus/shared');
-  return { POLICY, defaultDeadlines, offerDeadline, paymentDeadline };
-}
 
 // ---------------------------------------------------------------------------
 // Senha de demonstração
@@ -1391,7 +1384,6 @@ export interface OpcoesDoSeed {
 
 export async function construirDados(opcoes: OpcoesDoSeed): Promise<DadosDoSeed> {
   const { agora, gerarHashDeSenha } = opcoes;
-  const { POLICY, defaultDeadlines, offerDeadline, paymentDeadline } = await dominio();
 
   const faculdades: Prisma.FaculdadeCreateManyInput[] = [
     {

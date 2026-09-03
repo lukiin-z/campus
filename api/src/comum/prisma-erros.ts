@@ -19,19 +19,44 @@ import { Conflito, ErroDeNegocio, NaoEncontrado, RegraViolada } from './erros';
  * fecha esse buraco — a última defesa do banco passa a produzir a MESMA resposta
  * que a verificação da aplicação produziria se tivesse chegado primeiro.
  *
- * ## Por que a busca é pelo NOME da restrição, e por texto
+ * ## Dois mapas, porque o banco fala de duas formas
  *
- * O `meta.target` do Prisma traz nome de coluna para os únicos que ele conhece
- * (os declarados no `schema.prisma`), mas `ux_participacao_ativa` e
- * `ux_pagamento_aguardando_por_participacao` são **índices parciais escritos à
- * mão na migration** — o Prisma não os declara, então o que sobra é o nome que
- * o PostgreSQL reporta. O mesmo vale para todo `CHECK`: nenhum deles existe no
- * schema do Prisma.
+ * A primeira versão deste arquivo procurava o NOME da restrição no texto do
+ * erro, para tudo. Para `CHECK` funciona — o PostgreSQL põe o nome na própria
+ * mensagem e o Prisma não modela `CHECK`, então a violação sobe crua. Para
+ * ÚNICO não funciona, e as nove entradas de único eram **código morto**.
  *
- * Por isso a estratégia é: procurar `ux_*`/`ck_*` no texto do erro (mensagem +
- * `meta`), e cair no código do Prisma (`P2002`, `P2003`, …) quando nenhum nome
- * aparecer. É acoplamento a nome de restrição — deliberado, e o preço de ter as
- * garantias no banco. Os nomes vivem em `api/prisma/migrations/0001_init`.
+ * O que o Prisma entrega num `P2002`, medido:
+ *
+ *     meta = { modelName: 'Usuario',      target: ['email'] }
+ *     meta = { modelName: 'Participacao', target: ['evento_id', 'usuario_id'] }
+ *
+ * Nome de COLUNA, nunca o da restrição — e vale igual para os únicos declarados
+ * no `schema.prisma` e para os índices parciais escritos à mão na migration.
+ * Sem tabela por coluna, toda violação de único caía em `POR_CODIGO.P2002` e
+ * chegava ao cliente como `409 CONFLITO / "Esse registro já existe."` em vez de
+ * `JA_INSCRITO`, `COBRANCA_JA_ABERTA` ou `EMAIL_JA_CADASTRADO`. O status estava
+ * certo; o **código** — que é o contrato pelo qual a tela decide o que mostrar —
+ * estava perdido.
+ *
+ * Daí os dois mapas:
+ *
+ * - `POR_COLUNAS`, indexado por `Modelo:coluna,coluna` — é o que atende `P2002`,
+ *   ou seja, todo único. As listas de coluna saíram de `pg_index` no banco real,
+ *   não da leitura da migration.
+ * - `POR_RESTRICAO`, indexado por nome — atende os `CHECK` e o caminho de SQL
+ *   cru, onde a mensagem do PostgreSQL chega inteira. As entradas de único
+ *   continuam nele **de propósito**, para esse segundo caminho, e não são o que
+ *   traduz um `P2002`.
+ *
+ * ## Uma armadilha que custou um teste passando pelo motivo errado
+ *
+ * No `errorFormat` padrão o Prisma embute um TRECHO DO CÓDIGO-FONTE na mensagem.
+ * Procurar `ux_*` no texto do erro passava a encontrar o nome escrito em um
+ * comentário perto da chamada — a tradução acertava lendo o comentário, e
+ * `api/tsconfig.json` tem `removeComments: false`, então os comentários estão no
+ * `dist`. Por isso o `PrismaService` usa `errorFormat: 'minimal'`: a tradução
+ * passa a depender só do que o banco disse.
  */
 
 type Tradutor = () => ErroDeNegocio;
@@ -44,7 +69,12 @@ type Tradutor = () => ErroDeNegocio;
  * banco: é o mesmo par (código, texto) que o handler devolve no caminho normal.
  */
 const POR_RESTRICAO: Readonly<Record<string, Tradutor>> = {
-  // ------------------------------------------------------------- únicos
+  /* --------------------------------------------------------------- únicos
+   *
+   * Estas NÃO traduzem um `P2002` — quem faz isso é `POR_COLUNAS`. Elas cobrem
+   * o caminho em que a mensagem do PostgreSQL chega inteira, com o nome do
+   * índice: SQL cru (`$executeRaw`) e erro que o Prisma não modela.
+   */
   ux_participacao_ativa: () =>
     new Conflito('JA_INSCRITO', 'Você já tem uma inscrição ativa neste evento.'),
 
@@ -164,6 +194,92 @@ const POR_RESTRICAO: Readonly<Record<string, Tradutor>> = {
     new RegraViolada('MOTIVO_OBRIGATORIO', 'Remover uma publicação exige motivo e responsável.'),
 };
 
+/**
+ * `Modelo:colunas` → erro de negócio. É o mapa que atende `P2002`.
+ *
+ * A chave junta o `modelName` e as colunas do `target`, **ordenadas**: o Prisma
+ * não promete ordem, e `evento_id,usuario_id` tem de casar com
+ * `usuario_id,evento_id`.
+ *
+ * As listas de coluna vieram de `pg_index` no banco criado pela migration —
+ * conferir por leitura era o caminho para errar, porque `@map` faz o nome do
+ * campo no Prisma e o da coluna no banco divergirem.
+ */
+const POR_COLUNAS: Readonly<Record<string, Tradutor>> = {
+  // ux_participacao_ativa — índice parcial, `WHERE status IN (...)` (RN-015)
+  'Participacao:evento_id,usuario_id': () =>
+    new Conflito('JA_INSCRITO', 'Você já tem uma inscrição ativa neste evento.'),
+
+  // ux_pagamento_aguardando_por_participacao — parcial, `WHERE status='AGUARDANDO'` (RN-027)
+  'Pagamento:participacao_id': () =>
+    new Conflito(
+      'COBRANCA_JA_ABERTA',
+      'Já existe uma cobrança aberta para esta inscrição. Use a que está na tela.',
+    ),
+
+  // presenca_participacao_id_key — uso único do ingresso (RN-018)
+  'Presenca:participacao_id': () => new Conflito('JA_UTILIZADO', 'Este ingresso já foi utilizado.'),
+
+  // pagamento_chave_idempotencia_key — reprocessamento do gateway (RN-014)
+  'Pagamento:chave_idempotencia': () =>
+    new Conflito('NOTIFICACAO_DUPLICADA', 'Esta notificação do gateway já foi processada.'),
+
+  'Usuario:email': () =>
+    new Conflito('EMAIL_JA_CADASTRADO', 'Já existe uma conta com esse e-mail.'),
+
+  'Turma:codigo_convite': () =>
+    new Conflito('CODIGO_JA_EXISTE', 'Esse código de convite já está em uso. Gere outro.'),
+
+  'Sessao:refresh_hash': () =>
+    new Conflito('SESSAO_DUPLICADA', 'Essa sessão já existe. Entre de novo.'),
+
+  'RespostaPergunta:participacao_id,pergunta_id': () =>
+    new Conflito('RESPOSTA_DUPLICADA', 'Esta pergunta já foi respondida nesta inscrição.'),
+
+  'PerguntaCustomizada:evento_id,ordem': () =>
+    new Conflito('PERGUNTA_DUPLICADA', 'Duas perguntas não podem ocupar a mesma posição.'),
+
+  /*
+   * Estes dois não tinham entrada em lugar nenhum, e a falta aparecia como
+   * `409 CONFLITO` genérico em duas telas de administração.
+   */
+  'Curso:codigo': () => new Conflito('CODIGO_JA_EXISTE', 'Já existe um curso com esse código.'),
+
+  'Faculdade:sigla': () =>
+    new Conflito('SIGLA_JA_EXISTE', 'Já existe uma faculdade com essa sigla.'),
+};
+
+/** `chaveIdempotencia` → `chave_idempotencia`. */
+function paraSnake(nome: string): string {
+  return nome.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+}
+
+/**
+ * A chave de `POR_COLUNAS` a partir do `meta` de um `P2002`, ou `null`.
+ *
+ * `meta` é `unknown` no cliente do Prisma porque a forma muda por código de
+ * erro; aqui ela é estreitada campo por campo em vez de afirmada por `as`.
+ *
+ * As colunas passam por `paraSnake` porque o Prisma reporta o nome da COLUNA
+ * (medido), mas a promessa é fraca o suficiente para não valer a aposta — e
+ * normalizar custa uma linha.
+ */
+function chaveDeColunas(meta: unknown): string | null {
+  if (typeof meta !== 'object' || meta === null) return null;
+  const registro = meta as Record<string, unknown>;
+  const modelo = registro.modelName;
+  const alvo = registro.target;
+  if (typeof modelo !== 'string' || !Array.isArray(alvo)) return null;
+
+  const colunas = alvo
+    .filter((c): c is string => typeof c === 'string')
+    .map(paraSnake)
+    .sort();
+  if (colunas.length === 0) return null;
+
+  return `${modelo}:${colunas.join(',')}`;
+}
+
 /** Código do Prisma → erro de negócio, para quando nenhum nome de restrição aparece. */
 const POR_CODIGO: Readonly<Record<string, Tradutor>> = {
   // Violação de único que o Prisma conhece, mas cujo nome não reconhecemos.
@@ -208,6 +324,17 @@ function nomesNoTexto(texto: string): string[] {
  */
 export function traduzirErroDoPrisma(erro: unknown): ErroDeNegocio | null {
   if (erro instanceof Prisma.PrismaClientKnownRequestError) {
+    /*
+     * Único vem por aqui, e a informação disponível é (modelo, colunas). Esta
+     * consulta vem PRIMEIRO porque é a que tem dado estruturado: a busca por
+     * nome, abaixo, depende de o nome aparecer em algum texto.
+     */
+    if (erro.code === 'P2002') {
+      const chave = chaveDeColunas(erro.meta);
+      const porColunas = chave === null ? undefined : POR_COLUNAS[chave];
+      if (porColunas) return porColunas();
+    }
+
     for (const nome of nomesNoTexto(textoDoErro(erro))) {
       const tradutor = POR_RESTRICAO[nome];
       if (tradutor) return tradutor();
@@ -242,3 +369,11 @@ export function traduzirErroDoPrisma(erro: unknown): ErroDeNegocio | null {
 
 /** Exposto para teste: os nomes cobertos são os da migration `0001_init`. */
 export const RESTRICOES_TRADUZIDAS = Object.keys(POR_RESTRICAO);
+
+/**
+ * Exposto para teste: as chaves `Modelo:colunas` cobertas.
+ *
+ * O teste confere esta lista contra os índices únicos que a migration cria —
+ * um único sem entrada aqui é um `409 CONFLITO` genérico esperando acontecer.
+ */
+export const UNICOS_TRADUZIDOS = Object.keys(POR_COLUNAS);

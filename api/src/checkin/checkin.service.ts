@@ -180,6 +180,29 @@ export class CheckinService {
     entrada: LeituraCheckinEntrada,
   ): Promise<ResultadoCheckin> {
     const linha = await this.acesso.exigirVisivel(eventoId, titular);
+
+    /*
+     * O portão de permissão vem ANTES da decisão, e não como parâmetro dela.
+     *
+     * Antes, `operadorTemPermissao` entrava como campo de `decideCheckIn` e
+     * quem não opera a porta recebia `200 { aceito: false, motivo:
+     * 'SEM_PERMISSAO' }`. Três problemas nisso:
+     *
+     * 1. O contrato declara `403` para esta rota, e o `403` declarado nunca
+     *    acontecia — cliente escrito contra o contrato tratava um status que
+     *    não existia.
+     * 2. As duas rotas irmãs de operador (`GET /eventos/:id/checkin` e
+     *    `POST /participacoes/:id/presenca-manual`) já respondiam `403` pelo
+     *    `exigirOperador`. A mesma recusa saía em duas formas diferentes.
+     * 3. `200` obriga o cliente a ler o corpo para descobrir que foi recusado.
+     *    HTTP tem um status para exatamente isto.
+     *
+     * `decideCheckIn` continua recebendo `operadorTemPermissao` porque a camada
+     * mockada do CP5 decide tudo num lugar só, sem HTTP no meio — o ramo
+     * `SEM_PERMISSAO` segue vivo e testado em `packages/shared`.
+     */
+    this.exigirOperador(titular, linha);
+
     const evento = paraEvento(linha);
 
     const leitura = classificarLeitura(entrada.leitura);

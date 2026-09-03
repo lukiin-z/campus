@@ -34,17 +34,37 @@ describe('formatEventDateTime', () => {
   });
 });
 
+/**
+ * Um instante que, **no fuso de quem executa**, é a hora pedida.
+ *
+ * `formatTime` e `formatEventRange` renderizam em hora local — `getHours()`,
+ * `getDay()`, `getDate()` —, e isso é o comportamento certo do produto: a pessoa
+ * lê o horário do evento no relógio dela.
+ *
+ * A consequência para o teste é que fixar a ENTRADA em `-03:00` e a SAÍDA em
+ * "19h" só funciona em UTC-3. Três casos aqui passavam na máquina de quem
+ * escreveu e reprovaram na CI, que roda em UTC: `expected '22h' to be '19h'`.
+ * Um teste que depende do fuso da máquina não afirma nada sobre o código.
+ *
+ * A correção é na entrada, não no ambiente: construindo o instante a partir de
+ * componentes locais, a asserção vale em qualquer fuso — e continua exercitando
+ * exatamente a conversão que a função faz.
+ */
+function isoLocal(ano: number, mes: number, dia: number, hora: number, minuto = 0): string {
+  return new Date(ano, mes - 1, dia, hora, minuto, 0, 0).toISOString();
+}
+
 describe('formatTime', () => {
   it('mostra hora cheia sem os minutos, e com minutos quando existem', () => {
     // "19h" lê melhor que "19h00" em cartão de evento; "19h30" precisa dos dois.
-    expect(formatTime('2026-09-11T19:00:00.000-03:00')).toBe('19h');
-    expect(formatTime('2026-09-11T19:30:00.000-03:00')).toBe('19h30');
+    expect(formatTime(isoLocal(2026, 9, 11, 19, 0))).toBe('19h');
+    expect(formatTime(isoLocal(2026, 9, 11, 19, 30))).toBe('19h30');
   });
 });
 
 describe('formatDayMonth', () => {
   it('devolve dia e mês separados, para o cartão empilhar os dois', () => {
-    const { dia, mes } = formatDayMonth('2026-09-11T15:00:00.000-03:00');
+    const { dia, mes } = formatDayMonth(isoLocal(2026, 9, 11, 15, 0));
     expect(dia).toBe('11');
     expect(mes).toMatch(/^[a-zç]{3}$/i);
   });
@@ -52,7 +72,7 @@ describe('formatDayMonth', () => {
 
 describe('formatFullDate', () => {
   it('escreve a data por extenso', () => {
-    expect(formatFullDate('2026-09-11T15:00:00.000-03:00')).toMatch(/11 de \w+ de 2026/);
+    expect(formatFullDate(isoLocal(2026, 9, 11, 15, 0))).toMatch(/11 de \w+ de 2026/);
   });
 });
 
@@ -100,10 +120,7 @@ describe('formatSpots', () => {
 
 describe('formatEventRange', () => {
   it('mesmo dia mostra a data uma vez e as duas horas', () => {
-    const texto = formatEventRange(
-      '2026-09-11T13:00:00.000-03:00',
-      '2026-09-11T19:00:00.000-03:00',
-    );
+    const texto = formatEventRange(isoLocal(2026, 9, 11, 13, 0), isoLocal(2026, 9, 11, 19, 0));
     expect(texto).toContain('13h');
     expect(texto).toContain('19h');
     // A data não se repete: "11 de setembro, 13h – 11 de setembro, 19h" é ruído.
@@ -121,10 +138,7 @@ describe('formatEventRange', () => {
      * o dia da semana seria ambíguo. Não acontece, porque RN-011 limita a
      * duração a `POLICY.MAX_EVENT_DURATION_DAYS` = 7.
      */
-    const texto = formatEventRange(
-      '2026-09-19T18:00:00.000-03:00',
-      '2026-09-21T18:00:00.000-03:00',
-    );
+    const texto = formatEventRange(isoLocal(2026, 9, 19, 18, 0), isoLocal(2026, 9, 21, 18, 0));
     expect(texto).toMatch(/^18h – (seg|ter|qua|qui|sex|sáb|dom), 18h$/);
   });
 });

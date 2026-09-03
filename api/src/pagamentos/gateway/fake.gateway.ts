@@ -168,7 +168,6 @@ export class GatewayFake implements PaymentGateway {
       transacaoId: lido.data.transacaoExternaId,
       chaveIdempotencia: lido.data.chaveIdempotencia,
       valorCentavos: paraCentavos(lido.data.valorPago),
-      ocorridoEm: new Date().toISOString(),
     };
   }
 }

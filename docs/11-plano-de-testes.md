@@ -225,16 +225,24 @@ Funcionalidade: Contagem de vagas ocupadas
 
 | Regra | Requisitos | Nível | Prioridade | Arquivo |
 |---|---|---|---|---|
-| RN-004 | RF-019, RF-020 · RNF-013 | Unitário (fila de escrita da camada mockada) | P0 | `packages/shared/src/domain/capacity.test.ts` |
+| RN-004 | RF-019, RF-020 · RNF-013 | Unitário + **integração contra PostgreSQL** | P0 | `packages/shared/src/domain/capacity.test.ts`, `api/test/concorrencia.int.test.ts` |
 
 Este é o caso que o [modelo de dados](05-modelagem/03-modelo-dados-er.md) descreve com
-`SELECT ... FOR UPDATE`: no CP5 a mesma serialização vem de uma fila de operações de
-escrita na camada mockada, e o comportamento observável é idêntico.
+`SELECT ... FOR UPDATE`. Ele é medido em **dois níveis**, e a distinção importa porque o
+comportamento observável **não** é o mesmo — a primeira versão deste cenário dizia que era:
+
+- **CP5, camada mockada:** a serialização vem de uma fila de operações de escrita no
+  navegador, e a mesma chamada resolve capacidade **e** fila. Uma inscrição em evento
+  lotado nasce `LISTA_ESPERA` direto.
+- **CP6, API real:** o contrato separa os dois passos de propósito. Uma inscrição em evento
+  lotado responde `409 SEM_VAGA` com `acao: LISTA_ESPERA` e `totalFila`, e é o cliente que
+  decide entrar na fila com um segundo pedido. Entrar na fila sem a pessoa pedir seria
+  decidir por ela.
 
 ```gherkin
 Funcionalidade: Reserva atômica sob concorrência
 
-  Cenário: 50 inscrições simultâneas para 1 vaga
+  Cenário: 50 inscrições simultâneas para 1 vaga — camada mockada (CP5)
     Dado o evento "evt-005" (Festa Junina Fora de Época), capacidade 300, com 299 ocupadas
     E 50 alunos diferentes, todos da FIAP, disparando inscrição no mesmo instante
     Quando as 50 operações são enfileiradas e processadas pela camada de escrita
@@ -243,7 +251,32 @@ Funcionalidade: Reserva atômica sob concorrência
     E "ocupadas" termina em 300, nunca em 301
     E em nenhum instante intermediário "ocupadas" ultrapassa 300
     E nenhuma das 49 recebe mensagem de erro — evento lotado direciona para a fila (RN-006)
+
+  Cenário: 50 inscrições simultâneas para 1 vaga — API real com PostgreSQL (CP6)
+    Dado o mesmo evento, com 299 de 300 ocupadas no banco
+    E 50 requisições HTTP disparadas juntas, cada uma com o token do seu aluno
+    Quando o "SELECT ... FOR UPDATE" de "comum/travas.ts" serializa as transações
+    Então exatamente 1 responde 201 com status "PENDENTE_PAGAMENTO"
+    E as outras 49 respondem 409 com erro "SEM_VAGA", acao "LISTA_ESPERA" e "totalFila"
+    E nenhuma responde 5xx — recusa por regra não é falha de servidor
+    E "ocupadas" termina exatamente em 300
+    E as 50 que entram na fila em seguida recebem posições 1 a 50, únicas e contíguas
 ```
+
+**Medido** (`api/test/concorrencia.int.test.ts`):
+`50 simultâneas → 201: 1 · 409: 49 · 5xx: 0 · ocupadas: 300/300`.
+
+E há a **contraprova**, que é o que dá sentido ao número acima
+(`api/test/concorrencia-sem-trava.int.test.ts`): com `travarEvento` desligada por
+`vi.mock`, o mesmo cenário continua sem overbooking — o `CHECK` do banco segura —, mas de
+7 a 22 das 49 recusas passam a vir da tradução do `CHECK` em vez de `isFull`, e portanto
+**sem `totalFila`**: a tela perde o "você seria o 8º da fila". Ou seja, quem impede o
+overbooking nesse caminho é o `CHECK`; quem produz a **resposta certa** é a trava.
+
+Uma segunda contraprova mede a réplica ingênua — ler `ocupadas`, esperar, escrever
+`lido + 1` sem trava: **5 de 5 pessoas entraram em 1 vaga**, com `ocupadas` em 300. O
+`CHECK` não pega, porque 300 é um valor legal. É por isso que `increment` **e** a trava são
+necessários, e não um ou outro.
 
 #### CT-021 — Capacidade diminui só até o número de ocupadas, e aumentar promove a fila
 

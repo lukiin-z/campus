@@ -130,7 +130,7 @@ jobs:
       - name: Formatação (Prettier)
         run: npm run format:check
 
-      - name: Testes com cobertura (limite de 60% — RNF-015)
+      - name: Testes com cobertura (limites em app/vite.config.ts — RNF-015)
         run: npm run test:coverage -w campus-app
 
       - name: Build de produção
@@ -206,9 +206,78 @@ jobs:
           JWT_SECRET: placeholder-de-ci-com-32-caracteres
           WEBHOOK_SECRET: placeholder-de-ci-16
 
+  integracao:
+    name: API (integração contra PostgreSQL)
+    runs-on: ubuntu-latest
+
+    # O que este job existe para responder: as garantias que moram no BANCO
+    # funcionam? `SELECT ... FOR UPDATE`, os 20 `CHECK`, os índices únicos
+    # parciais e a tradução deles em código de negócio. Nenhuma delas é
+    # verificável sem PostgreSQL, e até o CP6 nenhum job tinha um.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: campus
+          POSTGRES_PASSWORD: campus_dev_local
+          POSTGRES_DB: campus_teste
+        ports: ['5433:5432']
+        # Sem o healthcheck o job começa antes de o banco aceitar conexão, e a
+        # falha aparece como timeout no primeiro teste em vez de no serviço.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instala dependências
+        run: npm ci
+
+      - name: Compila o pacote compartilhado
+        run: npm run build -w @campus/shared
+
+      - name: Gera o cliente do Prisma
+        run: npm run prisma:generate -w campus-api
+
+      # `INT_SEM_DOCKER=true` desliga a tentativa de subir o `db-teste` do
+      # compose: aqui o banco é o `services:` acima. O gancho existe no
+      # `globalSetup` exatamente para este caso.
+      - name: Testes de integração
+        run: npm run test:int -w campus-api
+        env:
+          INT_SEM_DOCKER: 'true'
+          DATABASE_URL: postgresql://campus:campus_dev_local@localhost:5433/campus_teste?schema=public&connection_limit=60&pool_timeout=30
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
+
+    # Mesmo banco, mesma razão: o projeto `api-*` do Playwright sobe a API de
+    # verdade e a percorre pela interface. Sem `services:`, este job rodava só
+    # os testes do modo mock e as três verificações contra a stack real ficavam
+    # sem execução em CI — verdes na máquina de alguém, o que não é verde.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: campus
+          POSTGRES_PASSWORD: campus_dev_local
+          POSTGRES_DB: campus_teste
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     # Job separado do de aplicação de propósito: o E2E baixa um navegador
     # (~120 MB) e leva dezenas de segundos. Separá-lo faz lint e teste unitário
     # continuarem devolvendo resultado em menos de dois minutos, e o E2E não
@@ -232,13 +301,25 @@ jobs:
 
       # Só o Chromium: os três projetos do Playwright pesariam 4× por uma
       # informação que o alvo do produto (web mobile) não precisa.
+      #
+      # `npm exec -w campus-app`, e não `npx`: `@playwright/test` é dependência
+      # DO APP e o npm não o iça para a raiz, então `npx playwright` da raiz
+      # falha com `sh: 1: playwright: not found` — que é a mesma armadilha de
+      # monorepo do `jsdom` (defeito 16 em docs/17-jornada.md), com outra
+      # mensagem que também não menciona workspace.
       - name: Instala o Chromium
-        run: npx playwright install --with-deps chromium
+        run: npm exec -w campus-app -- playwright install --with-deps chromium
 
       # O `webServer` do playwright.config.ts roda o build e serve o preview: o
       # alvo é o artefato de produção, não o dev server.
       - name: Roda o E2E
         run: npm run test:e2e
+        env:
+          E2E_SEM_DOCKER: 'true'
+          DATABASE_URL: postgresql://campus:campus_dev_local@localhost:5433/campus_teste?schema=public
+          JWT_SECRET: placeholder-de-ci-com-32-caracteres
+          WEBHOOK_SECRET: placeholder-de-ci-16
+          PERMITIR_SIMULACAO_PAGAMENTO: 'true'
 
       - name: Guarda o relatório quando falha
         if: failure()

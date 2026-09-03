@@ -94,7 +94,19 @@ export type NotificacaoVerificada =
       readonly transacaoId: string;
       readonly chaveIdempotencia: string;
       readonly valorCentavos: number;
-      readonly ocorridoEm: string;
+      /*
+       * `ocorridoEm` NÃO está aqui, e a ausência é a correção de um defeito.
+       *
+       * O campo existia e o fake o preenchia com `new Date().toISOString()`, o
+       * que tornava impura uma função cuja assinatura promete pureza logo
+       * abaixo — e o teste "é pura" dela reprovava por diferença de 1 ms,
+       * intermitentemente, inclusive na CI.
+       *
+       * Ninguém o lia: um produtor, zero consumidores. Um gateway real que
+       * envie o instante do evento deve declará-lo em `webhookPagamentoSchema`,
+       * para que o valor venha do CORPO ASSINADO — e não do relógio de quem
+       * está verificando a assinatura, que é a única fonte que não prova nada.
+       */
     }
   | {
       readonly valida: false;
@@ -105,7 +117,12 @@ export interface PaymentGateway {
   criarCobranca(entrada: CobrancaSolicitada): Promise<CobrancaCriada>;
   consultarCobranca(transacaoId: string): Promise<CobrancaConsultada>;
   reembolsar(entrada: ReembolsoSolicitado): Promise<ReembolsoRealizado>;
-  /** Síncrona e pura: só verifica assinatura e formato. Não toca rede nem banco. */
+  /**
+   * Síncrona e pura: só verifica assinatura e formato. Não toca rede nem banco.
+   *
+   * "Pura" aqui é afirmação verificada, não intenção: há um caso que chama duas
+   * vezes com a mesma entrada e exige resultado idêntico.
+   */
   verificarNotificacao(entrada: NotificacaoRecebida): NotificacaoVerificada;
 }
 
