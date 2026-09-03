@@ -50,8 +50,8 @@ git log --oneline cp4..cp5 # os commits do CP5
 | Tag | Data | Commits acumulados | Entrega |
 |---|---|---|---|
 | `cp4` | 2026-09-01 | 8 | Idealização: documentação, UML, marca, pitch, Trello, base técnica |
-| `cp5` | 2026-09-02 | ver `git log cp4..cp5` | Protótipo funcional: 12 rotas navegáveis com dados simulados, ambiente de teste, PWA |
-| `cp6` | 2026-09-02 | ver `git log cp5..cp6` | Entrega final: monorepo, API NestJS + PostgreSQL, pacote instalável |
+| `cp5` | 2026-09-02 | 13 (+5) | Protótipo funcional: 12 rotas navegáveis com dados simulados, ambiente de teste, PWA |
+| `cp6` | 2026-09-03 | 27 (+14) | Entrega final: monorepo, API NestJS + PostgreSQL, 1 012 testes, stack em um comando |
 
 ---
 
@@ -360,10 +360,60 @@ O limite de cobertura era 60% com medição real acima de 90%, o que não proteg
 deixa passar uma regressão que apaga metade da cobertura. Subiu para 90/85 no pacote e
 88/78 no app, com a folga escrita no arquivo de configuração.
 
-### 5.5 O que continua sendo pendência declarada
+### 5.5 O que o CP6 mediu, e o que continua sendo pendência declarada
 
-*Preenchido no fecho do CP6, com o que as verificações de integração e de instalabilidade
-apurarem.*
+#### Medido, com saída colada em `docs/24-checklist-entrega-cp6.md`
+
+| O que | Número |
+|---|---|
+| Testes verdes | **1 012** — 308 no pacote, 525 no app (inclui os do pacote), 83 unitários da API, 96 de integração contra PostgreSQL, 9 de Playwright |
+| Cobertura do pacote compartilhado | 99,32% de linhas · 94,62% de ramos · 97,97% de funções |
+| Cobertura do app | 96,68% · 85,04% · 90,97% |
+| Cobertura do domínio da API | 84,53% de linhas · 77,49% de funções · 70,12% de ramos (meta era ≥ 70%) |
+| Concorrência (CT-020, RNF-013) | 50 simultâneas na última vaga → **1× `201`, 49× `409 SEM_VAGA`, 0× `5xx`, `ocupadas` 300/300** |
+| Contraprova da trava | sem `SELECT ... FOR UPDATE`, **5 de 5 pessoas entram em 1 vaga**; e de 7 a 22 das 49 recusas perdem o `totalFila` |
+| Restrições do banco | **22 de 22** tentativas de gravar dado impossível recusadas |
+| Contrato × rotas servidas | 38 declaradas, 38 registradas, concordam |
+| Pacote do app | 236,90 KB gzip no modo mock · **126,45 KB no modo `api`** (o chunk do MSW sai da build) |
+| Stack do zero | `docker compose up -d --build` com volumes apagados → 3 serviços saudáveis, migration aplicada, seed rodado |
+| **Continuidade CP5 → CP6** | `GET /api/eventos` responde **10 eventos** para a Marina — o mesmo número que o mock do CP5 media |
+
+A última linha é a que responde ao critério de evolução: não é que os dois funcionem, é que
+**medem o mesmo**. A regra de alcance que decide isso é uma função só, em
+`packages/shared/src/domain/visibility.ts`, e as duas fontes a chamam.
+
+#### Pendências declaradas
+
+Nenhuma delas é surpresa: as cinco estavam previstas no roadmap ou dependem de coisa fora
+do repositório.
+
+| Pendência | Por que continua |
+|---|---|
+| **GitHub Pages não está publicado** | Exige o Pages ativado nas configurações do repositório, e a conta autenticada aqui tem `push` e não `admin` — a API de Pages responde `404`. O workflow foi corrigido e verificado localmente; falta um clique de quem é dono |
+| **Deploy público (caminho C de instalação)** | Depende de contas em Render/Railway/Fly e Neon que ninguém criou. Os dois outros caminhos — PWA e `docker compose up` — estão verificados |
+| **RNF-021, controle do titular** | Não há endpoint de exportação nem de exclusão de conta, e `usuario.excluido_em` **não existe** no schema. O ER e o dicionário afirmavam que existia; foi corrigido nesta entrega |
+| **Instalação como PWA clicada** | O navegador desta sessão recusa registro de service worker e não dispara `beforeinstallprompt` nem para a build do CP5, que tem um — o resultado negativo mediu o navegador. O manifest foi conferido campo por campo e é servido em `application/manifest+json` |
+| **Gateway de pagamento real** | ADR-0006: o simulador é a decisão, não uma falta. O que se testa é o nosso lado — janela, idempotência, assinatura, estorno |
+| **Execução em macOS e Linux** | Tudo rodou em Windows com Docker Desktop. A CI cobre Linux para lint, tipo, teste, integração e E2E, mas não para o `docker compose` |
+| **Vídeo, Trello e entrega no Teams** | São ações de pessoa. Roteiros, decks e o quadro pronto para importar estão no repositório |
+
+#### O que este checkpoint provou sobre o processo
+
+Doze defeitos novos, e a coluna "o que encontrou" da tabela de 5.4 não tem uma única
+entrada dizendo "releitura do código". As fontes foram: um teste rodando pela primeira vez,
+um relatório de cobertura por função, a aba de rede do navegador, um job de CI reprovando,
+um `docker compose up` de verdade e — duas vezes — um navegador que se recusava a fazer
+algo, criando por acidente o caminho de falha que nenhum ambiente saudável produz.
+
+Dois merecem registro à parte porque são do tipo que atravessa revisão sem ser notado:
+
+- **A verificação que o código afirmava ter.** Um comentário dizia que a concordância entre
+  contrato e rotas era verificada. Não era. Reescrever a frase seria mais rápido do que
+  escrever o verificador, e teria deixado o repositório mentindo por escrito.
+- **A tradução que lia comentário.** O Prisma embute um trecho do código-fonte na mensagem
+  de erro; o tradutor procurava nome de restrição no texto; o nome estava num comentário.
+  O teste passava, a produção também — até alguém editar o comentário. Foi encontrado
+  porque uma frente desconfiou de um teste que passou na primeira tentativa.
 
 ---
 
