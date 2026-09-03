@@ -118,7 +118,7 @@ Regenerar: `npm run diagrams`
 
 ## 8. Como verificar esta documentação
 
-Nada aqui é "confia": há **três** scripts que verificam o repositório, e o CI roda os três.
+Nada aqui é "confia": há **quatro** scripts que verificam o repositório, e o CI roda os quatro.
 
 ```bash
 node scripts/validate-docs.mjs
@@ -145,6 +145,22 @@ importar algo que não seja `zod` ou um caminho relativo, e a mensagem de erro d
 motivo** — "a API não roda React", "o app não tem banco". Também confere que o `alias` do
 Vite e o `paths` do TypeScript resolvem `@campus/shared` para o mesmo lugar, porque divergir
 entre os dois faz o `tsc` passar e o app servir código velho.
+
+```bash
+npm run check:rotas
+```
+
+Sobe a aplicação, pede o documento ao Swagger — que lê os decoradores em execução, e por
+isso é a única fonte que não pode mentir sobre quais rotas existem — e compara a lista de
+caminhos com [`api/openapi.yaml`](../api/openapi.yaml). Divergência para o build nos dois
+sentidos: caminho declarado e não servido é `404` na cara de quem escreveu o cliente;
+rota servida e não declarada é rota que ninguém sabe que existe.
+
+Este script nasceu de uma frase. `api/src/main.ts` afirmava que essa comparação era "a
+verificação que impede o contrato escrito e as rotas servidas divergirem" — e a
+verificação não existia. É o mesmo padrão que o [registro da jornada](17-jornada.md)
+documentou cinco vezes no CP5: aquilo que *parece* coberto porque alguém escreveu que
+estava.
 
 E, para as garantias que só o banco pode dar:
 

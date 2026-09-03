@@ -160,6 +160,7 @@ node scripts/check-bundle-size.mjs
 npm run lint -w campus-api
 npm run test -w campus-api
 npm run build -w campus-api
+npm run check:rotas
 
 # Ponta a ponta, contra o build de produção
 npm run test:e2e
