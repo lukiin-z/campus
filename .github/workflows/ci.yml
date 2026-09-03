@@ -174,8 +174,14 @@ jobs:
         run: npm run prisma:generate -w campus-api
 
       # Valida o schema contra o dialeto do PostgreSQL sem precisar de banco.
+      #
+      # `DATABASE_URL` é obrigatória mesmo assim: o `datasource` a lê com
+      # `env(...)` e, sem ela, o `prisma validate` para em `P1012` antes de olhar
+      # o schema. Nada é conectado — o valor é placeholder e não é segredo.
       - name: Valida o schema do Prisma
         run: npx prisma validate --schema api/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
       - name: Lint
         run: npm run lint -w campus-api
@@ -185,6 +191,20 @@ jobs:
 
       - name: Build
         run: npm run build -w campus-api
+
+      # Compara os caminhos que a aplicação registra com os que o openapi.yaml
+      # declara. Depende do build acima porque lê `api/dist`.
+      #
+      # As variáveis são placeholders: a validação de ambiente derruba o processo
+      # sem elas (e é isso que se quer em produção), mas a pergunta aqui é sobre
+      # roteamento e o Prisma é substituído por um objeto inerte. Nenhum banco é
+      # necessário, e nenhum destes valores é segredo.
+      - name: Contrato e rotas servidas concordam
+        run: npm run check:rotas
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          JWT_SECRET: placeholder-de-ci-com-32-caracteres
+          WEBHOOK_SECRET: placeholder-de-ci-16
 
   e2e:
     name: E2E (Playwright)

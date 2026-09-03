@@ -4,7 +4,19 @@ import { LimiteExcedido } from './erros';
 import type { RequisicaoAutenticada } from './titular';
 
 /**
- * Limite de taxa nas rotas de credencial — RNF-021.
+ * Limite de taxa nas rotas de credencial.
+ *
+ * ## Nenhum requisito pede isto
+ *
+ * Vale dizer em voz alta: não há RNF de limite de taxa em
+ * `docs/02-requisitos.md`. Este guard citava RNF-021, que é **controle do
+ * titular** (exportar e excluir a conta) e não tem relação — a citação errada
+ * fazia o código parecer rastreável a um requisito que ninguém escreveu.
+ *
+ * Ele fica porque RNF-010 protege a senha ARMAZENADA (argon2id) e não protege o
+ * endpoint: sem freio, tentar dez mil senhas contra `/auth/login` é de graça. E
+ * fica só nas rotas de credencial, que são as que o contrato declara com `429`
+ * — declarar `429` onde a API nunca o devolve faria o contrato mentir.
  *
  * ## O que é e o que não é
  *

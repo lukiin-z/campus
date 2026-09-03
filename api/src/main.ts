@@ -52,10 +52,15 @@ async function bootstrap(): Promise<void> {
   });
 
   /*
-   * O documento é gerado do código em execução. Ele e o `api/openapi.yaml`
-   * têm de concordar na lista de caminhos — é a verificação que impede o
-   * contrato escrito e as rotas servidas divergirem, que foi o que aconteceu
-   * entre o CP4 e o mock do CP5.
+   * O documento é gerado do código em execução, o que o torna a única fonte que
+   * não pode mentir sobre quais rotas existem.
+   *
+   * Ele e o `api/openapi.yaml` têm de concordar na lista de caminhos, e essa
+   * concordância é VERIFICADA por `scripts/check-rotas.mjs` (`npm run
+   * check:rotas`), que sobe a aplicação, pede este mesmo documento e compara os
+   * dois conjuntos. Até o CP6 este comentário afirmava que a verificação
+   * existia, e ela não existia — o script nasceu de reler esta frase e procurar
+   * por ela.
    */
   const documento = SwaggerModule.createDocument(
     aplicacao,

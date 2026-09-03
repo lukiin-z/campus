@@ -25,6 +25,7 @@
     "check:scale": "node scripts/check-tailwind-scale.mjs",
     "check:size": "node scripts/check-bundle-size.mjs",
     "check:contrato": "node scripts/check-contrato.mjs",
+    "check:rotas": "node scripts/check-rotas.mjs",
     "test:dominio": "vitest run --root packages/shared",
     "test:coverage": "npm run test:coverage -w @campus/shared && npm run test:coverage -w campus-app"
   },

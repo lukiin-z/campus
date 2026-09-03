@@ -9,17 +9,17 @@ import {
   type OnboardingEntrada,
   type SessaoUsuario,
 } from '@campus/shared';
+import type { TokensDeSessao } from '@campus/shared';
 import { LimiteDeTaxaGuard } from '../comum/limite-de-taxa.guard';
 import { Publico, TitularAtual, type Titular } from '../comum/titular';
 import { ZodValidationPipe } from '../comum/validacao.pipe';
 import { AuthService } from './auth.service';
 import { refreshSchema, type RefreshEntrada } from './schemas';
-import type { ResultadoLoginApi } from './tipos';
 
 /**
  * Autenticação e vínculo — `/auth/*` e `/sessao`.
  *
- * As rotas de credencial (`cadastro` e `login`) têm limite de taxa (RNF-021):
+ * As rotas de credencial (`cadastro` e `login`) têm limite de taxa:
  * são as duas em que tentar mil vezes é uma estratégia. `refresh` não tem, de
  * propósito — o token é imprevisível (384 bits) e limitar aqui derrubaria a
  * sessão de quem abre várias abas.
@@ -39,7 +39,7 @@ export class AuthController {
   cadastrar(
     @Body(new ZodValidationPipe(cadastroSchema)) corpo: CadastroEntrada,
     @Headers('user-agent') userAgent?: string,
-  ): Promise<ResultadoLoginApi> {
+  ): Promise<TokensDeSessao> {
     return this.auth.cadastrar(corpo, userAgent ?? null);
   }
 
@@ -50,7 +50,7 @@ export class AuthController {
   entrar(
     @Body(new ZodValidationPipe(credenciaisSchema)) corpo: CredenciaisEntrada,
     @Headers('user-agent') userAgent?: string,
-  ): Promise<ResultadoLoginApi> {
+  ): Promise<TokensDeSessao> {
     return this.auth.entrar(corpo, userAgent ?? null);
   }
 
@@ -60,7 +60,7 @@ export class AuthController {
   renovar(
     @Body(new ZodValidationPipe(refreshSchema)) corpo: RefreshEntrada,
     @Headers('user-agent') userAgent?: string,
-  ): Promise<ResultadoLoginApi> {
+  ): Promise<TokensDeSessao> {
     return this.auth.renovar(corpo.refreshToken, userAgent ?? null);
   }
 

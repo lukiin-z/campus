@@ -96,7 +96,7 @@ export class RegraViolada extends ErroDeNegocio {
   }
 }
 
-/** `429` — limite de taxa excedido (RNF-021). */
+/** `429` — limite de taxa excedido nas rotas de credencial. Ver `limite-de-taxa.guard.ts`. */
 export class LimiteExcedido extends ErroDeNegocio {
   constructor(segundosParaTentar: number) {
     super(

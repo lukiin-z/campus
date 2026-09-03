@@ -11,12 +11,12 @@ import {
   dominioInstitucional,
   onboardingPendente,
 } from '@campus/shared';
+import type { TokensDeSessao } from '@campus/shared';
 import { Conflito, NaoAutenticado, NaoEncontrado, RegraViolada } from '../comum/erros';
 import { paraCurso, paraFaculdade, paraTurma, paraUsuario } from '../comum/mapeadores';
 import { SELECAO_DO_TITULAR, type Titular } from '../comum/titular';
 import { PrismaService } from '../prisma/prisma.service';
 import { SessoesService } from './sessoes.service';
-import type { ResultadoLoginApi } from './tipos';
 
 /**
  * Cadastro, login e onboarding — RF-001 a RF-005, RN-002 e RN-003.
@@ -69,7 +69,7 @@ export class AuthService {
    * impossível se o e-mail estivesse pendente de confirmação — `decideLogin`
    * recusaria o login seguinte.
    */
-  async cadastrar(entrada: CadastroEntrada, userAgent: string | null): Promise<ResultadoLoginApi> {
+  async cadastrar(entrada: CadastroEntrada, userAgent: string | null): Promise<TokensDeSessao> {
     const faculdades = await this.prisma.faculdade.findMany();
     const faculdade = faculdades.find((f) => dominioInstitucional(entrada.email, f.dominiosEmail));
 
@@ -109,10 +109,7 @@ export class AuthService {
   // ----------------------------------------------------------------- login
 
   /** RF-003 e RN-002 — a decisão inteira é de `decideLogin`. */
-  async entrar(
-    credenciais: CredenciaisEntrada,
-    userAgent: string | null,
-  ): Promise<ResultadoLoginApi> {
+  async entrar(credenciais: CredenciaisEntrada, userAgent: string | null): Promise<TokensDeSessao> {
     const usuario = await this.prisma.usuario.findUnique({
       where: { email: credenciais.email },
       select: { ...SELECAO_DO_TITULAR, senhaHash: true },
@@ -160,7 +157,7 @@ export class AuthService {
 
   // --------------------------------------------------------------- refresh
 
-  async renovar(refreshToken: string, userAgent: string | null): Promise<ResultadoLoginApi> {
+  async renovar(refreshToken: string, userAgent: string | null): Promise<TokensDeSessao> {
     const { tokens, usuarioId } = await this.sessoes.rotacionar(refreshToken, userAgent);
     return { ...tokens, sessao: await this.sessaoDe(usuarioId) };
   }
@@ -251,7 +248,7 @@ export class AuthService {
   private async montarResultado(
     titular: Titular,
     userAgent: string | null,
-  ): Promise<ResultadoLoginApi> {
+  ): Promise<TokensDeSessao> {
     const tokens = await this.sessoes.emitirPar(titular, userAgent);
     return { ...tokens, sessao: await this.sessaoDe(titular.id) };
   }

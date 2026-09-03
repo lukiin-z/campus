@@ -3,7 +3,7 @@ import { JanelaDeTaxa } from './limite-de-taxa.guard';
 import { STATUS_ATIVOS, STATUS_QUE_OCUPAM } from './status';
 
 /**
- * RNF-021 — o limite de taxa das rotas de credencial.
+ * O limite de taxa das rotas de credencial (nenhum RNF o exige; ver o guard).
  *
  * O relógio é parâmetro (`registrar(chave, agora)`) justamente para o teste não
  * precisar esperar 60 segundos: janela verificada por espera é teste
