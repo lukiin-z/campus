@@ -209,7 +209,21 @@ test.describe('stack real', () => {
     // --- 4. o desfecho vem do gateway, e só dele ---
     await page.getByRole('button', { name: 'Confirmar', exact: true }).click();
 
-    await expect(page.getByText('Pagamento confirmado')).toBeVisible();
+    /*
+     * `getByRole('status')`, e não `getByText`: o texto "Pagamento confirmado"
+     * aparece em DOIS lugares quando a confirmação acaba de acontecer — o
+     * bloco de status da tela e o toast que `usePagamento` dispara. O
+     * `getByText` resolvia para dois elementos e o Playwright reprovava com
+     * `strict mode violation`.
+     *
+     * Aqui isso passou e na CI reprovou, e a diferença é só o instante: na
+     * máquina lenta o toast já havia sumido quando a asserção rodou. Prender o
+     * caso ao papel do elemento é o que o torna independente de quando o toast
+     * desaparece — e o bloco de status é o que a pessoa continua vendo depois.
+     */
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Pagamento confirmado' }),
+    ).toBeVisible();
 
     // --- 5. o ingresso ---
     await page.getByRole('link', { name: 'Ver meu ingresso' }).click();
