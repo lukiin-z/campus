@@ -1,11 +1,16 @@
 name: Deploy GitHub Pages
 
-# Publica cinco coisas no mesmo site, porque as cinco são entregáveis avaliados:
+# Publica seis coisas no mesmo site, porque as seis são entregáveis avaliados:
 #   /                app React (base /campus/), instalável pelo manifest
 #   /styleguide/     prova visual da identidade visual
 #   /prototipo/      protótipo estático original, preservado
 #   /slides/         deck de apoio do vídeo do CP4
 #   /slides-cp5/     deck de apoio do vídeo do CP5
+#   /slides-cp6/     deck de apoio do vídeo do CP6
+#
+# O app publicado aqui roda em modo MOCK, e isso é a decisão, não uma limitação
+# esquecida: o Pages não tem backend. A stack com API e PostgreSQL é o
+# `docker compose up` de `docs/23-instalacao.md`.
 on:
   push:
     branches: [main]
@@ -33,19 +38,33 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          # Raiz, não `app/`: o monorepo do CP6 tem UM lockfile, na raiz. Com o
+          # caminho antigo o job morria em "Some specified paths were not
+          # resolved, unable to cache dependencies" — mensagem que não menciona
+          # monorepo, workspace nem lockfile ausente.
+          cache-dependency-path: package-lock.json
 
+      # Na raiz e sem `working-directory`: `npm ci` dentro de `app/` num
+      # workspace instala a árvore errada (ou nenhuma) porque o lockfile que ele
+      # procura não existe lá.
       - name: Instala dependências
-        working-directory: app
         run: npm ci
 
       # GITHUB_PAGES=true faz o Vite usar base '/campus/'. Sem isso, os assets
       # e o roteador quebram, porque o site não fica na raiz do domínio.
+      #
+      # Sem `VITE_DATA_SOURCE`: o padrão é `mock`, e é o certo aqui. O Pages
+      # serve arquivo estático e não tem servidor nenhum — é o MSW no navegador
+      # de quem abre que responde `/api` (ADR-0003). Construir com `api` daria
+      # um site que só mostra erro de conexão.
+      #
+      # O build do app resolve `@campus/shared` pela FONTE, pelo alias do
+      # `vite.config.ts`, então não precisa do `dist` do pacote — ao contrário
+      # da API, que precisa e por isso tem um passo a mais no `ci.yml`.
       - name: Build do app
-        working-directory: app
         env:
           GITHUB_PAGES: 'true'
-        run: npm run build
+        run: npm run build -w campus-app
 
       - name: Monta a árvore do site
         run: |
@@ -74,6 +93,14 @@ jobs:
             cp docs/20-video-cp5-slides.html site/slides-cp5/index.html
           else
             echo "::warning::docs/20-video-cp5-slides.html ausente — /slides-cp5/ não foi publicado"
+          fi
+
+          # Deck do CP6, pela mesma razão e com a mesma condicional.
+          if [ -f docs/25-video-cp6-slides.html ]; then
+            mkdir -p site/slides-cp6
+            cp docs/25-video-cp6-slides.html site/slides-cp6/index.html
+          else
+            echo "::warning::docs/25-video-cp6-slides.html ausente — /slides-cp6/ não foi publicado"
           fi
 
           # O GitHub Pages serve arquivos estáticos: sem isso, o Jekyll ignora
