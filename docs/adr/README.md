@@ -104,8 +104,9 @@ Convenções obrigatórias:
 | [0005](0005-alcance-como-enum-com-ancora-condicional.md) | Alcance como enum com âncora condicional | Aceita | 2026-08-27 | `alcance` é enum de três valores + três FKs opcionais com `CHECK` de exclusividade |
 | [0006](0006-abstracao-de-gateway-de-pagamento.md) | Abstração de gateway de pagamento | Aceita | 2026-08-31 | Pagamento é consumido por uma interface de quatro métodos, com simulador no CP5 e provedor real no CP6 |
 | [0007](0007-token-assinado-no-cliente-no-cp5.md) | Token assinado no cliente no CP5 | Aceita | 2026-09-02 | Token de sessão e de ingresso já com a forma final do CP6; a assinatura no cliente detecta adulteração casual e **não** é controle de segurança |
+| [0008](0008-monorepo-com-dominio-compartilhado.md) | Monorepo com o domínio em pacote compartilhado | Aceita | 2026-09-02 | npm workspaces com três pacotes; `@campus/shared` é a fonte única dos tipos, das 13 regras e dos schemas, com a fronteira verificada por script |
 
-Nenhuma ADR foi substituída ou descontinuada até a entrega do CP5.
+Nenhuma ADR foi substituída ou descontinuada até a entrega do CP6.
 
 ### Onde cada ADR é citada
 
@@ -121,6 +122,7 @@ requisito aponta para a ADR:
 | 0005 | [`../04-regras-de-negocio.md`](../04-regras-de-negocio.md) (RN-001), [`../05-modelagem/02-diagrama-classes.md`](../05-modelagem/02-diagrama-classes.md), [`../05-modelagem/03-modelo-dados-er.md`](../05-modelagem/03-modelo-dados-er.md) |
 | 0006 | [`../14-glossario.md`](../14-glossario.md), [`../03-escopo.md`](../03-escopo.md) (D-02), [`../11-plano-de-testes.md`](../11-plano-de-testes.md), [`../12-riscos.md`](../12-riscos.md) (R-04) |
 | 0007 | [`../17-jornada.md`](../17-jornada.md) (§4.3), [`../18-ambiente-de-teste.md`](../18-ambiente-de-teste.md) (senha de demonstração), [`../02-requisitos.md`](../02-requisitos.md) (RF-003, RF-033, RF-034, RNF-019 a RNF-021) |
+| 0008 | [`../17-jornada.md`](../17-jornada.md) (§5), [`../08-arquitetura.md`](../08-arquitetura.md), [`../05-modelagem/07-diagrama-componentes.md`](../05-modelagem/07-diagrama-componentes.md), [`../02-requisitos.md`](../02-requisitos.md) (RNF-015, RNF-016) |
 
 ## 5. Como propor uma ADR nova
 

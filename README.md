@@ -186,30 +186,64 @@ node scripts/render-diagrams.mjs --check
 
 ## Estrutura de pastas
 
+Monorepo com **npm workspaces** desde o CP6 — três pacotes, um `package-lock.json`
+([ADR-0008](docs/adr/0008-monorepo-com-dominio-compartilhado.md)).
+
 ```
 campus/
-├─ app/                          Aplicação React — a base do CP5
+├─ packages/shared/              @campus/shared — O CONTRATO ENTRE OS DOIS LADOS
+│  └─ src/
+│     ├─ types.ts                Entidades e enumerações. Espelha o diagrama de classes
+│     ├─ domain/                 REGRAS DE NEGÓCIO em funções puras (RN-001 a RN-029)
+│     │                          13 módulos. policy.ts é o único lugar com os números.
+│     │                          `planPromotion` existe UMA vez, e é a mesma que decide
+│     │                          na tela e na API — não há segunda cópia para divergir
+│     └─ schemas.ts              Validação Zod. O formulário e o pipe da API usam o mesmo
+│
+├─ app/                          campus-app — React + Vite, mobile-first, PWA
 │  ├─ src/
-│  │  ├─ pages/                  7 telas, uma por rota
+│  │  ├─ pages/                  12 telas, uma por rota
+│  │  ├─ features/               Blocos por fluxo: auth, pagamento, checkin, feed
 │  │  ├─ components/ui/          Design system: TicketCard, Button, Chip, Badge…
-│  │  ├─ components/layout/       Moldura do app: TopBar, BottomNav, AppShell, Toast
-│  │  ├─ domain/                 REGRAS DE NEGÓCIO em funções puras (RN-001 a RN-025)
-│  │  │                          policy.ts é o único lugar do código com os números
-│  │  ├─ services/               Interfaces dos repositórios + implementação HTTP
+│  │  ├─ components/layout/      Moldura: TopBar, BottomNav, AppShell, Toast
+│  │  ├─ services/               Interfaces + DUAS implementações atrás delas:
+│  │  │                          `http/` (mock via MSW) e `api/` (servidor real).
+│  │  │                          VITE_DATA_SOURCE escolhe — RNF-016, ADR-0003
 │  │  ├─ mocks/                  Seed, banco em memória com escrita serializada, MSW
 │  │  ├─ store/                  Zustand: sessão e UI
 │  │  ├─ hooks/                  TanStack Query: cache e invalidação
-│  │  └─ types/domain.ts         Espelha o diagrama de classes, entidade por entidade
-│  └─ e2e/                       Playwright
+│  │  └─ domain/                 Só o que NÃO é domínio: format, eventAction, eventSchema
+│  └─ e2e/                       Playwright, contra o build de produção
+│
+├─ api/                          campus-api — NestJS + Prisma + PostgreSQL
+│  ├─ prisma/
+│  │  ├─ schema.prisma           14 tabelas, 10 enums. Espelha o ER coluna por coluna
+│  │  ├─ migrations/             O SQL do Prisma + 20 CHECK e os índices parciais que
+│  │  │                          ele não expressa, escritos à mão
+│  │  └─ verificar-restricoes.sql  22 provas de que o banco RECUSA dado impossível
+│  ├─ openapi.yaml               38 caminhos, 43 operações — o contrato da API
+│  └─ src/
+│     ├─ auth/ eventos/ …        Um módulo por área. A regra vem de @campus/shared:
+│     │                          o service busca o estado, chama a decisão, persiste
+│     └─ seed/                   Massa equivalente ao mock do CP5, para a demo ser contínua
+│
 ├─ docs/                         Toda a documentação — comece pelo docs/README.md
 │  ├─ 05-modelagem/              20 diagramas Mermaid + dicionário de dados
 │  ├─ 06-marca/                  Identidade visual, design system, styleguide, SVGs
 │  ├─ 09-trello/                 Quadro pronto para importar (JSON, CSV, manual, API)
-│  └─ adr/                       6 decisões arquiteturais registradas
+│  └─ adr/                       8 decisões arquiteturais registradas
 ├─ prototype/legacy/             O protótipo estático original, preservado
-├─ scripts/                      Verificadores: docs, diagramas, escala, pacote
-└─ .github/workflows/            CI e publicação no GitHub Pages
+├─ scripts/                      Verificadores: docs, diagramas, escala, pacote, contrato
+├─ docker-compose.yml            Postgres + API + front, em um comando
+└─ .github/workflows/            CI, publicação no Pages e release das imagens
 ```
+
+**Por que o domínio saiu do app.** Até o CP5 havia um consumidor das regras: a tela. O CP6
+acrescentou um segundo, a API — e duas cópias de `isFull` divergem na primeira correção
+feita só de um lado, com o pior sintoma possível: a tela prometendo uma vaga que o servidor
+recusa. A fronteira do pacote é **verificada**, não confiada:
+[`scripts/check-contrato.mjs`](scripts/check-contrato.mjs) reprova o build se qualquer
+arquivo dele importar React, Prisma ou NestJS.
 
 ---
 
@@ -228,6 +262,7 @@ campus/
 | Engenharia | [Arquitetura](docs/08-arquitetura.md) · [ADRs](docs/adr/README.md) · [Plano de testes](docs/11-plano-de-testes.md) · [Riscos](docs/12-riscos.md) · [Roadmap CP5–CP6](docs/13-roadmap-cp5-cp6.md) |
 | Entrega | [Equipe e papéis](docs/10-equipe-e-papeis.md) · [Checklist do CP4](docs/16-checklist-entrega-cp4.md) · [Checklist do CP5](docs/19-checklist-entrega-cp5.md) |
 | CP5 | [Ambiente de teste](docs/18-ambiente-de-teste.md) · [Registro da jornada](docs/17-jornada.md) · [Roteiro do vídeo](docs/20-video-cp5-roteiro.md) · [Slides](docs/20-video-cp5-slides.html) |
+| CP6 | [Contrato da API](docs/21-api-contrato.md) · [Manual de uso](docs/22-manual-de-uso.md) · [Instalação](docs/23-instalacao.md) · [Checklist do CP6](docs/24-checklist-entrega-cp6.md) |
 
 ---
 

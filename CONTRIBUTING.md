@@ -13,7 +13,26 @@ para qualquer pessoa que abra um PR no repositório.
 
 ```bash
 nvm use          # respeita o .nvmrc
-cd app && npm ci
+npm ci           # na RAIZ: instala os três workspaces de uma vez
+```
+
+O repositório é um monorepo com **npm workspaces** desde o CP6
+([ADR-0008](docs/adr/0008-monorepo-com-dominio-compartilhado.md)):
+
+| Workspace | Pacote | O que é |
+|---|---|---|
+| `packages/shared` | `@campus/shared` | Tipos, as 13 regras de negócio e os schemas Zod — fonte única, consumida pelos dois lados |
+| `app` | `campus-app` | Front React + Vite |
+| `api` | `campus-api` | API NestJS + Prisma |
+
+Há **um** `package-lock.json`, na raiz. `npm ci` dentro de `app/` ou `api/` não funciona, e
+a cadeia de ferramentas (vite, vitest, typescript, eslint, prettier) é declarada só na raiz
+— duas cópias de `vite` no monorepo produzem erro de tipo nominal entre elas.
+
+O cliente do Prisma não é versionado. Depois do `npm ci`:
+
+```bash
+npm run prisma:generate -w campus-api
 ```
 
 ## 2. Fluxo de branches
@@ -120,19 +139,39 @@ Um card só sai do **Backlog** para o **Sprint Backlog** quando tem:
 
 Rode antes de abrir PR — é exatamente o que o CI roda:
 
+Tudo da **raiz** do repositório. `-w <workspace>` escolhe o pacote.
+
 ```bash
-cd app
-npm run lint
-npm run test
-npm run build
+# Documentação e fronteira do contrato — não precisam de npm install
+node scripts/validate-docs.mjs
+node scripts/check-contrato.mjs
+
+# Regras de negócio primeiro: são o mais rápido e o mais fundamental (~1s)
+npm run test:coverage -w @campus/shared
+
+# Front
+npm run lint -w campus-app
+npm run test:coverage -w campus-app
+npm run build -w campus-app
+node scripts/check-tailwind-scale.mjs
+node scripts/check-bundle-size.mjs
+
+# API
+npm run lint -w campus-api
+npm run test -w campus-api
+npm run build -w campus-api
+
+# Ponta a ponta, contra o build de produção
 npm run test:e2e
 ```
 
-E na raiz, para validar a documentação:
+Atalhos da raiz que agrupam o essencial: `npm test`, `npm run lint`,
+`npm run format:check`, `npm run test:coverage`, `npm run test:dominio`.
 
-```bash
-node scripts/validate-docs.mjs
-```
+**A ordem não é acidental.** Documentação e contrato falham em segundos sem instalar nada;
+as regras de negócio falham em um segundo e dizem exatamente qual regra quebrou; lint em
+segundos; teste em dezenas; build em minutos. Falhar cedo devolve o resultado mais rápido a
+quem abriu o PR — é a mesma ordem do [`ci.yml`](.github/workflows/ci.yml).
 
 ## 9. Decisões arquiteturais
 
