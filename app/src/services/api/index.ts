@@ -433,14 +433,21 @@ const admin: AdminRepository = {
   /**
    * RF-043 — regera o código de convite da turma.
    *
-   * O contrato define esta operação como `GET`, e ela **muda estado**: desativa
-   * o código anterior. Está no relatório como divergência — deveria ser `POST`.
-   * Enquanto for `GET`, o risco prático é um prefetch de navegador ou uma
-   * repetição automática invalidar o código que a turma já recebeu; é por isso
-   * que o cliente desta lane não repete requisição sozinho fora do caso de
-   * `401` (ver `lib/api.ts`).
+   * `POST`, porque a operação **muda estado**: desativa o código anterior. Um
+   * `GET` que muda estado é vulnerável a prefetch de navegador e a repetição
+   * automática — qualquer um dos dois invalidaria o código que a turma já
+   * recebeu.
+   *
+   * Este método mandava `GET`, e o comentário aqui culpava o contrato. O
+   * contrato foi corrigido para `POST`, a API sempre serviu `@Post`, e o cliente
+   * ficou sozinho no verbo errado: regerar o convite respondia erro em modo
+   * `api` e nada acusava.
+   *
+   * O que acusou foi `index.test.ts`, conferindo **verbo e caminho** contra o
+   * `openapi.yaml`. Conferir só o caminho teria dado verde — o caminho existe.
    */
-  regerarCodigoConvite: (turmaId: string) => request<Turma>(`/admin/turmas/${turmaId}/codigo`),
+  regerarCodigoConvite: (turmaId: string) =>
+    request<Turma>(`/admin/turmas/${turmaId}/codigo`, comCorpo('POST')),
 };
 
 const health: HealthRepository = {

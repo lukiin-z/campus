@@ -58,10 +58,26 @@ export default defineConfig({
        * três arquivos de apresentação que sobraram. O número caiu de 83% para
        * 63% e o limite reprovou; foi assim que isso apareceu.
        */
-      include: ['src/domain/**/*.ts', 'src/services/**/*.ts'],
+      /*
+       * `src/lib/` entrou no CP6: é onde vive o cliente HTTP com a renovação de
+       * sessão, e ele estava **fora da medição** — o arquivo mais delicado da
+       * camada de dados não aparecia em nenhum número.
+       */
+      include: ['src/domain/**/*.ts', 'src/services/**/*.ts', 'src/lib/**/*.ts'],
       exclude: ['**/*.test.ts', '**/*.d.ts'],
       // RNF-015: cobertura mínima nos módulos de domínio.
-      thresholds: { lines: 60, functions: 60, statements: 60, branches: 55 },
+      /*
+       * RNF-015 pede **>= 60%** como piso. Os limites aqui são mais altos
+       * porque um limite de 60 com medição em 96,68% de linhas e 90,97% de funções não protege nada: ele
+       * deixa passar uma regressão que apaga metade da cobertura sem que
+       * ninguém veja.
+       *
+       * Os números são o medido menos uma folga de cerca de dez pontos —
+       * apertados o bastante para acusar perda real, largos o bastante para
+       * não reprovar por um ramo a mais num arquivo novo. Quando a medição
+       * subir, subir isto junto é trabalho de quem sobe a medição.
+       */
+      thresholds: { lines: 88, functions: 82, statements: 88, branches: 78 },
     },
   },
 });

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { alcanceBadge, ancoraCoerente, ancoraDoEvento, canChangeScope, canSee } from './visibility';
+import {
+  alcanceBadge,
+  alcanceRotulo,
+  ancoraCoerente,
+  ancoraDoEvento,
+  ancoraPermitida,
+  canChangeScope,
+  canSee,
+} from './visibility';
 import type { Evento, PapelUsuario, Usuario } from '../types';
 
 /**
@@ -190,5 +198,91 @@ describe('alcanceBadge — o rótulo é relativo a quem olha', () => {
     expect(alcanceBadge(marina, { alcance: 'FACULDADE', turmaId: null, cursoId: null })).toBe(
       'faculdade',
     );
+  });
+});
+
+/*
+ * `alcanceRotulo` e `ancoraPermitida` fecham o buraco que a medição do CP6
+ * apontou: `visibility.ts` estava com 71,42% de cobertura de funções, e as duas
+ * eram as que faltavam. `alcanceRotulo` é o texto que aparece no cartão de todo
+ * evento da lista — errar nele é errar em toda a tela inicial.
+ */
+const REFS = {
+  turmas: [
+    { id: 'tur-001', nome: '3ESPX', cursoId: 'cur-001', codigoConvite: '3ESPX-26' },
+    { id: 'tur-004', nome: '2ADSY', cursoId: 'cur-003', codigoConvite: '2ADSY-26' },
+  ] as never,
+  cursos: [
+    { id: 'cur-001', nome: 'Engenharia de Computação', faculdadeId: 'fac-001' },
+    { id: 'cur-003', nome: 'Análise e Desenvolvimento de Sistemas', faculdadeId: 'fac-001' },
+  ] as never,
+  faculdade: { id: 'fac-001', nome: 'FIAP', sigla: 'FIAP', dominioEmail: 'fiap.com.br' } as never,
+};
+
+describe('alcanceRotulo', () => {
+  it('evento de turma mostra o nome da turma', () => {
+    expect(alcanceRotulo({ alcance: 'TURMA', turmaId: 'tur-001', cursoId: null }, REFS)).toBe(
+      '3ESPX',
+    );
+  });
+
+  it('evento de curso mostra o nome do curso', () => {
+    expect(alcanceRotulo({ alcance: 'CURSO', turmaId: null, cursoId: 'cur-001' }, REFS)).toBe(
+      'Engenharia de Computação',
+    );
+  });
+
+  it('evento de faculdade mostra a sigla, não o nome inteiro', () => {
+    expect(alcanceRotulo({ alcance: 'FACULDADE', turmaId: null, cursoId: null }, REFS)).toBe(
+      'FIAP',
+    );
+  });
+
+  it('âncora que não está nas referências cai num rótulo genérico, sem quebrar', () => {
+    /*
+     * O caso acontece de verdade: a lista de turmas vem de outra requisição, e
+     * ela pode não ter chegado. Melhor "Turma" do que `undefined` no cartão — e
+     * melhor ainda do que uma exceção que apaga a tela.
+     */
+    expect(alcanceRotulo({ alcance: 'TURMA', turmaId: 'tur-999', cursoId: null }, REFS)).toBe(
+      'Turma',
+    );
+    expect(alcanceRotulo({ alcance: 'CURSO', turmaId: null, cursoId: 'cur-999' }, REFS)).toBe(
+      'Curso',
+    );
+  });
+
+  it('âncora nula com alcance que a exige também não quebra', () => {
+    expect(alcanceRotulo({ alcance: 'TURMA', turmaId: null, cursoId: null }, REFS)).toBe('Turma');
+  });
+});
+
+describe('ancoraPermitida', () => {
+  it('devolve a turma do usuário para alcance de turma', () => {
+    expect(ancoraPermitida(marina, 'TURMA')).toBe(marina.turmaId);
+  });
+
+  it('devolve o curso do usuário para alcance de curso', () => {
+    expect(ancoraPermitida(marina, 'CURSO')).toBe(marina.cursoId);
+  });
+
+  it('devolve a faculdade do usuário para alcance de faculdade', () => {
+    /*
+     * Evento de faculdade TEM âncora — `faculdadeId` —, e este caso está aqui
+     * porque a primeira versão dele afirmou o contrário e reprovou. RN-001 pede
+     * exatamente UMA âncora preenchida, coerente com o alcance, e `FACULDADE`
+     * não é exceção: `ancoraCoerente` exige `faculdadeId != null`, e o
+     * `CHECK ck_evento_ancora_coerente` do banco recusa a linha sem ela.
+     *
+     * Quem confunde os dois é `alcanceRotulo`, que para faculdade lê a sigla das
+     * referências e não a âncora — mas isso é a apresentação, não a regra.
+     */
+    expect(ancoraPermitida(marina, 'FACULDADE')).toBe(marina.faculdadeId);
+  });
+
+  it('nunca devolve âncora de nível diferente do alcance pedido', () => {
+    const permitida = ancoraPermitida(marina, 'TURMA');
+    expect(permitida).not.toBe(marina.cursoId);
+    expect(permitida).not.toBe(marina.faculdadeId);
   });
 });

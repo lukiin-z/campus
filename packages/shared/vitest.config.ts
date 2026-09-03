@@ -22,7 +22,18 @@ export default defineConfig({
       include: ['src/domain/**/*.ts', 'src/schemas.ts'],
       exclude: ['**/*.test.ts', '**/*.d.ts'],
       // RNF-015: o limite que era do app passou a ser daqui, com o domínio.
-      thresholds: { lines: 60, functions: 60, statements: 60, branches: 55 },
+      /*
+       * RNF-015 pede **>= 60%** como piso. Os limites aqui são mais altos
+       * porque um limite de 60 com medição em 99,32% de linhas e 97,97% de funções não protege nada: ele
+       * deixa passar uma regressão que apaga metade da cobertura sem que
+       * ninguém veja.
+       *
+       * Os números são o medido menos uma folga de cerca de dez pontos —
+       * apertados o bastante para acusar perda real, largos o bastante para
+       * não reprovar por um ramo a mais num arquivo novo. Quando a medição
+       * subir, subir isto junto é trabalho de quem sobe a medição.
+       */
+      thresholds: { lines: 90, functions: 88, statements: 90, branches: 85 },
     },
   },
 });

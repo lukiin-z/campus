@@ -135,6 +135,26 @@ describe('novoEventoSchema', () => {
     if (!r.success) expect(r.error.issues[0]?.path).toEqual(['prazoInscricao']);
   });
 
+  it('recusa prazo de cancelamento depois do início', () => {
+    /*
+     * O par do caso acima, e ele estava faltando: `prazoInscricao` tinha teste e
+     * `prazoCancelamento` não, embora os dois ramos sejam irmãos no mesmo
+     * `superRefine`. A medição do CP6 mostrou as linhas 182-187 descobertas.
+     */
+    const depois = new Date(DAQUI_A_UM_MES.getTime() + 3_600_000).toISOString();
+    const r = novoEventoSchema.safeParse(eventoValido({ prazoCancelamento: depois }));
+
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues[0]?.path).toEqual(['prazoCancelamento']);
+  });
+
+  it('aceita prazo de cancelamento exatamente no início', () => {
+    const r = novoEventoSchema.safeParse(
+      eventoValido({ prazoCancelamento: DAQUI_A_UM_MES.toISOString() }),
+    );
+    expect(r.success).toBe(true);
+  });
+
   it('NÃO tem campo de âncora de alcance, e é decisão', () => {
     /*
      * `turmaId`/`cursoId`/`faculdadeId` não existem no corpo: a âncora vem do

@@ -35,7 +35,7 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
@@ -44,8 +44,15 @@ const vermelho = (t) => `[31m${t}[0m`;
 const verde = (t) => `[32m${t}[0m`;
 const cinza = (t) => `[90m${t}[0m`;
 
-/** Caminhos declarados no contrato, na forma do OpenAPI (`/eventos/{id}`). */
-function caminhosDeclarados() {
+/**
+ * Caminhos declarados no contrato, na forma do OpenAPI (`/eventos/{id}`).
+ *
+ * Exportada porque `app/src/services/api/index.test.ts` confere o cliente HTTP
+ * contra a mesma lista. Duas cópias desta leitura divergiriam na primeira
+ * mudança de formatação do YAML — e a divergência apareceria como teste verde
+ * sobre contrato errado.
+ */
+export function caminhosDeclarados() {
   const texto = readFileSync(join(raiz, 'api/openapi.yaml'), 'utf8');
   const inicio = texto.indexOf('\npaths:');
   if (inicio === -1) throw new Error('openapi.yaml sem seção `paths:`');
@@ -56,6 +63,39 @@ function caminhosDeclarados() {
   const secao = fim === -1 ? depois : depois.slice(0, fim);
 
   return new Set([...secao.matchAll(/^ {2}(\/[^\s:]*):/gm)].map((m) => m[1]));
+}
+
+/**
+ * Os métodos HTTP declarados para cada caminho, em maiúsculas.
+ *
+ * `Map<'/eventos/{id}', ['GET', 'PATCH']>`. Usada pelo teste do cliente HTTP:
+ * conferir só o caminho deixaria passar verbo errado num caminho que existe —
+ * que foi exatamente o defeito de `regerarCodigoConvite`, `GET` onde a API
+ * serve `POST`.
+ *
+ * A leitura continua sendo por texto, e por bloco: um método é uma linha de
+ * quatro espaços com um dos verbos, dentro do bloco de um caminho.
+ */
+export function metodosDeclarados() {
+  const texto = readFileSync(join(raiz, 'api/openapi.yaml'), 'utf8');
+  const inicio = texto.indexOf('\npaths:');
+  const depois = texto.slice(inicio + 1);
+  const fim = depois.search(/\n[a-z]/);
+  const secao = fim === -1 ? depois : depois.slice(0, fim);
+
+  const porCaminho = new Map();
+  let atual = null;
+  for (const linha of secao.split('\n')) {
+    const caminho = /^ {2}(\/[^\s:]*):/.exec(linha);
+    if (caminho) {
+      atual = caminho[1];
+      porCaminho.set(atual, []);
+      continue;
+    }
+    const metodo = /^ {4}(get|post|put|patch|delete|head|options):/.exec(linha);
+    if (metodo && atual !== null) porCaminho.get(atual).push(metodo[1].toUpperCase());
+  }
+  return porCaminho;
 }
 
 /** Caminhos que o Nest realmente registrou, normalizados para a forma do OpenAPI. */
@@ -112,44 +152,53 @@ const TOLERADOS_NA_API = new Set([
   '/docs',
 ]);
 
-try {
-  const declarados = caminhosDeclarados();
-  const servidos = await caminhosServidos();
+/*
+ * Executado como script? Então compara. Importado por um teste? Então só
+ * oferece as funções, sem imprimir nem chamar `process.exit`.
+ */
+const invocadoDireto =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 
-  const soNoContrato = [...declarados]
-    .filter((c) => !servidos.has(c))
-    .filter((c) => !TOLERADOS_NO_CONTRATO.has(c));
-  const soNaApi = [...servidos]
-    .filter((c) => !declarados.has(c))
-    .filter((c) => !TOLERADOS_NA_API.has(c));
+if (invocadoDireto) {
+  try {
+    const declarados = caminhosDeclarados();
+    const servidos = await caminhosServidos();
 
-  console.log('');
-  console.log(`  ${declarados.size} caminhos declarados no openapi.yaml`);
-  console.log(`  ${servidos.size} caminhos registrados pela aplicação`);
+    const soNoContrato = [...declarados]
+      .filter((c) => !servidos.has(c))
+      .filter((c) => !TOLERADOS_NO_CONTRATO.has(c));
+    const soNaApi = [...servidos]
+      .filter((c) => !declarados.has(c))
+      .filter((c) => !TOLERADOS_NA_API.has(c));
 
-  if (soNoContrato.length === 0 && soNaApi.length === 0) {
     console.log('');
-    console.log(`  ${verde('contrato e rotas servidas concordam')}`);
-    process.exit(0);
-  }
+    console.log(`  ${declarados.size} caminhos declarados no openapi.yaml`);
+    console.log(`  ${servidos.size} caminhos registrados pela aplicação`);
 
-  console.log('');
-  if (soNoContrato.length > 0) {
-    console.log(`  ${vermelho('declarados no contrato e NÃO servidos:')}`);
-    for (const c of soNoContrato.sort()) console.log(`    ${c}`);
-    console.log(cinza('    → um cliente escrito contra o contrato receberia 404.'));
+    if (soNoContrato.length === 0 && soNaApi.length === 0) {
+      console.log('');
+      console.log(`  ${verde('contrato e rotas servidas concordam')}`);
+      process.exit(0);
+    }
+
+    console.log('');
+    if (soNoContrato.length > 0) {
+      console.log(`  ${vermelho('declarados no contrato e NÃO servidos:')}`);
+      for (const c of soNoContrato.sort()) console.log(`    ${c}`);
+      console.log(cinza('    → um cliente escrito contra o contrato receberia 404.'));
+    }
+    if (soNaApi.length > 0) {
+      console.log(`  ${vermelho('servidos e NÃO declarados no contrato:')}`);
+      for (const c of soNaApi.sort()) console.log(`    ${c}`);
+      console.log(cinza('    → rota sem contrato é rota que ninguém sabe que existe.'));
+    }
+    console.log('');
+    process.exit(1);
+  } catch (erro) {
+    console.error('');
+    console.error(`  ${vermelho('não foi possível comparar:')} ${erro.message}`);
+    console.error(cinza('  Este script depende de `npm run build -w campus-api` (lê api/dist).'));
+    console.error('');
+    process.exit(1);
   }
-  if (soNaApi.length > 0) {
-    console.log(`  ${vermelho('servidos e NÃO declarados no contrato:')}`);
-    for (const c of soNaApi.sort()) console.log(`    ${c}`);
-    console.log(cinza('    → rota sem contrato é rota que ninguém sabe que existe.'));
-  }
-  console.log('');
-  process.exit(1);
-} catch (erro) {
-  console.error('');
-  console.error(`  ${vermelho('não foi possível comparar:')} ${erro.message}`);
-  console.error(cinza('  Este script depende de `npm run build -w campus-api` (lê api/dist).'));
-  console.error('');
-  process.exit(1);
 }
