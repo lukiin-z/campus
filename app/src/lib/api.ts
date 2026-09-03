@@ -321,10 +321,13 @@ export function criarClienteHttp(config: ConfigCliente): ClienteHttp {
 
     if (resposta.status === 204) return undefined as T;
 
-    const corpo = (await resposta.json().catch(() => ({}))) as unknown;
-
     if (!resposta.ok) {
-      const dados = corpo as CorpoDeErro;
+      /*
+       * No caminho de ERRO o `{}` é razoável: uma resposta de falha pode
+       * legitimamente vir sem corpo JSON (um 502 de proxy, um 413 do servidor
+       * web), e os padrões abaixo dão uma mensagem utilizável.
+       */
+      const dados = (await resposta.json().catch(() => ({}))) as CorpoDeErro;
       const { erro, mensagem, ...extra } = dados;
       throw new ApiError(
         resposta.status,
@@ -334,7 +337,39 @@ export function criarClienteHttp(config: ConfigCliente): ClienteHttp {
       );
     }
 
-    return corpo as T;
+    /*
+     * No caminho de SUCESSO ele não é. Aqui havia
+     * `resposta.json().catch(() => ({}))` para os dois caminhos, e o `{}` de
+     * consolo transformava resposta ilegível em sucesso com dados vazios.
+     *
+     * Isso não é hipótese: com o MSW fora do ar sob um servidor que faz fallback
+     * de SPA — `vite preview`, o nginx do compose, qualquer host de SPA —,
+     * `GET /api/eventos` responde **200 com o index.html**. O `json()` rejeitava,
+     * o `catch` devolvia `{}`, a tela chamava `eventos.map(...)` e o resultado
+     * medido foi `TypeError: Cannot read properties of undefined (reading 'map')`
+     * com a página em branco.
+     *
+     * Um 200 que não é JSON é resposta quebrada, e dizer isso em voz alta é o que
+     * permite às telas mostrarem o estado de erro que elas já têm.
+     */
+    const texto = await resposta.text();
+    if (texto === '') return undefined as T;
+
+    try {
+      return JSON.parse(texto) as T;
+    } catch {
+      throw new ApiError(
+        502,
+        'RESPOSTA_INVALIDA',
+        'O servidor respondeu em um formato que o app não entende. Tente de novo em instantes.',
+        {
+          contentType: resposta.headers.get('content-type'),
+          // Amostra curta: o suficiente para reconhecer HTML de fallback no
+          // relatório de erro, sem despejar a página inteira no console.
+          amostra: texto.slice(0, 80),
+        },
+      );
+    }
   }
 
   async function renovarSessao(): Promise<string | null> {

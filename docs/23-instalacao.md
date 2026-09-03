@@ -2,9 +2,9 @@
 
 ## Histórico de revisões
 
-| Versão | Data | Checkpoint | O que mudou |
-|---|---|---|---|
-| 1.0 | 2026-09-02 | CP6 | Versão inicial: três caminhos de instalação (compose, local sem Docker, deploy publicado), verificação de que funcionou, reset, solução de problemas e roteiro de validação assinável |
+| Versão | Data       | Checkpoint | O que mudou                                                                                                                                                                           |
+| ------ | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0    | 2026-09-02 | CP6        | Versão inicial: três caminhos de instalação (compose, local sem Docker, deploy publicado), verificação de que funcionou, reset, solução de problemas e roteiro de validação assinável |
 
 Este documento é para **quem vai instalar o Campus numa máquina que não é a do
 grupo**. Ele não explica como usar o produto — isso é o
@@ -14,10 +14,10 @@ simulados, sem banco e sem container.
 
 A diferença entre os dois é o que sobe:
 
-| Documento | O que sobe | Precisa de |
-|---|---|---|
-| [`18-ambiente-de-teste.md`](18-ambiente-de-teste.md) | só o front, com dados em memória | Node |
-| este | Postgres + API + front, com dados reais no banco | Docker, ou Node + Postgres |
+| Documento                                            | O que sobe                                       | Precisa de                 |
+| ---------------------------------------------------- | ------------------------------------------------ | -------------------------- |
+| [`18-ambiente-de-teste.md`](18-ambiente-de-teste.md) | só o front, com dados em memória                 | Node                       |
+| este                                                 | Postgres + API + front, com dados reais no banco | Docker, ou Node + Postgres |
 
 Todo bloco `comando → saída esperada` abaixo traz a saída que a **máquina
 devolveu**, não a que se espera que ela devolva. Onde algo não foi executado,
@@ -32,16 +32,34 @@ está escrito que não foi, e por quê.
 Honestidade primeiro, porque o resto do documento depende de você saber em que
 acreditar.
 
-| Verificado, com saída colada abaixo | Não verificado |
-|---|---|
-| As duas imagens constroem a partir da árvore do repositório, e o tamanho de cada uma | O `docker compose up` completo, **em um comando** — os três serviços foram exercitados, mas em containers levantados à mão |
-| A configuração do nginx é válida, serve a SPA em rota profunda e entrega o manifest com o tipo certo | A instalação como PWA **clicada** em navegador real (segue como no CP5) |
-| A imagem da API aplica as migrations, roda o seed e responde `/api/health` contra um Postgres de verdade | O caminho B (instalação local sem Docker) executado do zero nesta máquina |
-| **O login devolve token, e o token abre `GET /api/eventos` com 10 eventos** | O caminho C (deploy publicado), que depende de contas que ninguém criou |
-| O front, servido pelo nginx, alcança a API real pelo proxy de mesma origem | A execução em macOS e em Linux — a verificação foi toda em Windows com Docker Desktop |
-| O `docker-compose.yml` é válido e o Postgres fica saudável em 12 s | — |
-| 15 tabelas criadas, 103 linhas semeadas, senhas gravadas como hash argon2id | — |
-| A API roda como usuário não-root, com `dumb-init` no PID 1, e `docker stop` a encerra em 1 s | — |
+| Verificado, com saída colada abaixo                                                                      | Não verificado                                                                        |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| As duas imagens constroem a partir da árvore do repositório, e o tamanho de cada uma                     | A instalação como PWA **clicada** em navegador real — ver a nota abaixo da tabela     |
+| A configuração do nginx é válida, serve a SPA em rota profunda e entrega o manifest com o tipo certo     | O caminho B (instalação local sem Docker) executado do zero nesta máquina             |
+| A imagem da API aplica as migrations, roda o seed e responde `/api/health` contra um Postgres de verdade | O caminho C (deploy publicado), que depende de contas que ninguém criou               |
+| **O login devolve token, e o token abre `GET /api/eventos` com 10 eventos**                              | A execução em macOS e em Linux — a verificação foi toda em Windows com Docker Desktop |
+| O front, servido pelo nginx, alcança a API real pelo proxy de mesma origem                               | —                                                                                     |
+| **`docker compose up` completo, em UM comando, com os quatro serviços saudáveis**                        | —                                                                                     |
+| **CORS: as duas origens declaradas recebem `Access-Control-Allow-Origin`; uma terceira não recebe**      | —                                                                                     |
+| O `docker-compose.yml` é válido e o Postgres fica saudável em 12 s                                       | —                                                                                     |
+| 15 tabelas criadas, 103 linhas semeadas, senhas gravadas como hash argon2id                              | —                                                                                     |
+| A API roda como usuário não-root, com `dumb-init` no PID 1, e `docker stop` a encerra em 1 s             | —                                                                                     |
+
+> **Sobre a instalação como PWA.** O manifest foi conferido no navegador
+> (`name`, `short_name`, `display: standalone`, `start_url`, ícones 192, 512 e
+> maskable, servido em `application/manifest+json`), e todos os critérios de
+> conteúdo estão satisfeitos. O que **não** foi possível fazer aqui é clicar em
+> "Instalar": o navegador disponível nesta sessão **recusa registro de service
+> worker** — `navigator.serviceWorker.register` falha com "An unknown error
+> occurred when fetching the script" para um arquivo que o `curl` baixa com
+> `200 text/javascript` —, e `beforeinstallprompt` não dispara nele nem para a
+> build do CP5, que tem service worker. Ou seja: o resultado negativo mediu o
+> navegador, não o app. A instalação clicada segue como verificação manual, e o
+> roteiro dela está na seção 6.
+>
+> Esse mesmo bloqueio, por acidente, virou o melhor ambiente de teste que o
+> projeto teve para o caminho de falha — foi nele que apareceu o defeito no 23
+> (ver [`17-jornada.md`](17-jornada.md)).
 
 ### O que ficou de fora, e por quê
 
@@ -62,11 +80,11 @@ execução que sai toda a saída colada abaixo.
 Só isto, e nada mais — não há chave de API, conta de serviço nem arquivo de
 configuração obrigatório.
 
-| O que | Versão | Como conferir |
-|---|---|---|
-| Docker Engine | 24 ou superior | `docker --version` |
+| O que          | Versão                                                         | Como conferir            |
+| -------------- | -------------------------------------------------------------- | ------------------------ |
+| Docker Engine  | 24 ou superior                                                 | `docker --version`       |
 | Docker Compose | v2 ou superior (plugin `docker compose`, não `docker-compose`) | `docker compose version` |
-| Git | qualquer | `git --version` |
+| Git            | qualquer                                                       | `git --version`          |
 
 ### comando → saída esperada
 
@@ -91,11 +109,11 @@ seção 7.2.
 
 ### Só para o caminho B (sem Docker)
 
-| O que | Versão | Como conferir |
-|---|---|---|
-| Node.js | **22.17.0**, fixado em [`.nvmrc`](../.nvmrc) | `node --version` |
-| npm | 10 ou superior | `npm --version` |
-| PostgreSQL | 16 | `psql --version` |
+| O que      | Versão                                       | Como conferir    |
+| ---------- | -------------------------------------------- | ---------------- |
+| Node.js    | **22.17.0**, fixado em [`.nvmrc`](../.nvmrc) | `node --version` |
+| npm        | 10 ou superior                               | `npm --version`  |
+| PostgreSQL | 16                                           | `psql --version` |
 
 Nesta máquina o Node instalado é outro, e vale registrar porque é o tipo de
 divergência que morde depois:
@@ -243,12 +261,12 @@ vazio.
 
 ### 2.6. Abrir
 
-| Endereço | O que é |
-|---|---|
-| `http://localhost:8080` | O app. É por aqui que se avalia |
-| `http://localhost:3000/api` | A API |
-| `http://localhost:3000/api/docs` | A documentação Swagger, gerada do código |
-| `localhost:5432` | O Postgres, para `psql` ou `prisma studio` |
+| Endereço                         | O que é                                    |
+| -------------------------------- | ------------------------------------------ |
+| `http://localhost:8080`          | O app. É por aqui que se avalia            |
+| `http://localhost:3000/api`      | A API                                      |
+| `http://localhost:3000/api/docs` | A documentação Swagger, gerada do código   |
+| `localhost:5432`                 | O Postgres, para `psql` ou `prisma studio` |
 
 Entre com qualquer usuário da tabela da seção 4 do
 [manual de uso](22-manual-de-uso.md). A senha de todos é `campus123`, e ela é de
@@ -286,19 +304,19 @@ Dois números para a mesma imagem, e a diferença confunde: `docker image ls`
 mostra o tamanho **descompactado, em disco**; o que viaja pela rede é o
 compactado.
 
-| Imagem | Em disco (`docker image ls`) | Baixado do registro |
-|---|---|---|
-| `campus-api` | 804 MB | **178 MB** |
-| `campus-web` | 74,7 MB | **20 MB** |
+| Imagem       | Em disco (`docker image ls`) | Baixado do registro |
+| ------------ | ---------------------------- | ------------------- |
+| `campus-api` | 804 MB                       | **178 MB**          |
+| `campus-web` | 74,7 MB                      | **20 MB**           |
 
 Os 804 MB da API se dividem assim, medidos com `docker history`:
 
-| Camada | Tamanho | Dá para reduzir? |
-|---|---|---|
-| Base `node:22.17.0-slim` | 327 MB | Não sem trocar de base — e a base é o que faz `argon2` e as engines do Prisma funcionarem |
-| `node_modules` de produção + Prisma + `tsx` | 359 MB | Em parte: 3 cópias do mesmo `libquery_engine` de 17 MB vêm dentro dos pacotes do Prisma, e apagar arquivo de dentro de pacote publicado é frágil |
-| `openssl` + `dumb-init` | 10,5 MB | Não; são obrigatórios |
-| Aplicação (`api/dist`, `packages/shared/dist`, schema, seed) | 1,3 MB | — |
+| Camada                                                       | Tamanho | Dá para reduzir?                                                                                                                                 |
+| ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Base `node:22.17.0-slim`                                     | 327 MB  | Não sem trocar de base — e a base é o que faz `argon2` e as engines do Prisma funcionarem                                                        |
+| `node_modules` de produção + Prisma + `tsx`                  | 359 MB  | Em parte: 3 cópias do mesmo `libquery_engine` de 17 MB vêm dentro dos pacotes do Prisma, e apagar arquivo de dentro de pacote publicado é frágil |
+| `openssl` + `dumb-init`                                      | 10,5 MB | Não; são obrigatórios                                                                                                                            |
+| Aplicação (`api/dist`, `packages/shared/dist`, schema, seed) | 1,3 MB  | —                                                                                                                                                |
 
 A aplicação é **um milésimo** da imagem. Isso é o normal de uma imagem
 Prisma+Nest, e é o sinal de que o estágio final **não** está carregando o build:
@@ -359,11 +377,11 @@ descrição e **nenhum valor**. Três nomes são obrigatórios, e sem qualquer u
 deles a API se recusa a subir — de propósito, porque uma API que sobe com
 segredo padrão assina token que qualquer pessoa forja:
 
-| Nome | O que é |
-|---|---|
-| `DATABASE_URL` | `postgresql://campus:SENHA@localhost:5432/campus?schema=public` |
-| `JWT_SECRET` | 32 caracteres ou mais |
-| `WEBHOOK_SECRET` | 16 caracteres ou mais |
+| Nome             | O que é                                                         |
+| ---------------- | --------------------------------------------------------------- |
+| `DATABASE_URL`   | `postgresql://campus:SENHA@localhost:5432/campus?schema=public` |
+| `JWT_SECRET`     | 32 caracteres ou mais                                           |
+| `WEBHOOK_SECRET` | 16 caracteres ou mais                                           |
 
 Para gerar os dois segredos:
 
@@ -406,12 +424,12 @@ comando.
 
 ### 3.5. Ordem que dá errado, e por quê
 
-| Se você pular | O sintoma |
-|---|---|
-| `prisma:generate` | `Cannot find module '.prisma/client/default'` no boot |
-| `build -w @campus/shared` | `Cannot find module '@campus/shared'` na compilação da API |
-| `prisma:deploy` | A API sobe e toda consulta falha com `relation "usuario" does not exist` |
-| `seed` | Login recusa todo mundo: o banco está vazio, não há usuário para autenticar |
+| Se você pular             | O sintoma                                                                   |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `prisma:generate`         | `Cannot find module '.prisma/client/default'` no boot                       |
+| `build -w @campus/shared` | `Cannot find module '@campus/shared'` na compilação da API                  |
+| `prisma:deploy`           | A API sobe e toda consulta falha com `relation "usuario" does not exist`    |
+| `seed`                    | Login recusa todo mundo: o banco está vazio, não há usuário para autenticar |
 
 ---
 
@@ -428,11 +446,11 @@ o mesmo tipo de pendência.
 
 ### 4.1. Divisão
 
-| Peça | Onde | Plano gratuito serve? |
-|---|---|---|
-| Front (estático) | GitHub Pages | Sim, é o que o CP5 já usa |
-| API | Render, Railway ou Fly.io | Sim, com hibernação por inatividade |
-| Postgres | Neon, ou o Postgres do próprio provedor | Sim, com limite de armazenamento |
+| Peça             | Onde                                    | Plano gratuito serve?               |
+| ---------------- | --------------------------------------- | ----------------------------------- |
+| Front (estático) | GitHub Pages                            | Sim, é o que o CP5 já usa           |
+| API              | Render, Railway ou Fly.io               | Sim, com hibernação por inatividade |
+| Postgres         | Neon, ou o Postgres do próprio provedor | Sim, com limite de armazenamento    |
 
 ### 4.2. Passo 1 — o banco (Neon)
 
@@ -488,24 +506,24 @@ Pages, ou o navegador bloqueia toda chamada com erro de origem.
 
 Para cadastrar no provedor da API:
 
-| Nome | Obrigatória | O que é |
-|---|---|---|
-| `DATABASE_URL` | Sim | Conexão do Postgres, com `?sslmode=require` |
-| `JWT_SECRET` | Sim | 32+ caracteres aleatórios |
-| `WEBHOOK_SECRET` | Sim | 16+ caracteres aleatórios |
-| `NODE_ENV` | Não | `production` |
-| `PORT` | Não | A porta que o provedor injeta; padrão 3000 |
-| `CORS_ORIGINS` | Não | O endereço do front, separado por vírgula se houver mais de um |
-| `TZ` | Não | `America/Sao_Paulo` |
-| `JWT_ACCESS_TTL_MINUTES` | Não | Padrão 15 |
-| `JWT_REFRESH_TTL_DAYS` | Não | Padrão 30 |
-| `RATE_LIMIT_TENTATIVAS` | Não | Padrão 10 |
-| `RATE_LIMIT_JANELA_SEGUNDOS` | Não | Padrão 60 |
+| Nome                         | Obrigatória | O que é                                                        |
+| ---------------------------- | ----------- | -------------------------------------------------------------- |
+| `DATABASE_URL`               | Sim         | Conexão do Postgres, com `?sslmode=require`                    |
+| `JWT_SECRET`                 | Sim         | 32+ caracteres aleatórios                                      |
+| `WEBHOOK_SECRET`             | Sim         | 16+ caracteres aleatórios                                      |
+| `NODE_ENV`                   | Não         | `production`                                                   |
+| `PORT`                       | Não         | A porta que o provedor injeta; padrão 3000                     |
+| `CORS_ORIGINS`               | Não         | O endereço do front, separado por vírgula se houver mais de um |
+| `TZ`                         | Não         | `America/Sao_Paulo`                                            |
+| `JWT_ACCESS_TTL_MINUTES`     | Não         | Padrão 15                                                      |
+| `JWT_REFRESH_TTL_DAYS`       | Não         | Padrão 30                                                      |
+| `RATE_LIMIT_TENTATIVAS`      | Não         | Padrão 10                                                      |
+| `RATE_LIMIT_JANELA_SEGUNDOS` | Não         | Padrão 60                                                      |
 
 Para o build do front (variável do repositório no GitHub):
 
-| Nome | O que é |
-|---|---|
+| Nome           | O que é                                                |
+| -------------- | ------------------------------------------------------ |
 | `VITE_API_URL` | Base da API vista pelo navegador, terminando em `/api` |
 
 ### 4.6. Alternativa sem criar conta: as imagens do ghcr.io
@@ -798,13 +816,13 @@ $ docker compose down -v
 
 ### O que cada comando apaga
 
-| Comando | Containers | Dados do banco | Imagens | Cache de build |
-|---|---|---|---|---|
-| `docker compose stop` | para, não remove | ficam | ficam | fica |
-| `docker compose down` | remove | **ficam** (o volume sobrevive) | ficam | fica |
-| `docker compose down -v` | remove | **apaga** | ficam | fica |
-| `docker compose down -v --rmi local` | remove | apaga | apaga as do projeto | fica |
-| `docker builder prune` | — | — | — | apaga |
+| Comando                              | Containers       | Dados do banco                 | Imagens             | Cache de build |
+| ------------------------------------ | ---------------- | ------------------------------ | ------------------- | -------------- |
+| `docker compose stop`                | para, não remove | ficam                          | ficam               | fica           |
+| `docker compose down`                | remove           | **ficam** (o volume sobrevive) | ficam               | fica           |
+| `docker compose down -v`             | remove           | **apaga**                      | ficam               | fica           |
+| `docker compose down -v --rmi local` | remove           | apaga                          | apaga as do projeto | fica           |
+| `docker builder prune`               | —                | —                              | —                   | apaga          |
 
 O `-v` é o que importa: sem ele, `down` seguido de `up` reencontra o banco como
 estava, com as inscrições que você criou testando. Com ele, a próxima subida
@@ -959,11 +977,11 @@ compilar nada.
 
 Quando o erro aparece de verdade:
 
-| Causa | Correção |
-|---|---|
+| Causa                                                              | Correção                                                                                             |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | `node_modules` da máquina hospedeira copiado para dentro da imagem | É o que o [`.dockerignore`](../.dockerignore) impede. Confira que ele existe e tem `**/node_modules` |
-| Um volume montando `node_modules` do host sobre o da imagem | Não monte `node_modules` em volume |
-| Arquitetura diferente (imagem `amd64` em Mac ARM) | `docker build --platform linux/arm64`, ou deixe o Docker Desktop emular |
+| Um volume montando `node_modules` do host sobre o da imagem        | Não monte `node_modules` em volume                                                                   |
+| Arquitetura diferente (imagem `amd64` em Mac ARM)                  | `docker build --platform linux/arm64`, ou deixe o Docker Desktop emular                              |
 
 ### 7.5. Cliente do Prisma não gerado
 
@@ -1062,12 +1080,12 @@ Contexto de build grande é a causa quase sempre. Sem
 inteiro — os `node_modules`, o `.git`, os relatórios de cobertura. Medido neste
 repositório com `du`:
 
-| O que | Tamanho |
-|---|---|
-| Repositório inteiro, com dependências instaladas | 678 MB |
-| `node_modules` da raiz | 553 MB |
-| `app/node_modules` | 111 MB |
-| **Contexto efetivo, com `.dockerignore`** | **2,2 MB** |
+| O que                                            | Tamanho    |
+| ------------------------------------------------ | ---------- |
+| Repositório inteiro, com dependências instaladas | 678 MB     |
+| `node_modules` da raiz                           | 553 MB     |
+| `app/node_modules`                               | 111 MB     |
+| **Contexto efetivo, com `.dockerignore`**        | **2,2 MB** |
 
 O sintoma é a primeira linha do build:
 
@@ -1100,71 +1118,71 @@ projeto. Marque cada caixa; a coluna da direita é o que tem de acontecer.
 
 ### Parte 1 — Pré-requisitos (2 min)
 
-| ☐ | Passo | Resultado esperado |
-|---|---|---|
-| ☐ | `docker --version` | Imprime `Docker version 24` ou maior |
-| ☐ | `docker compose version` | Imprime `Docker Compose version v2` ou maior |
-| ☐ | `docker ps` | Lista (talvez vazia), **sem** erro de conexão com o daemon |
+| ☐   | Passo                    | Resultado esperado                                         |
+| --- | ------------------------ | ---------------------------------------------------------- |
+| ☐   | `docker --version`       | Imprime `Docker version 24` ou maior                       |
+| ☐   | `docker compose version` | Imprime `Docker Compose version v2` ou maior               |
+| ☐   | `docker ps`              | Lista (talvez vazia), **sem** erro de conexão com o daemon |
 
 ### Parte 2 — Instalação (10 min, quase tudo esperando o build)
 
-| ☐ | Passo | Resultado esperado |
-|---|---|---|
-| ☐ | `git clone https://github.com/lukiin-z/campus.git && cd campus` | Termina sem erro |
-| ☐ | `docker compose config --quiet` | **Nenhuma saída** |
-| ☐ | `docker compose up -d` | Termina com os três containers `Started` |
-| ☐ | `docker compose ps` | Três serviços `Up`; `db`, `api` e `web` com `(healthy)` |
-| ☐ | `docker compose logs api \| grep -i migration` | Aparece `All migrations have been successfully applied` |
-| ☐ | `docker compose logs api \| grep total` | Aparece `total 103` |
+| ☐   | Passo                                                           | Resultado esperado                                      |
+| --- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| ☐   | `git clone https://github.com/lukiin-z/campus.git && cd campus` | Termina sem erro                                        |
+| ☐   | `docker compose config --quiet`                                 | **Nenhuma saída**                                       |
+| ☐   | `docker compose up -d`                                          | Termina com os três containers `Started`                |
+| ☐   | `docker compose ps`                                             | Três serviços `Up`; `db`, `api` e `web` com `(healthy)` |
+| ☐   | `docker compose logs api \| grep -i migration`                  | Aparece `All migrations have been successfully applied` |
+| ☐   | `docker compose logs api \| grep total`                         | Aparece `total 103`                                     |
 
 ### Parte 3 — A stack funciona (5 min)
 
-| ☐ | Passo | Resultado esperado |
-|---|---|---|
-| ☐ | `curl -s http://localhost:3000/api/health` | JSON com `"status":"ok"` **e** `"banco":"ok"` |
-| ☐ | `curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/` | `200` |
-| ☐ | `curl -s -o /dev/null -w "%{http_code} %{content_type}\n" http://localhost:8080/eventos/evt-001` | `200 text/html` — e **não** 404 |
-| ☐ | `curl -s -o /dev/null -w "%{content_type}\n" http://localhost:8080/manifest.webmanifest` | `application/manifest+json` |
-| ☐ | `docker compose exec db psql -U campus -d campus -c "SELECT count(*) FROM usuario;"` | `13` |
-| ☐ | `docker compose exec db psql -U campus -d campus -c "SELECT count(*) FROM evento;"` | `13` |
-| ☐ | `docker compose exec db psql -U campus -d campus -c "SELECT left(senha_hash,10) FROM usuario LIMIT 1;"` | Começa com `$argon2id$` |
-| ☐ | O login da seção 5.7, com `marina.alves@fiap.com.br` / `campus123` | `201`, com `accessToken` e `sessao.usuario` = `Marina Alves` |
-| ☐ | `GET /api/eventos` com o token da linha acima | `200`, com **10** eventos |
-| ☐ | O mesmo login com a senha `errada12` | `401` e `{"erro":"CREDENCIAL_INVALIDA"}` |
+| ☐   | Passo                                                                                                   | Resultado esperado                                           |
+| --- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| ☐   | `curl -s http://localhost:3000/api/health`                                                              | JSON com `"status":"ok"` **e** `"banco":"ok"`                |
+| ☐   | `curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/`                                       | `200`                                                        |
+| ☐   | `curl -s -o /dev/null -w "%{http_code} %{content_type}\n" http://localhost:8080/eventos/evt-001`        | `200 text/html` — e **não** 404                              |
+| ☐   | `curl -s -o /dev/null -w "%{content_type}\n" http://localhost:8080/manifest.webmanifest`                | `application/manifest+json`                                  |
+| ☐   | `docker compose exec db psql -U campus -d campus -c "SELECT count(*) FROM usuario;"`                    | `13`                                                         |
+| ☐   | `docker compose exec db psql -U campus -d campus -c "SELECT count(*) FROM evento;"`                     | `13`                                                         |
+| ☐   | `docker compose exec db psql -U campus -d campus -c "SELECT left(senha_hash,10) FROM usuario LIMIT 1;"` | Começa com `$argon2id$`                                      |
+| ☐   | O login da seção 5.7, com `marina.alves@fiap.com.br` / `campus123`                                      | `201`, com `accessToken` e `sessao.usuario` = `Marina Alves` |
+| ☐   | `GET /api/eventos` com o token da linha acima                                                           | `200`, com **10** eventos                                    |
+| ☐   | O mesmo login com a senha `errada12`                                                                    | `401` e `{"erro":"CREDENCIAL_INVALIDA"}`                     |
 
 ### Parte 4 — O produto funciona (10 min)
 
 Siga o [manual de uso](22-manual-de-uso.md) a partir daqui.
 
-| ☐ | Passo | Resultado esperado |
-|---|---|---|
-| ☐ | Abrir `http://localhost:8080` | Tela de login, sem erro no console do navegador |
-| ☐ | Entrar com `marina.alves@fiap.com.br` / `campus123` | Entra; o cabeçalho mostra `ENGENHARIA DE COMPUTAÇÃO · TURMA 3ESPX` |
-| ☐ | Abrir a aba **Eventos** | Lista com eventos; os filtros de alcance mudam a lista |
-| ☐ | Abrir um evento e recarregar a página (F5) | A página do evento **continua na tela** — não cai em 404 |
-| ☐ | Inscrever-se num evento gratuito com vaga | Confirma na hora; a contagem de vagas cai |
-| ☐ | Tentar inscrever-se num evento lotado | Recusa **nomeada**, com a posição na fila de espera |
-| ☐ | Sair e entrar com `lucas.tavares@fiap.com.br` / `campus123` | Cai no onboarding, não no feed |
+| ☐   | Passo                                                       | Resultado esperado                                                 |
+| --- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+| ☐   | Abrir `http://localhost:8080`                               | Tela de login, sem erro no console do navegador                    |
+| ☐   | Entrar com `marina.alves@fiap.com.br` / `campus123`         | Entra; o cabeçalho mostra `ENGENHARIA DE COMPUTAÇÃO · TURMA 3ESPX` |
+| ☐   | Abrir a aba **Eventos**                                     | Lista com eventos; os filtros de alcance mudam a lista             |
+| ☐   | Abrir um evento e recarregar a página (F5)                  | A página do evento **continua na tela** — não cai em 404           |
+| ☐   | Inscrever-se num evento gratuito com vaga                   | Confirma na hora; a contagem de vagas cai                          |
+| ☐   | Tentar inscrever-se num evento lotado                       | Recusa **nomeada**, com a posição na fila de espera                |
+| ☐   | Sair e entrar com `lucas.tavares@fiap.com.br` / `campus123` | Cai no onboarding, não no feed                                     |
 
 ### Parte 5 — Reset (2 min)
 
-| ☐ | Passo | Resultado esperado |
-|---|---|---|
-| ☐ | `docker compose down -v` | Remove containers, rede e o volume `campus_db-dados` |
-| ☐ | `docker volume ls \| grep campus` | **Nenhuma linha** |
-| ☐ | `docker compose up -d` e repetir a Parte 3 | Os mesmos números: 13 usuários, 13 eventos |
+| ☐   | Passo                                      | Resultado esperado                                   |
+| --- | ------------------------------------------ | ---------------------------------------------------- |
+| ☐   | `docker compose down -v`                   | Remove containers, rede e o volume `campus_db-dados` |
+| ☐   | `docker volume ls \| grep campus`          | **Nenhuma linha**                                    |
+| ☐   | `docker compose up -d` e repetir a Parte 3 | Os mesmos números: 13 usuários, 13 eventos           |
 
 ### Assinatura
 
-| Campo | |
-|---|---|
-| Nome de quem validou | |
-| Não é do grupo (sim/não) | |
-| Sistema operacional e versão | |
-| Versão do Docker | |
-| Data e hora | |
-| Partes que passaram | |
-| Partes que falharam, e em que passo | |
+| Campo                               |     |
+| ----------------------------------- | --- |
+| Nome de quem validou                |     |
+| Não é do grupo (sim/não)            |     |
+| Sistema operacional e versão        |     |
+| Versão do Docker                    |     |
+| Data e hora                         |     |
+| Partes que passaram                 |     |
+| Partes que falharam, e em que passo |     |
 
 Falhando qualquer passo, anote **o comando e a saída literal** — é o que permite
 a correção. A seção 7 cobre as falhas conhecidas; o que não estiver lá é novo, e

@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { AvisoMockIndisponivel } from './components/layout/AvisoMockIndisponivel';
+import { LimiteDeErro } from './components/layout/LimiteDeErro';
 import { queryClient } from './lib/queryClient';
 import { usandoApiReal } from './services';
 import './styles/index.css';
@@ -71,7 +72,15 @@ async function iniciar(): Promise<void> {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
           {falhaDoMock && <AvisoMockIndisponivel motivo={falhaDoMock} />}
-          <App />
+          {/*
+            A fronteira fica DENTRO do router e DEPOIS do aviso, de propósito:
+            assim um erro de renderização não leva embora nem a navegação nem a
+            explicação de por que os dados não vieram — que foi exatamente o que
+            aconteceu na medição que motivou o componente.
+          */}
+          <LimiteDeErro>
+            <App />
+          </LimiteDeErro>
         </BrowserRouter>
       </QueryClientProvider>
     </StrictMode>,

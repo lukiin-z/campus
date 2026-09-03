@@ -1,8 +1,11 @@
 import type {
+  AceitePagamento,
   Comentario,
   Credenciais,
   Curso,
   DesfechoSimulado,
+  EdicaoEvento,
+  EntradaCadastro,
   EntradaOnboarding,
   EventoView,
   Faculdade,
@@ -14,15 +17,18 @@ import type {
   NovaPublicacao,
   PagamentoView,
   PainelCheckin,
+  ParticipanteConfirmado,
   Participacao,
   ParticipacaoView,
   PublicacaoView,
   ResultadoCheckin,
   ResultadoInscricao,
   ResultadoLogin,
+  Saude,
   SessaoUsuario,
   TokenIngresso,
   Turma,
+  WebhookPagamento,
 } from '../types/domain';
 
 /**
@@ -62,6 +68,15 @@ export type {
   Saude,
   WebhookPagamento,
 } from '../types/domain';
+/*
+ * Elas aparecem DUAS vezes neste arquivo -- no `import type` acima e neste
+ * `export type` -- e não é redundância: `export ... from` reexporta o nome sem
+ * trazê-lo ao escopo do módulo, então as assinaturas daqui não o veriam.
+ *
+ * Foi assim que o defeito apareceu: `tsc -p app/tsconfig.json --noEmit` passou e
+ * o `tsc -b` do build reprovou com cinco `TS2304`. Os dois comandos não são
+ * equivalentes neste repositório, e é o do build que vale.
+ */
 
 export interface AuthRepository {
   /** Sessão do usuário autenticado, com o vínculo acadêmico resolvido. */
