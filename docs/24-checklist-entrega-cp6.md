@@ -34,7 +34,8 @@ o CP6 impõe: **o critério de peso mais alto agora é "funcionalidade com dados
 > discordarem, a seção 3 está certa.**
 >
 > **Estado em 2026-09-10** ([seção 3.1](#31-reapuração-de-2026-09-10--medição-completa)):
-> `npm run build` **passa** nos três workspaces, `npm run format:check` **passa**, e os três
+> `npm run build` **passa** nos três workspaces **depois de `prisma generate`** — sem esse
+> passo ele reprova, ver "o que continua aberto" logo abaixo —, `npm run format:check` **passa**, e os três
 > números da linha 1 que antes vinham de execuções antigas foram **remedidos agora** — 9 de
 > 9 casos E2E, 96 de 96 de integração e 22 de 22 restrições. O texto anterior desta ressalva
 > dizia que o build reprovava com seis `TS2304`; isso foi corrigido por commits posteriores a
@@ -378,7 +379,8 @@ lista de bloqueadores que perde o histórico não deixa aprender nada.
 
 - [x] 🔧 ~~**Consertar o build** — 6 erros `TS2304` em `app/src/services/index.ts`~~ →
       **fechado.** Os seis tipos estão no bloco `import type`; `npm run build` passa nos três
-      workspaces
+      workspaces **desde que `npm run prisma:generate -w campus-api` tenha rodado antes** —
+      sem ele, reprova com 182 erros `TS2339` em árvore limpa (bloqueador logo abaixo)
 - [x] 🔧 ~~`npm run format` (`app/src/main.tsx`)~~ → **fechado.** `format:check` limpo
 - [x] 🔧 ~~`npx playwright install chromium && npm run test:e2e`~~ → **fechado.** **9 de 9
       verdes**, 6 no mock e 3 contra a stack real, e o `ci.yml` instala o Chromium em job

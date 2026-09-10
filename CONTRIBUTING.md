@@ -156,7 +156,9 @@ npm run build -w campus-app
 node scripts/check-tailwind-scale.mjs
 node scripts/check-bundle-size.mjs
 
-# API
+# API — o cliente do Prisma não é versionado. Sem este primeiro passo, o `build`
+# reprova em árvore limpa com 182 erros TS2339 (é o que o CI faz antes de compilar)
+npm run prisma:generate -w campus-api
 npm run lint -w campus-api
 npm run test -w campus-api
 npm run build -w campus-api

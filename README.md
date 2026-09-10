@@ -172,7 +172,9 @@ fluxo, como instalar em cada plataforma, como resetar o estado e as limitações
 ```bash
 npm run dev            # servidor de desenvolvimento
 npm run demo           # build + preview, para demonstrar e instalar como PWA
-npm run build          # build de produção (tsc -b + vite build)
+npm run build          # build de produção dos 3 workspaces (tsc -b + vite build).
+                       # Exige `npm run prisma:generate -w campus-api` antes: em árvore
+                       # limpa, sem ele, a compilação da API reprova com 182 erros TS2339
 npm run preview        # serve o build
 npm run lint           # ESLint, zero aviso tolerado
 npm run format:check   # Prettier
