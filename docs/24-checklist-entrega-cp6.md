@@ -2,7 +2,8 @@
 
 **Responsável pela conferência:** Vitor Pantarotto (Scrum Master / QA)
 **Data-alvo de entrega:** 24/11/2026 (premissa do grupo, ajustar ao calendário oficial)
-**Estado apurado em:** 2026-09-02
+**Estado apurado em:** 2026-09-02 · **reapurado em 2026-09-10** (ver
+[seção 3](#3-estado-real-das-verificações))
 
 Este documento existe para uma coisa: **provar que cada critério exigido foi atendido, e
 apontar exatamente onde**. A coluna "evidência" não diz "está pronto" — diz o que a pessoa
@@ -20,22 +21,32 @@ o CP6 impõe: **o critério de peso mais alto agora é "funcionalidade com dados
 | # | Critério | Peso | Artefato que atende | Evidência verificável |
 |---|---|---|---|---|
 | 1 | **Funcionalidade completa** — recursos principais com dados reais | **30%** | [`api/`](../api) + [`app/`](../app) sobre PostgreSQL | **43 operações** no contrato ([`api/openapi.yaml`](../api/openapi.yaml)) e **43 rotas implementadas** nos controladores — conferir com `grep -rhcE "@(Get\|Post\|Patch\|Delete)\(" api/src/*/*.controller.ts`. Dado persistido em **14 tabelas** com **22 restrições** declaradas e exercitadas por [`verificar-restricoes.sql`](../api/prisma/verificar-restricoes.sql). **525 testes** no app (`npm run test -w campus-app`), **308** no pacote (`npm run test:dominio`), **83** unitários e **96 de integração contra PostgreSQL** na API — **713 sem contar duas vezes**, ver a seção 3. Mais **9 casos E2E executados** (6 no mock, 3 contra a stack real) |
-| 2 | **Qualidade técnica** — organização, boas práticas, sem erro crítico | **20%** | Monorepo de 3 workspaces, 5 verificadores próprios, 5 jobs de CI | `npm run lint` — **0 erro, 0 aviso** nos dois workspaces (`--max-warnings 0`). `node scripts/check-contrato.mjs` — a fronteira de `@campus/shared` é **executável**: 28 arquivos, 68 imports analisados, e a mensagem de erro diz o motivo. Cobertura **97,11%** de linhas no app e **91,93%** no pacote. Arquitetura e trade-offs em [`08-arquitetura.md`](08-arquitetura.md), decisões em [`adr/`](adr/README.md) — **8 ADRs** com alternativas recusadas e como reverter. **Ressalva: o `build` reprova neste momento** (seção 3), e "sem erro crítico" só é verdade depois de os seis imports entrarem |
+| 2 | **Qualidade técnica** — organização, boas práticas, sem erro crítico | **20%** | Monorepo de 3 workspaces, 5 verificadores próprios, 5 jobs de CI | `npm run lint` — **0 erro, 0 aviso** nos dois workspaces (`--max-warnings 0`). `node scripts/check-contrato.mjs` — a fronteira de `@campus/shared` é **executável**: 28 arquivos, 68 imports analisados, e a mensagem de erro diz o motivo. Cobertura **97,11%** de linhas no app e **91,93%** no pacote. Arquitetura e trade-offs em [`08-arquitetura.md`](08-arquitetura.md), decisões em [`adr/`](adr/README.md) — **8 ADRs** com alternativas recusadas e como reverter. ~~**Ressalva: o `build` reprova neste momento**~~ — **corrigido.** Em 2026-09-10 o `build` passa nos três workspaces (seção 3.1); os seis imports entraram. "Sem erro crítico" é verdade **desde que** `prisma generate` tenha rodado (seção 3.2) |
 | 3 | **Instalabilidade** — pacote instalável funcionando fora do ambiente do grupo | **20%** | [`docker-compose.yml`](../docker-compose.yml), [`Dockerfile.api`](../Dockerfile.api), [`Dockerfile.web`](../Dockerfile.web), [`23-instalacao.md`](23-instalacao.md) | **Um comando**: `docker compose up`. Três serviços em cadeia, com `depends_on: service_healthy` e `pg_isready` como *healthcheck* — não `depends_on` solto, que espera o container iniciar e não o banco aceitar conexão. A API aplica `prisma migrate deploy`, roda o seed e sobe. App em `:8080`, API em `:3000/api`. PWA instalável (RNF-006) — o manifest é verificado no CI |
 | 4 | **Documentação final** — completa, atualizada, coerente | **15%** | [`docs/README.md`](README.md) — **25 documentos**, 8 ADRs, 21 diagramas | `node scripts/validate-docs.mjs` verifica **todo link relativo, toda âncora, todo bloco Mermaid e todo SVG** de 54 arquivos, e reprova marcador de trabalho inacabado. Novos no CP6: [`21-api-contrato.md`](21-api-contrato.md), [`22-manual-de-uso.md`](22-manual-de-uso.md), [`23-instalacao.md`](23-instalacao.md), este checklist e [`25-video-cp6-roteiro.md`](25-video-cp6-roteiro.md). Cada documento revisado abre com **histórico de revisões** datado |
 | 5 | **Evolução do projeto** — coerência entre CP4 → CP5 → CP6 | **15%** | [`17-jornada.md`](17-jornada.md) | Linha do tempo por tag com **decisão, commit e defeito encontrado por verificação**. A evolução é rastreável nos artefatos, não narrada: as **30 rotas do CP5 continuam todas no contrato do CP6** (nenhuma renomeada), o domínio **migrou** para `packages/shared` em vez de ser copiado ([ADR-0008](adr/0008-monorepo-com-dominio-compartilhado.md)), e a serialização de RN-004 saiu da fila do mock para o `SELECT ... FOR UPDATE` — comparada linha a linha em [`05-modelagem/04-diagrama-sequencia.md` §3.1](05-modelagem/04-diagrama-sequencia.md#31-a-mesma-inscrição-contra-a-api-real) |
 
 **Total: 100%.** Os cinco critérios e os pesos são os do enunciado do CP6.
 
-> **Uma ressalva que vale mais que a tabela, e por isso vem antes dela ser lida.** No momento
-> desta apuração o **`npm run build` reprova** — seis tipos usados e não importados em
-> `app/src/services/index.ts` —, e dois números da linha 1 (`6 casos E2E` e
-> `22 restrições verificadas`) vêm de execuções que **não** foram refeitas nesta passagem. O
-> detalhe de cada um, com o comando, está na
-> [seção 3](#3-estado-real-das-verificações), e as correções estão em ordem de bloqueio na
-> [seção 4](#4-checklist-operacional-de-submissão). A tabela acima descreve o que os
-> artefatos entregam; a seção 3 descreve o que foi medido hoje. **Quando as duas
+> **Uma ressalva que vale mais que a tabela, e por isso vem antes dela ser lida.** A tabela
+> acima descreve o que os artefatos entregam; a
+> [seção 3](#3-estado-real-das-verificações) descreve o que foi **medido**. **Quando as duas
 > discordarem, a seção 3 está certa.**
+>
+> **Estado em 2026-09-10** ([seção 3.1](#31-reapuração-de-2026-09-10--medição-completa)):
+> `npm run build` **passa** nos três workspaces, `npm run format:check` **passa**, e os três
+> números da linha 1 que antes vinham de execuções antigas foram **remedidos agora** — 9 de
+> 9 casos E2E, 96 de 96 de integração e 22 de 22 restrições. O texto anterior desta ressalva
+> dizia que o build reprovava com seis `TS2304`; isso foi corrigido por commits posteriores a
+> 02/09 e está registrado, não apagado.
+>
+> **O que continua aberto:** `npm ci && npm run build` reprova em árvore limpa se
+> `prisma generate` não rodar antes — o `npm` desta máquina bloqueia o `preinstall` do
+> Prisma. Não é defeito de código; é um passo que faltava na
+> [seção 7](#7-conferência-final-para-rodar-antes-de-enviar), e foi acrescentado. Ver
+> [seção 3.2](#32-o-que-a-reapuração-encontrou-de-novo-npm-ci--npm-run-build-reprova-sozinho).
+> E `docker compose up` em máquina **sem cache de imagem** segue **não verificado** — é o
+> único item da seção 3.1 que nenhuma máquina do grupo pode medir.
 
 ---
 
@@ -125,6 +136,18 @@ código** — todos vieram de uma verificação executando.
 
 ## 3. Estado real das verificações
 
+> ### Reapuração de 2026-09-10 — o que mudou desde 02/09
+>
+> A tabela abaixo é da apuração de **02/09** e está preservada como registro. **Tudo o que
+> ela marcava como ❌ ou ⚪ foi executado em 10/09, na mesma máquina, e o resultado está na
+> [seção 3.1](#31-reapuração-de-2026-09-10--medição-completa). Em resumo: as duas reprovações
+> foram corrigidas por commits posteriores a 02/09 e hoje passam, e os quatro itens não
+> executados foram executados e passam.**
+>
+> Uma coisa nova apareceu, e é a única que continua aberta: **`npm ci && npm run build`
+> reprova em máquina limpa**, e o motivo não é código. Ver
+> [seção 3.2](#32-o-que-a-reapuração-encontrou-de-novo-npm-ci--npm-run-build-reprova-sozinho).
+
 Rodado em **2026-09-02**, na raiz do repositório. **Três itens reprovam e dois não foram
 executados nesta passagem**, e todos estão aqui com o arquivo e o comando — esconder
 reprovação em checklist de entrega é o oposto da função dele.
@@ -152,6 +175,81 @@ e quem o executou, quando foi outra frente).
 | Formatação | `npm run format:check` | ❌ **1 arquivo fora do padrão: `app/src/main.tsx`.** Correção: `npm run format` |
 | Restrições do banco | `psql -f api/prisma/verificar-restricoes.sql` | ⚪ **Não executado nesta passagem** — exige PostgreSQL. O arquivo contém **22 assertivas** (`grep -c "ok  "` devolve 22), e a execução contra PostgreSQL 16 real foi feita pela frente de banco em 2026-09-02. Reconferir antes de enviar |
 | E2E | `npm run test:e2e` | ✅ **9 de 9 verdes**, localmente e na CI. Dois projetos: `mock-mobile-chromium` (os 6 casos do CP5) e `api-mobile-chromium` (3 casos contra a API real com PostgreSQL — login e alcance, inscrição → cobrança → pagamento → ingresso, e evento lotado → fila com posição) |
+
+### 3.1 Reapuração de 2026-09-10 — medição completa
+
+Rodado na mesma máquina, **17 comandos, nenhum item deixado como "não executado" por falta
+de ferramenta**: o Docker Desktop foi iniciado, o `db-teste` subiu, as migrations foram
+aplicadas e o Chromium do Playwright já estava instalado. É a primeira passagem em que a
+suíte de integração, o E2E completo e as 22 restrições são medidos **juntos**.
+
+| Verificação | Comando | Resultado em 2026-09-10 |
+|---|---|---|
+| Documentação | `node scripts/validate-docs.mjs` | ✅ **54 arquivos markdown, 1.106 links relativos resolvidos, 25 blocos Mermaid, 34 SVGs — documentação válida** |
+| Diagramas | `node scripts/render-diagrams.mjs --check` | ✅ **25/25 blocos Mermaid renderizados** (modo `--check`, nada gravado) |
+| Fronteira do pacote | `node scripts/check-contrato.mjs` | ✅ **30 arquivos, 73 imports analisados — fronteira preservada.** Cresceu de 28/68 desde 02/09 |
+| Lint (app + API) | `npm run lint` | ✅ **0 erro, 0 aviso** nos dois workspaces |
+| Escala de espaçamento | `npm run check:scale` | ✅ **486 utilitários**, todos na escala de 4 px. Eram 478 em 02/09 |
+| Formatação | `npm run format:check` | ✅ **"All matched files use Prettier code style!"** — a reprovação de `app/src/main.tsx` de 02/09 foi corrigida |
+| Schema do Prisma | `npx prisma validate --schema api/prisma/schema.prisma` | ✅ **"The schema at api\prisma\schema.prisma is valid"** (com `DATABASE_URL` placeholder; nada conecta) |
+| Testes do pacote | `npm run test:dominio` | ✅ **308 de 308**, em 14 arquivos |
+| Testes do app | `npm run test -w campus-app` | ✅ **525 de 525**, em 28 arquivos |
+| Testes da API | `npm run test -w campus-api` | ✅ **83 de 83**, em 7 arquivos |
+| **Integração contra PostgreSQL** | `npm run test:int -w campus-api` | ✅ **96 de 96**, em 11 arquivos. **Era o item declarado "não executado" com maior efeito na nota do critério 1** — inclui `concorrencia.int.test.ts`, que é o que prova o `SELECT … FOR UPDATE` de RNF-013 |
+| Cobertura do pacote | `npm run test:coverage -w @campus/shared` | ✅ Linhas **99,32%**, funções **97,97%**, branches **94,62%** — limite 60%. Subiu de 91,93% de linhas |
+| Cobertura do app | `npm run test:coverage -w campus-app` | ✅ Linhas **96,68%**, funções **90,97%**, branches **85,04%**. **Funções caíram de 97,87%** — passa o limite, mas a direção é de piora, e está dito aqui em vez de omitido |
+| **Build** | `npm run build` | ✅ **Passa nos três workspaces** — `@campus/shared`, `campus-app` (418 módulos, 8,49 s) e `campus-api`. Os 6 erros `TS2304` de 02/09 **não existem mais**: os seis tipos estão no bloco `import type` de `app/src/services/index.ts`. **Com uma condição, ver [3.2](#32-o-que-a-reapuração-encontrou-de-novo-npm-ci--npm-run-build-reprova-sozinho)** |
+| Orçamento de pacote | `npm run check:size` | ✅ **JS 237,41 / 250 KB gzip**, CSS **5,10 / 40**, maior chunk **106,70 / 130**. A folga é de **12,59 KB** |
+| Contrato × rotas servidas | `npm run check:rotas` | ✅ **38 caminhos declarados no `openapi.yaml`, 38 registrados pela aplicação.** Exige `DATABASE_URL`, `JWT_SECRET` e `WEBHOOK_SECRET`; sem elas o script recusa com a lista dos nomes que faltam, e os placeholders estão no `ci.yml` |
+| **Restrições do banco** | `psql -f api/prisma/verificar-restricoes.sql` | ✅ **22 `ok`, 0 falha**, contra PostgreSQL 16 no container. Rodado por `docker exec` porque não há `psql` no host — o `-v ON_ERROR_STOP=0` é proposital: os blocos esperam recusa |
+| **E2E** | `npm run test:e2e` | ✅ **9 de 9 verdes em 1,1 min**, 6 workers. `mock-mobile-chromium`: 6 casos. `api-mobile-chromium`: 3 casos contra a API real com PostgreSQL — login e alcance, inscrição → cobrança → pagamento → ingresso, e evento lotado → fila com posição |
+| `docker compose up` em máquina **sem cache** | `docker compose up` | ⚪ **Não verificado.** As imagens já estão em cache nesta máquina, então rodar aqui **não** mede o que o critério de instalabilidade pede. Continua dependendo de outra máquina — [`entrega/README.md` §4](entrega/README.md#4-o-que-depende-de-pessoa-mas-não-é-entregável) |
+
+**Total de testes automatizados executados nesta passagem: 1.021 execuções, 713 casos
+distintos.** A subtração é a mesma da [seção abaixo](#o-que-o-total-de-testes-soma-e-por-que-não-é-1-021):
+308 do pacote + 217 exclusivos do app (525 − 308) + 83 unitários da API + 96 de integração +
+9 E2E = **713**. É a primeira vez que os cinco números são medidos na mesma passagem, e eles
+fecham — o que antes era aritmética sobre execuções separadas.
+
+### 3.2 O que a reapuração encontrou de novo: `npm ci && npm run build` reprova sozinho
+
+**É o único achado novo, e ele não é código.** Numa árvore limpa, a sequência que a
+[seção 7](#7-conferência-final-para-rodar-antes-de-enviar) manda rodar **reprova**:
+
+```
+npm ci          # exit 0, mas com: "npm warn allow-scripts ... prisma@6.19.3 (preinstall)"
+npm run build   # exit 1 — 182 erros em campus-api
+```
+
+Os 182 erros são todos da mesma forma, e a forma é o diagnóstico:
+
+```
+src/seed/run.ts:104:12 - error TS2339: Property 'comentario' does not exist on type 'never'.
+src/seed/run.ts:170:14 - error TS7006: Parameter 'tx' implicitly has an 'any' type.
+```
+
+`type 'never'` para toda propriedade de *delegate* do Prisma significa **cliente do Prisma
+não gerado**. O `npm` desta máquina bloqueia scripts de ciclo de vida por padrão e avisa em
+vez de executar, então o `preinstall` do `prisma` não roda — e nada mais no repositório
+regenera o cliente.
+
+**Depois de `npx prisma generate`, `npm run build -w campus-api` passa com exit 0.** Não há
+defeito de código: há um passo obrigatório fora da sequência documentada.
+
+| Onde o passo **está** documentado | Onde **faltava** |
+|---|---|
+| [`23-instalacao.md` §4](23-instalacao.md) — `npm run prisma:generate -w campus-api`, com o comentário "não é versionado" | A [seção 7](#7-conferência-final-para-rodar-antes-de-enviar) desta página |
+| [`CONTRIBUTING.md`](../CONTRIBUTING.md) — no roteiro de primeira execução | — |
+| [`ci.yml`](../.github/workflows/ci.yml) — passo explícito "Gera o cliente do Prisma" nos jobs `api`, `integracao` e `e2e` | — |
+
+**O CI nunca sofreu disso**, porque tem o passo. Quem sofre é a pessoa que segue a seção 7
+deste checklist — e isso importa agora, porque **instalabilidade vale 20%** e a primeira
+coisa que um avaliador faz é copiar o bloco de comandos. A seção 7 foi corrigida.
+
+O modo de falha é irmão do que a seção seguinte descreve: **lint e teste passam com o build
+quebrado**, porque nenhum dos dois roda `tsc`. Aqui é mais um degrau — `npm ci` também
+**passa** (exit 0) enquanto deixa o projeto sem poder compilar, e o único sinal é um `npm
+warn` no meio da saída de instalação.
 
 ### Por que o build reprova, e por que lint e teste não pegaram
 
@@ -228,27 +326,37 @@ fonte mock — o que hoje não existe.
 
 ### O que **não** foi medido, e é honesto dizer
 
-| Não medido nesta passagem | Por quê | O que falta |
+> **Atualizado em 2026-09-10.** Quatro das sete linhas desta tabela saíram dela: foram
+> **medidas**, e o resultado está na
+> [seção 3.1](#31-reapuração-de-2026-09-10--medição-completa). Ficam com o estado novo, para
+> que a comparação com 02/09 continue possível.
+
+| Item | Estado em 02/09 | Estado em 10/09 |
 |---|---|---|
-| **A suíte de integração da API** — inclui a concorrência de RNF-013 | Exige o serviço `db-teste` do compose de pé (perfil `teste`, porta 5433) e as migrations aplicadas. Não havia PostgreSQL nesta máquina | `docker compose --profile teste up -d db-teste`, `npx prisma migrate deploy` em `api/`, e `npm run test:int -w campus-api`. **A suíte existe**: 10 arquivos e **77 casos declarados** em [`api/test/`](../api/test), com `concorrencia.int.test.ts` cobrindo o `SELECT … FOR UPDATE` |
-| **`docker compose up` em máquina limpa** | Foi escrito e não foi executado nesta máquina | Rodar o comando num ambiente sem cache de imagem, e conferir os três serviços de pé |
-| **E2E** | Exige `npx playwright install chromium` e um build de produção — que hoje reprova | Consertar o build, instalar o Chromium, `npm run test:e2e` |
-| **As 22 restrições do banco** | Exige PostgreSQL. Executadas pela frente de banco em 2026-09-02 | `psql -f api/prisma/verificar-restricoes.sql`, esperando 22 `ok` |
-| Latência com tráfego real (RNF-008) | Não há carga | Medir `p95` contra a API com dado de volume |
-| Os 6 breakpoints de RNF-018 | Não há teste de layout; é olhar tela | O E2E prova um (390×844) |
-| Validação com 5 alunos reais (RNF-005) | Depende de pessoas, não de código | 5 pessoas, 15 min cada |
+| **A suíte de integração da API** — inclui a concorrência de RNF-013 | ⚪ Não medido: exigia o `db-teste` de pé (perfil `teste`, porta 5433) e as migrations aplicadas, e não havia PostgreSQL nesta máquina | ✅ **96 de 96, em 11 arquivos, contra PostgreSQL 16.** `concorrencia.int.test.ts` cobre o `SELECT … FOR UPDATE`. RNF-013 sai de "provado só contra o mock" para **provado com execução registrada** |
+| **E2E** | ⚪ Não medido: exigia Chromium e um build de produção, que reprovava | ✅ **9 de 9 verdes em 1,1 min** — 6 no mock, 3 contra a stack real |
+| **As 22 restrições do banco** | ⚪ Não medido nesta máquina (executado pela frente de banco em 02/09) | ✅ **22 `ok`, 0 falha.** Rodado por `docker exec … psql` porque não há `psql` no host |
+| **`docker compose up` em máquina limpa** | ⚪ Escrito e não executado | ⚪ **Continua não verificado, e não é verificável aqui:** as imagens estão em cache nesta máquina, então rodar mediria a máquina e não o critério. É o item que **precisa de outra máquina** |
+| Latência com tráfego real (RNF-008) | ⚪ Não há carga | ⚪ **Não verificado.** Falta medir `p95` contra a API com dado de volume |
+| Os 6 breakpoints de RNF-018 | ⚪ Não há teste de layout | ⚪ **Não verificado.** O E2E prova **um** (390×844) |
+| Validação com 5 alunos reais (RNF-005) | ⚪ Depende de pessoas | ⚪ **Não verificado.** 5 pessoas, 15 min cada — [`entrega/README.md` §4](entrega/README.md#4-o-que-depende-de-pessoa-mas-não-é-entregável) |
 
-**A primeira linha é a que mais pesa no critério 1, e ela mudou de natureza durante esta
-apuração.** A pendência era "não existe teste de integração": o `api/package.json` declarava
-`npm run test:int` apontando para um `vitest.int.config.ts` inexistente, e o script falhava
-se rodado. **A suíte foi entregue** — 10 arquivos, 77 casos, com a concorrência entre
-processos coberta por `concorrencia.int.test.ts`.
+**Três continuam não verificados, e nenhum dos três se resolve com um comando nesta
+máquina.** É uma lista menor e mais honesta que a de 02/09: antes havia sete itens, dos quais
+quatro só precisavam de execução. Executar resolveu quatro; os três que sobraram precisam de
+outra máquina, de carga ou de pessoas.
 
-O que resta é diferente e menor: **executá-la**. RNF-013 sai de "só provado contra o mock"
-para "provado, pendente de execução registrada" no momento em que alguém subir o `db-teste`
-e rodar o comando. É a diferença entre uma lacuna de engenharia e uma lacuna de operação — e
-o CP5 mostrou que a segunda também precisa de dono, porque foi assim que o E2E atravessou
-dois checkpoints escrito e nunca executado.
+**A primeira linha é a que mais pesa no critério 1, e ela atravessou três estados — vale
+seguir os três, porque é a lição de processo desta entrega.** Primeiro a pendência era "não
+existe teste de integração": o `api/package.json` declarava `npm run test:int` apontando para
+um `vitest.int.config.ts` inexistente, e o script falhava se rodado. Depois a suíte foi
+entregue — 11 arquivos, 96 casos — e a pendência virou **"escrita e não executada"**, que é
+uma lacuna de operação, não de engenharia. **Em 10/09 ela foi executada: 96 de 96.**
+
+O CP5 já tinha mostrado que a lacuna de operação também precisa de dono — foi assim que o
+E2E atravessou dois checkpoints escrito e nunca executado. A diferença agora é que os dois
+casos têm **job próprio no `ci.yml`** (`integracao` com `services: postgres`, e `e2e` com
+banco e Chromium), então nenhum dos dois volta a depender de alguém lembrar.
 
 O `vitest.int.config.ts` declara por que **não** usa Testcontainers, e a razão é a mesma
 lógica do resto do projeto: o pacote não está instalado, o CP6 não abre dependência nova, e
@@ -264,32 +372,46 @@ Na ordem em que deve ser executado. 🔧 é de código e pode ser feito por qual
 
 ### Bloqueadores — nesta ordem
 
-- [ ] 🔧 **Consertar o build.** Acrescentar `EntradaCadastro`, `EdicaoEvento`,
-      `ParticipanteConfirmado`, `WebhookPagamento`, `AceitePagamento` e `Saude` ao bloco
-      `import type` de `app/src/services/index.ts`. Os seis tipos já existem no pacote
-      compartilhado. Conferir com `npm run build` — hoje reprova com 6 erros `TS2304`
-- [ ] 🔧 `npm run format` — fecha a segunda reprovação (`app/src/main.tsx`)
-- [ ] 🔧 `npx playwright install chromium && npm run test:e2e` — reconfirmar os 6 casos
-      contra o build de produção, depois de o build voltar a passar
-- [ ] 🔧 `psql -f api/prisma/verificar-restricoes.sql` — reconfirmar os 22 `ok`
-- [ ] 🔧 Acrescentar `env: DATABASE_URL` ao job `api` do `ci.yml`, senão o passo
-      `prisma validate` falha com `P1012`
+**Os cinco bloqueadores de 02/09 estão fechados**, e a medição de cada um está na
+[seção 3.1](#31-reapuração-de-2026-09-10--medição-completa). Ficam riscados, não apagados:
+lista de bloqueadores que perde o histórico não deixa aprender nada.
+
+- [x] 🔧 ~~**Consertar o build** — 6 erros `TS2304` em `app/src/services/index.ts`~~ →
+      **fechado.** Os seis tipos estão no bloco `import type`; `npm run build` passa nos três
+      workspaces
+- [x] 🔧 ~~`npm run format` (`app/src/main.tsx`)~~ → **fechado.** `format:check` limpo
+- [x] 🔧 ~~`npx playwright install chromium && npm run test:e2e`~~ → **fechado.** **9 de 9
+      verdes**, 6 no mock e 3 contra a stack real, e o `ci.yml` instala o Chromium em job
+      próprio
+- [x] 🔧 ~~`psql -f api/prisma/verificar-restricoes.sql`~~ → **fechado.** **22 `ok`, 0
+      falha** contra PostgreSQL 16
+- [x] 🔧 ~~Acrescentar `env: DATABASE_URL` ao job `api` do `ci.yml`~~ → **fechado.** O
+      `ci.yml` define o placeholder e `prisma validate` responde "the schema is valid"
+
+**Bloqueador que a reapuração de 10/09 encontrou, e já corrigido:**
+
+- [x] 🔧 **`prisma generate` faltava na [seção 7](#7-conferência-final-para-rodar-antes-de-enviar).**
+      Sem ele, `npm ci && npm run build` reprova com 182 erros em árvore limpa — ver
+      [seção 3.2](#32-o-que-a-reapuração-encontrou-de-novo-npm-ci--npm-run-build-reprova-sozinho)
 
 ### Depois dos bloqueadores
 
-- [ ] 🔧 **Executar a suíte de integração** e registrar o resultado aqui. **É o item com
-      maior efeito na nota do critério 1**, porque é o que transforma o
-      `SELECT … FOR UPDATE` de código escrito em garantia provada:
+- [x] 🔧 ~~**Executar a suíte de integração**~~ → **fechado em 2026-09-10: 96 de 96, em 11
+      arquivos, contra PostgreSQL 16.** Era o item com maior efeito na nota do critério 1, e
+      é o que transforma o `SELECT … FOR UPDATE` de código escrito em garantia provada. A
+      sequência que funcionou, exatamente como estava escrita:
 
       docker compose --profile teste up -d db-teste
       cd api && npx prisma migrate deploy
       npm run test:int -w campus-api
 
-- [ ] 🔧 `docker compose up` numa máquina sem imagem em cache, e percorrer o fluxo do aluno
-      no `:8080` contra o `:3000/api`
-- [ ] 🔧 Acrescentar um job de integração ao `ci.yml`, com `services: postgres`. Sem isso, a
-      suíte de 77 casos depende de alguém lembrar de rodá-la — que é exatamente como o E2E
-      atravessou dois checkpoints sem executar
+- [ ] 👤 `docker compose up` numa máquina sem imagem em cache, e percorrer o fluxo do aluno
+      no `:8080` contra o `:3000/api`. **O único item que nenhuma máquina do grupo mede** —
+      aqui a imagem já está em cache, então rodar não prova o que o critério pede
+- [x] 🔧 ~~Acrescentar um job de integração ao `ci.yml`, com `services: postgres`~~ →
+      **fechado.** O `ci.yml` tem o job `integracao` com `services:` e o job `e2e` com banco
+      e Chromium próprios. A suíte deixou de depender de alguém lembrar de rodá-la — que era
+      exatamente como o E2E atravessou dois checkpoints sem executar
 
 ### Ganho fácil de qualidade, se houver tempo
 
@@ -439,13 +561,17 @@ Pendências declaradas
 
 Nada nesta seção pode ser feito por comando. Em ordem de risco para a nota.
 
+**Os insumos dos três checkpoints estão consolidados em
+[`docs/entrega/README.md`](entrega/README.md)** — roteiros de vídeo, arquivos de importação do
+Trello e o texto de submissão do Teams, com o que já está pronto e o que falta em cada um.
+
 | # | Ação | Por que depende de pessoa | Risco se não for feito |
 |---|---|---|---|
-| 1 | **Gravar o vídeo de 3 minutos** | Precisa de 6 pessoas falando e de tela compartilhada, com a stack subindo ao vivo | O vídeo é a única evidência de que o produto **roda**; sem ele, os 30% de funcionalidade dependem de o avaliador subir o compose |
+| 1 | **Gravar o vídeo de 3 minutos** | Precisa de 6 pessoas falando e de tela compartilhada, com a stack subindo ao vivo | O vídeo é a única evidência de que o produto **roda**; sem ele, os 30% de funcionalidade dependem de o avaliador subir o compose. **Roteiro e deck prontos** — [`entrega/README.md` §1](entrega/README.md#1-gravar-os-vídeos) |
 | 2 | **Rodar `docker compose up` em máquina limpa** | Precisa de uma máquina sem cache de imagem — não é reproduzível na do grupo | O critério de instalabilidade vale 20% e é o único que **só** se prova fora do ambiente do grupo |
 | 3 | **Decidir as três correções de contrato** | São decisões de contrato: mudar o YAML ou mudar o código. Ninguém decide sozinho | Contrato e implementação divergentes em três pontos, no checkpoint em que o contrato é a entrega |
-| 4 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4 e no CP5; repetir pela terceira vez é pior por ser repetido |
-| 5 | **Escrever o teste de integração de concorrência** | É código, mas ninguém decide sozinho **quais** cenários provam RNF-013 sem ler CT-020 | RNF-013 continua provado só contra o mock |
+| 4 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4 e no CP5; repetir pela terceira vez é pior por ser repetido. **Insumo pronto e conferido** em [`entrega/README.md` §2](entrega/README.md#2-criar-e-usar-o-quadro-do-trello) |
+| ~~5~~ | ~~**Escrever o teste de integração de concorrência**~~ | ✅ **Fechado.** `concorrencia.int.test.ts` existe e foi **executado** em 2026-09-10, dentro dos 96 de 96 da suíte de integração contra PostgreSQL 16 | — |
 | 6 | **Validação com 5 alunos reais (RNF-005)** | Precisa de 5 pessoas e de 15 minutos cada | RNF-001 e RNF-005 seguem "não medido" pelo terceiro checkpoint |
 | 7 | **Verificar os 6 breakpoints de RNF-018** | Não há teste de layout; é olhar tela | Quebra de layout na correção |
 | 8 | **Preencher os links no texto do Teams** | Trello e vídeo só existem depois dos itens 1 e 4 | Entrega sem link é entrega incompleta |
@@ -466,6 +592,15 @@ node scripts/check-contrato.mjs
 
 # Monorepo inteiro
 npm ci
+
+# OBRIGATORIO ANTES DO BUILD, e o passo que faltava aqui ate 2026-09-10.
+# O cliente do Prisma nao e versionado, e o `npm` pode bloquear o `preinstall`
+# que o geraria (`npm warn allow-scripts`). Sem esta linha, `npm run build`
+# reprova com 182 erros TS2339/TS7006 em campus-api -- todos do tipo
+# "Property 'x' does not exist on type 'never'", que e a assinatura de cliente
+# nao gerado. Ver secao 3.2.
+npm run prisma:generate -w campus-api
+
 npm run lint
 npm run format:check
 npm run check:scale
@@ -496,13 +631,21 @@ O resultado de cada um destes comandos em 2026-09-02 está na
 [seção 3](#3-estado-real-das-verificações), separado em três: medido agora, reprovou agora, e
 **não executado nesta passagem**.
 
-**Dois reprovam** — `npm run build` (seis tipos usados e não importados) e `npm run
-format:check` (um arquivo) — e a correção de cada um está dita ali. **Quatro não foram
-executados nesta passagem** e estão declarados como tal, não como verdes: a suíte de
-integração, o E2E, as 22 verificações do banco e o `docker compose up` em máquina limpa. Os
-quatro dependem de PostgreSQL, de Chromium ou de uma máquina limpa, e nenhum dos três havia
-aqui.
+**Em 02/09, dois reprovavam** — `npm run build` (seis tipos usados e não importados) e
+`npm run format:check` (um arquivo) — **e quatro não foram executados**: a suíte de
+integração, o E2E, as 22 verificações do banco e o `docker compose up` em máquina limpa.
+
+**Em 10/09 a conta é outra, e está na [seção 3.1](#31-reapuração-de-2026-09-10--medição-completa):
+17 verificações medidas, 17 passam.** As duas reprovações foram corrigidas por commits
+posteriores a 02/09; três dos quatro não-executados foram executados (o Docker foi iniciado,
+o `db-teste` subiu, o Chromium já estava instalado) e passam: **96 de 96** de integração,
+**9 de 9** E2E e **22 `ok`** de restrições.
+
+**Sobra um, e ele é honesto:** `docker compose up` em máquina **sem cache de imagem**
+continua **não verificado**, e não dá para verificá-lo aqui — a imagem já está em cache nesta
+máquina, então rodar o comando mediria a máquina, não o critério.
 
 A distinção entre "reprovou" e "não executado" é o que faz esta página valer alguma coisa. As
 duas dão a mesma cor de sinal numa entrega, e exigem ações opostas: reprovação se conserta,
-não-execução se executa.
+não-execução se executa. **A reapuração de 10/09 é a prova disso:** dos seis itens que não
+eram verdes, cinco viraram verdes sem uma linha de código nova — bastou executar.
