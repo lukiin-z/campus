@@ -385,7 +385,7 @@ deixa passar uma regressão que apaga metade da cobertura. Subiu para 90/85 no p
 | Contraprova da trava | sem `SELECT ... FOR UPDATE`, **5 de 5 pessoas entram em 1 vaga**; e de 7 a 22 das 49 recusas perdem o `totalFila` |
 | Restrições do banco | **22 de 22** tentativas de gravar dado impossível recusadas |
 | Contrato × rotas servidas | 38 declaradas, 38 registradas, concordam |
-| Pacote do app | 236,90 KB gzip no modo mock · **126,45 KB no modo `api`** (o chunk do MSW sai da build) |
+| Pacote do app | 237,41 KB gzip no modo mock · **126,45 KB no modo `api`** (o chunk do MSW sai da build) |
 | Stack do zero | `docker compose up -d --build` com volumes apagados → 3 serviços saudáveis, migration aplicada, seed rodado |
 | **Continuidade CP5 → CP6** | `GET /api/eventos` responde **10 eventos** para a Marina — o mesmo número que o mock do CP5 media |
 
