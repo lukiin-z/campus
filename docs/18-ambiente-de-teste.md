@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 1.0 | 2026-09-02 | CP5 | Versão inicial: acesso online, execução local, instalação como PWA, usuários do seed, roteiro de 5 minutos, reset de estado e limitações |
 | 1.1 | 2026-09-02 | CP5 | Acrescenta o usuário sem vínculo (`lucas.tavares`) e o evento em andamento (`evt-013`), que tornaram o onboarding e o **check-in aceito** demonstráveis; corrige os ids de participação do estado inicial |
+| 1.2 | 2026-09-10 | CP6 | **O Pages está publicado.** A seção 1 afirmava que os endereços retornavam 404 por falta de ativação; a medição por HTTP mostrou 200 em todos. Acrescenta `/slides-cp6/` (sexto endereço) e a tabela de status medido, incluindo o 404 de rota profunda |
 
 Este documento é para **quem vai avaliar o CP5**, não para quem escreveu o código. Ele
 responde três perguntas na ordem em que elas aparecem: onde clico, o que vou ver, e o que
@@ -22,37 +23,75 @@ está escrito que não foi.
 ## 1. Acesso online
 
 O site é publicado pelo GitHub Actions a cada push em `main`
-([`deploy-pages.yml`](../.github/workflows/deploy-pages.yml)). Cinco endereços saem do
-mesmo deploy:
+([`deploy-pages.yml`](../.github/workflows/deploy-pages.yml)). Seis endereços saem do
+mesmo deploy, e a coluna de status é o que `curl` devolveu em **2026-09-10**:
 
-| Endereço | O que é |
-|---|---|
-| `https://lukiin-z.github.io/campus/` | O app React, com dados mockados. É o entregável principal |
-| `https://lukiin-z.github.io/campus/styleguide/` | A marca inteira em uma página, com contraste medido |
-| `https://lukiin-z.github.io/campus/prototipo/` | O protótipo estático original, preservado |
-| `https://lukiin-z.github.io/campus/slides/` | Deck de apoio do vídeo do CP4 |
-| `https://lukiin-z.github.io/campus/slides-cp5/` | Deck de apoio do vídeo do CP5 |
+| Endereço | O que é | Status medido |
+|---|---|---|
+| `https://lukiin-z.github.io/campus/` | O app React, com dados mockados. É o entregável principal | **200** `text/html` |
+| `https://lukiin-z.github.io/campus/styleguide/` | A marca inteira em uma página, com contraste medido | **200** `text/html` |
+| `https://lukiin-z.github.io/campus/prototipo/` | O protótipo estático original, preservado | **200** `text/html` |
+| `https://lukiin-z.github.io/campus/slides/` | Deck de apoio do vídeo do CP4 | **200** `text/html` |
+| `https://lukiin-z.github.io/campus/slides-cp5/` | Deck de apoio do vídeo do CP5 | **200** `text/html` |
+| `https://lukiin-z.github.io/campus/slides-cp6/` | Deck de apoio do vídeo do CP6 | **200** `text/html` |
 
-### O que depende de uma ação do dono do repositório
+Reproduzir a medição:
 
-O workflow de publicação está pronto e validado, mas **o GitHub Pages ainda não foi
-ativado no repositório**. Enquanto não for, os cinco endereços acima retornam 404 — e é
-por isso que este documento não afirma que o site está no ar.
+```bash
+for u in / styleguide/ prototipo/ slides/ slides-cp5/ slides-cp6/; do
+  curl -s -o /dev/null -w "%{http_code} %{content_type}  $u
+"     "https://lukiin-z.github.io/campus/$u"
+done
+```
 
-A ativação exige permissão de administrador e é feita uma única vez, pelo dono do
-repositório:
+### O Pages está ativado — o que esta seção afirmava, e por que estava errado
 
-1. Abrir `https://github.com/lukiin-z/campus/settings/pages`
-2. Em **Build and deployment → Source**, escolher **GitHub Actions**
-3. Em **Actions → Deploy GitHub Pages**, disparar **Run workflow** na branch `main`
-   (ou dar qualquer push em `main`)
+Até a versão 1.1 esta seção dizia que **o GitHub Pages ainda não havia sido ativado** e que
+"os cinco endereços acima retornam 404". **Isso deixou de ser verdade e a afirmação estava
+errada quando foi medida:** os seis endereços respondem **200**. A ativação por
+`actions/configure-pages@v5` com `enablement: true` passou a ser feita pelo próprio
+workflow, o que dispensou o clique em Settings — ver o comentário longo em
+[`deploy-pages.yml`](../.github/workflows/deploy-pages.yml).
 
-Depois do primeiro deploy verde, os cinco endereços passam a responder. Até lá, use a
-execução local da seção 2 — ela exercita exatamente o mesmo código, com os mesmos dados.
+Fica o registro do modo de falha, porque ele é o que importa: **a afirmação foi escrita a
+partir da leitura do workflow, não de uma requisição HTTP.** Ler o arquivo dizia que o
+deploy dependia de um passo manual; só o `curl` diz o que o servidor responde.
 
-O deck do CP5 (`/slides-cp5/`) é copiado de forma condicional: se o arquivo do deck ainda
-não estiver no commit, o deploy publica as outras quatro entregas e registra um aviso, em
-vez de falhar inteiro.
+### Rota profunda responde 404 — e a tela abre
+
+Este é o único status fora de 200, e ele é **esperado**:
+
+| Endereço | Status medido | Corpo |
+|---|---|---|
+| `https://lukiin-z.github.io/campus/eventos` | **404** `text/html` | o `index.html` do app — a SPA monta e a rota renderiza |
+
+O `deploy-pages.yml` copia `app/dist/index.html` para `site/404.html`. O resultado é que
+o navegador recebe status 404 **e** o documento certo: o React Router lê a URL e monta
+`/eventos`. Compartilhar link de evento funciona; o que não fica 200 é o código de status.
+
+**O que a documentação oficial sustenta, e o que ela não diz.** O GitHub Pages é descrito
+como *"a static site hosting service that takes HTML, CSS, and JavaScript files straight
+from a repository on GitHub"* —
+[What is GitHub Pages?](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages).
+A página sobre 404 personalizado diz apenas que ele aparece *"when people try to access
+nonexistent pages on your site"* —
+[Creating a custom 404 page](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site).
+**Nenhuma das duas declara qual código de status o `404.html` devolve, e nenhuma oferece
+regra de rewrite que responda 200 para caminho sem arquivo correspondente.** Ou seja: a
+doc sustenta que não existe mecanismo de reescrita no Pages; **o status 404 em si é fato
+medido aqui, não citação de documentação.** As duas coisas estão ditas separadas de
+propósito.
+
+Consequência prática, que não é cosmética: um agregador que só olha o código de status
+trata a rota como inexistente. Se isso passar a importar, a saída é hospedagem com regra
+de reescrita própria (o caminho C de [`23-instalacao.md`](23-instalacao.md)), não uma
+configuração do Pages — ela não existe.
+
+### Publicação condicional dos decks
+
+Os decks do CP5 (`/slides-cp5/`) e do CP6 (`/slides-cp6/`) são copiados de forma
+condicional: se o arquivo do deck ainda não estiver no commit, o deploy publica as outras
+entregas e registra um aviso, em vez de falhar inteiro.
 
 ---
 

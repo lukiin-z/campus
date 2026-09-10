@@ -400,7 +400,7 @@ do repositório.
 
 | Pendência | Por que continua |
 |---|---|
-| **GitHub Pages não está publicado** | Exige o Pages ativado nas configurações do repositório, e a conta autenticada aqui tem `push` e não `admin` — a API de Pages responde `404`. O workflow foi corrigido e verificado localmente; falta um clique de quem é dono |
+| ~~**GitHub Pages não está publicado**~~ | ✅ **Fechado em 2026-09-10.** A pendência dizia que faltava um clique de quem é dono do repositório. Medido por `curl`: os **seis** endereços respondem **200**. O `deploy-pages.yml` passou a ativar o site sozinho (`actions/configure-pages@v5` com `enablement: true`), o que dispensou o passo manual. A afirmação anterior vinha de ler o workflow, não de uma requisição — ver [`18-ambiente-de-teste.md` §1](18-ambiente-de-teste.md#1-acesso-online) |
 | **Deploy público (caminho C de instalação)** | Depende de contas em Render/Railway/Fly e Neon que ninguém criou. Os dois outros caminhos — PWA e `docker compose up` — estão verificados |
 | **RNF-021, controle do titular** | Não há endpoint de exportação nem de exclusão de conta, e `usuario.excluido_em` **não existe** no schema. O ER e o dicionário afirmavam que existia; foi corrigido nesta entrega |
 | **Instalação como PWA clicada** | O navegador desta sessão recusa registro de service worker e não dispara `beforeinstallprompt` nem para a build do CP5, que tem um — o resultado negativo mediu o navegador. O manifest foi conferido campo por campo e é servido em `application/manifest+json` |

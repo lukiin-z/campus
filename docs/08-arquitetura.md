@@ -814,9 +814,31 @@ taxa de `403` por alcance (indica UI mostrando o que não deveria) e p95 de `/fe
 - **`base: '/campus/'` é obrigatório** no CP4/CP5, e afeta o registro do service worker do
   MSW. É a classe de erro que só aparece no deploy — por isso o job de CI faz uma
   verificação de fumaça sobre a URL publicada, não só sobre o build local.
-- **SPA no Pages precisa de fallback de rota.** Acesso direto a `/campus/eventos/evt-001`
-  não existe como arquivo; a saída é `404.html` copiando `index.html` no build. Sem isso,
-  compartilhar link de evento — que é o comportamento central do produto — quebra.
+- **SPA no Pages precisa de fallback de rota, e o fallback responde 404.** Acesso direto a
+  `/campus/eventos/evt-001` não existe como arquivo; a saída é `404.html` copiando
+  `index.html` no build. Sem isso, compartilhar link de evento — que é o comportamento
+  central do produto — quebra. **Medido em 2026-09-10:**
+  `curl -s -o /dev/null -w "%{http_code}" https://lukiin-z.github.io/campus/eventos` devolve
+  **404**, e o corpo é o `index.html` do app — a tela **abre**, o React Router monta a rota,
+  e só o código de status fica errado.
+
+  **A fronteira entre o que a documentação oficial sustenta e o que foi medido aqui.** A doc
+  do Pages descreve o serviço como *"a static site hosting service that takes HTML, CSS, and
+  JavaScript files straight from a repository on GitHub"*
+  ([What is GitHub Pages?](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)),
+  e a página do 404 personalizado diz apenas que ele aparece *"when people try to access
+  nonexistent pages on your site"*
+  ([Creating a custom 404 page](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site)).
+  **Nenhuma das duas declara o código de status que o `404.html` devolve, e nenhuma oferece
+  regra de rewrite que responda 200 para caminho sem arquivo.** Então: a doc sustenta que
+  **não existe mecanismo de reescrita** no Pages — daí não haver como obter 200 —, mas o
+  **status 404 em si é fato medido**, não citação. Chamar o 404 de "limitação documentada do
+  GitHub Pages" seria atribuir à doc uma frase que ela não tem.
+
+  **Quando isso passa a importar:** cliente que só lê o status — agregador, verificador de
+  link, *crawler* — trata a rota como inexistente. A saída não é configuração do Pages, que
+  não existe: é hospedagem com regra de reescrita própria, o caminho C de
+  [`23-instalacao.md`](23-instalacao.md).
 - **Nenhum segredo no cliente.** O build do CP4/CP5 não tem chave nenhuma, porque não há
   serviço externo. No CP6, chave de gateway, segredo de JWT e chave HMAC de check-in vivem
   **somente** no servidor, injetados por variável de ambiente do host; `VITE_*` só carrega
