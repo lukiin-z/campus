@@ -8,6 +8,16 @@ Este documento existe para uma coisa: **provar que cada critério exigido foi at
 apontar exatamente onde**. A coluna "evidência" não diz "está pronto" — diz o que a pessoa
 que corrige pode abrir, contar ou rodar para verificar.
 
+> **Revisão de 2026-09-10 (durante o CP6).** Duas afirmações desta página foram corrigidas
+> por medição, não por releitura: o texto de submissão da [seção 5](#5-o-que-entregar-no-teams)
+> dizia que o E2E continuava "escrito e não executado" — **contradizendo a
+> [seção 3](#3-estado-real-das-verificações) da própria página**, que já registrava 6 de 6
+> verdes; e o item 3 da [seção 6](#6-o-que-ainda-depende-de-ação-humana) listava a instalação
+> do Chromium como pendência de pessoa, quando o `ci.yml` passou a instalá-lo em job próprio.
+> As duas correções estão marcadas no lugar. Contradição interna em checklist de entrega é
+> o defeito mais caro que ele pode ter: as duas metades não podem estar certas, e quem lê
+> não sabe qual acreditar.
+
 Segue a estrutura do [checklist do CP4](16-checklist-entrega-cp4.md), com uma diferença
 deliberada: a [seção 3](#3-estado-real-das-verificações) traz o **resultado medido** de
 cada comando, incluindo o que ainda não foi executado e o que reprovou durante a sprint
@@ -192,8 +202,9 @@ feitos por qualquer integrante; os marcados com 👤 dependem de pessoa e não d
 
 ### Antes de qualquer outra coisa
 
-- [ ] 🔧 `cd app && npx playwright install chromium && npm run test:e2e` — a **única**
-      pendência técnica aberta, e a única que atravessou o CP4 inteiro sem andar
+- [x] 🔧 ~~`cd app && npx playwright install chromium && npm run test:e2e`~~ — **fechado.**
+      Executado, reprovou 6 de 6 na primeira vez, corrigido, e hoje roda em job próprio do
+      `ci.yml`: a execução não depende mais da máquina de ninguém
 - [ ] 🔧 `npm run lint && npm run format:check && npm run test:coverage && npm run build`
       — reconfirmar o pipeline verde imediatamente antes de gravar o vídeo, porque os
       números desta página se moveram várias vezes durante a sprint
@@ -306,8 +317,12 @@ O que mudou de escopo, e por quê
   último. A troca está declarada item por item em docs/03-escopo.md §8.1.
 
 Pendências declaradas
-  O teste E2E do Playwright continua escrito e não executado: o navegador nunca foi
-  instalado nesta máquina. É a única pendência que atravessou dois checkpoints sem andar.
+  CORRIGIDO EM 2026-09-10: este parágrafo dizia que o E2E do Playwright continuava
+  "escrito e não executado". Estava errado e contradizia a secao 3 desta mesma pagina,
+  que ja registrava 6 de 6 verdes. O E2E foi executado, reprovou 6 de 6 na primeira vez,
+  as tres causas foram corrigidas, e ele entrou no ci.yml em job proprio -- ou seja, a
+  execucao nao depende mais da maquina de ninguem. Ver docs/17-jornada.md, linha do
+  item 12.
   Duas coberturas seguem finas, e estão nomeadas: domain/permissions.ts tem 12 funções
   exportadas e nenhuma coberta por teste, e domain/eventSchema.ts está em 0% — o limite
   global de 60% passa (79,03% de linhas, 63,38% de funções), mas esses dois módulos não
@@ -335,7 +350,7 @@ Nada nesta seção pode ser feito por comando. Em ordem de risco para a nota.
 |---|---|---|---|
 | 1 | **Gravar o vídeo de 2 minutos** | Precisa de 6 pessoas falando e de tela sendo compartilhada | Perde os 15% do critério de demo inteiros |
 | 2 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4; repetir a omissão é pior que tê-la |
-| 3 | **Instalar o navegador do Playwright e rodar o E2E** | Um comando, mas exige rede e permissão de instalação | Critério de saída 8 continua `⚠️` pelo **segundo checkpoint seguido** |
+| ~~3~~ | ~~**Instalar o navegador do Playwright e rodar o E2E**~~ | ✅ **Fechado.** Deixou de depender de pessoa: `ci.yml` roda `playwright install --with-deps chromium` em job próprio | — |
 | 4 | **Escrever teste para `permissions.ts`** | É código, mas ninguém decide sozinho **quais** casos importam sem ler RN-024 | RN-024 segue sendo a regra com mais superfície e menos prova do projeto |
 | 5 | **Decidir a correção de RN-019** | É decisão de produto, não de código: quem pode publicar no feed? | Um aluno em `LISTA_ESPERA`, que nunca teve vaga, publica por requisição direta |
 | 6 | **Validação com 5 alunos reais (RNF-005)** | Precisa de 5 pessoas e de 15 minutos cada | RNF-001 e RNF-005 seguem "não medido"; perde a chance de achado real de usabilidade |
