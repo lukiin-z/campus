@@ -222,7 +222,20 @@ npm ci          # exit 0, mas com: "npm warn allow-scripts ... prisma@6.19.3 (pr
 npm run build   # exit 1 — 182 erros em campus-api
 ```
 
-Os 182 erros são todos da mesma forma, e a forma é o diagnóstico:
+**Os 182 foram reproduzidos em 2026-09-10**, com exatamente as duas linhas acima e nada
+mais. Eles **não** são todos do mesmo código — a contagem por código é esta, e a soma dá 182:
+
+| Código | Nº | Código | Nº |
+|---|---|---|---|
+| `TS7006` | 40 | `TS2345` | 20 |
+| `TS2339` | 40 | `TS1804` | 4 |
+| `TS2694` | 39 | `TS2347` | 3 |
+| `TS2305` | 33 | `TS2344` | 2 |
+| | | `TS2322` | 1 |
+
+Nove códigos, não dois. `type 'never'` aparece em **29** das linhas, não em todas. O que é
+comum a todas é a **causa**, não a mensagem — e é por isso que a amostra abaixo basta para
+diagnosticar, mas não serve para descrever o conjunto:
 
 ```
 src/seed/run.ts:104:12 - error TS2339: Property 'comentario' does not exist on type 'never'.
@@ -604,9 +617,9 @@ npm ci
 # OBRIGATORIO ANTES DO BUILD, e o passo que faltava aqui ate 2026-09-10.
 # O cliente do Prisma nao e versionado, e o `npm` pode bloquear o `preinstall`
 # que o geraria (`npm warn allow-scripts`). Sem esta linha, `npm run build`
-# reprova com 182 erros TS2339/TS7006 em campus-api -- todos do tipo
-# "Property 'x' does not exist on type 'never'", que e a assinatura de cliente
-# nao gerado. Ver secao 3.2.
+# reprova com 182 erros de tipo em campus-api, espalhados por NOVE codigos
+# (TS7006 e TS2339 lideram com 40 cada). A assinatura de cliente nao gerado e
+# "does not exist on type 'never'", em 29 das linhas. Ver secao 3.2.
 npm run prisma:generate -w campus-api
 
 npm run lint
