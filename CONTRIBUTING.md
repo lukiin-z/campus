@@ -37,7 +37,16 @@ npm run prisma:generate -w campus-api
 
 ## 2. Fluxo de branches
 
-`main` é protegida: nada entra por push direto, só por Pull Request com CI verde.
+**A regra do time é:** nada entra na `main` por push direto, só por Pull Request com CI verde.
+
+> **A regra é acordo, não trava — medido em 2026-09-10.** Esta linha dizia que a `main`
+> "é protegida", e isso não é verdade no GitHub hoje:
+> `gh api repos/lukiin-z/campus/branches/main --jq .protected` responde **`false`**, e
+> `.../branches/main/protection` responde **404 Not Found**. Dois pushes diretos foram
+> aceitos na mesma data. Enquanto a proteção não for ligada em
+> **Settings → Branches → Add branch ruleset**, o que impede o push direto é a disciplina
+> de quem digita — e vale registrar a diferença, porque acreditar numa guarda que não
+> existe é pior do que saber que ela não existe.
 
 ```
 main
