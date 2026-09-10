@@ -414,11 +414,15 @@ lista de bloqueadores que perde o histórico não deixa aprender nada.
 - [x] 🔧 ~~**Executar a suíte de integração**~~ → **fechado em 2026-09-10: 96 de 96, em 11
       arquivos, contra PostgreSQL 16.** Era o item com maior efeito na nota do critério 1, e
       é o que transforma o `SELECT … FOR UPDATE` de código escrito em garantia provada. A
-      sequência que funcionou, exatamente como estava escrita:
+      sequência, com uma linha a menos do que esta lista trazia até 2026-09-10:
 
       docker compose --profile teste up -d db-teste
-      cd api && npx prisma migrate deploy
       npm run test:int -w campus-api
+
+      O `cd api && npx prisma migrate deploy` que ficava no meio **saiu**: reprova com
+      `P1012` (`Environment variable not found: DATABASE_URL`), porque nada exporta a
+      variável aqui, e é **redundante** — o `globalSetup` de `api/vitest.int.config.ts`
+      sobe o `db-teste` e aplica a migration sozinho. Medido em 2026-09-10.
 
 - [ ] 👤 `docker compose up` numa máquina sem imagem em cache, e percorrer o fluxo do aluno
       no `:8080` contra o `:3000/api`. **O único item que nenhuma máquina do grupo mede** —
