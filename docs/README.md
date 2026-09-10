@@ -26,6 +26,7 @@ UML**. Comece pelo que você quer saber, não pela ordem dos arquivos.
 | conferir a entrega do CP4 | [`16-checklist-entrega-cp4.md`](16-checklist-entrega-cp4.md) |
 | conferir a entrega do CP5 | [`19-checklist-entrega-cp5.md`](19-checklist-entrega-cp5.md) |
 | **conferir a entrega do CP6** | [`24-checklist-entrega-cp6.md`](24-checklist-entrega-cp6.md) |
+| **saber o que só pessoa faz** (vídeo, Trello, Teams) | [`entrega/README.md`](entrega/README.md) |
 
 ---
 
@@ -115,6 +116,7 @@ Regenerar: `npm run diagrams`
 | [Ambiente de teste](18-ambiente-de-teste.md) | Como acessar o app publicado sem backend, rodar local, instalar como PWA, os usuários de teste do seed e um roteiro de 5 minutos por fluxo |
 | [Checklist do CP4](16-checklist-entrega-cp4.md) | Cada item do enunciado e cada critério de avaliação mapeado ao artefato que o cumpre, com evidência |
 | [Checklist do CP5](19-checklist-entrega-cp5.md) | Os 5 critérios do CP5 com peso, artefato e evidência verificável |
+| [**O que só pessoa faz**](entrega/README.md) | Os três entregáveis que nenhum comando produz — gravar vídeo, usar o Trello e submeter no Teams — com o insumo de cada um já conferido e o único lugar onde ele vive. Mais as medições que dependem de pessoas, de carga ou de outra máquina |
 
 ## 8. Como verificar esta documentação
 

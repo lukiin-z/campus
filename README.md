@@ -60,21 +60,31 @@ Detalhamento, personas e jornada: [`docs/01-problema-e-personas.md`](docs/01-pro
 
 ## Como ver funcionando
 
-| Link | O que é |
-|---|---|
-| **[App](https://lukiin-z.github.io/campus/)** | O app React rodando, com dados mockados |
-| **[Styleguide](https://lukiin-z.github.io/campus/styleguide/)** | A marca inteira em uma página: logo, paleta com contraste medido, tipografia, todos os componentes em todos os estados |
-| **[Protótipo original](https://lukiin-z.github.io/campus/prototipo/)** | O protótipo estático que originou a identidade visual, preservado |
-| **[Slides do vídeo (CP4)](https://lukiin-z.github.io/campus/slides/)** | Deck de apoio da apresentação, navegável por setas |
-| **[Slides do vídeo (CP5)](https://lukiin-z.github.io/campus/slides-cp5/)** | Deck de apoio da apresentação do CP5 |
-| **[Arquivo do Figma](https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp)** | Design system com 64 tokens, 11 estilos de texto e 9 componentes com 34 variants |
+| Link | O que é | Status medido em 2026-09-10 |
+|---|---|---|
+| **[App](https://lukiin-z.github.io/campus/)** | O app React rodando, com dados mockados | **200** |
+| **[Styleguide](https://lukiin-z.github.io/campus/styleguide/)** | A marca inteira em uma página: logo, paleta com contraste medido, tipografia, todos os componentes em todos os estados | **200** |
+| **[Protótipo original](https://lukiin-z.github.io/campus/prototipo/)** | O protótipo estático que originou a identidade visual, preservado | **200** |
+| **[Slides do vídeo (CP4)](https://lukiin-z.github.io/campus/slides/)** | Deck de apoio da apresentação, navegável por setas | **200** |
+| **[Slides do vídeo (CP5)](https://lukiin-z.github.io/campus/slides-cp5/)** | Deck de apoio da apresentação do CP5 | **200** |
+| **[Slides do vídeo (CP6)](https://lukiin-z.github.io/campus/slides-cp6/)** | Deck de apoio da apresentação do CP6 | **200** |
+| **[Arquivo do Figma](https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp)** | Design system com 64 tokens, 11 estilos de texto e 9 componentes com 34 variants | **403** sem sessão — exige login no Figma |
 
-> **Os cinco primeiros links dependem de uma ativação pendente.** O workflow de publicação
-> está pronto e validado, mas o GitHub Pages ainda não foi ligado no repositório — isso
-> exige permissão de administrador (Settings → Pages → Source: **GitHub Actions**).
-> Enquanto não for ligado, esses endereços retornam 404; use a execução local abaixo, que
-> roda o mesmo código com os mesmos dados. Passo a passo, usuários de teste e roteiro de
-> 5 minutos: [`docs/18-ambiente-de-teste.md`](docs/18-ambiente-de-teste.md).
+> **Os seis primeiros links estão no ar.** Até 2026-09-10 este parágrafo dizia que o
+> GitHub Pages ainda não havia sido ligado e que os endereços retornavam 404. A medição por
+> HTTP contradisse o texto: **todos respondem 200**. O `deploy-pages.yml` passou a ligar o
+> site sozinho (`actions/configure-pages@v5` com `enablement: true`), o que dispensou o
+> passo em Settings.
+>
+> **Uma ressalva que continua verdadeira:** rota profunda como
+> `https://lukiin-z.github.io/campus/eventos` responde **404** — e a tela **abre** de todo
+> jeito, porque o deploy copia o `index.html` para `404.html` e o React Router monta a
+> rota. O status é 404; o conteúdo é o certo. O porquê, com a citação da documentação
+> oficial do Pages e a fronteira entre o que ela sustenta e o que foi medido aqui, está em
+> [`docs/18-ambiente-de-teste.md` §1](docs/18-ambiente-de-teste.md#rota-profunda-responde-404--e-a-tela-abre).
+>
+> Passo a passo, usuários de teste e roteiro de 5 minutos:
+> [`docs/18-ambiente-de-teste.md`](docs/18-ambiente-de-teste.md).
 
 <div align="center">
 
@@ -260,9 +270,10 @@ arquivo dele importar React, Prisma ou NestJS.
 | **10%** Trello | [Quadro](docs/09-trello/quadro.md) · [Criar o quadro](docs/09-trello/criar-quadro.md) |
 | **10%** GitHub | este README · [CONTRIBUTING](CONTRIBUTING.md) · [CI](.github/workflows/ci.yml) |
 | Engenharia | [Arquitetura](docs/08-arquitetura.md) · [ADRs](docs/adr/README.md) · [Plano de testes](docs/11-plano-de-testes.md) · [Riscos](docs/12-riscos.md) · [Roadmap CP5–CP6](docs/13-roadmap-cp5-cp6.md) |
-| Entrega | [Equipe e papéis](docs/10-equipe-e-papeis.md) · [Checklist do CP4](docs/16-checklist-entrega-cp4.md) · [Checklist do CP5](docs/19-checklist-entrega-cp5.md) |
+| Entrega | [Equipe e papéis](docs/10-equipe-e-papeis.md) · [Checklist do CP4](docs/16-checklist-entrega-cp4.md) · [Checklist do CP5](docs/19-checklist-entrega-cp5.md) · [Checklist do CP6](docs/24-checklist-entrega-cp6.md) |
 | CP5 | [Ambiente de teste](docs/18-ambiente-de-teste.md) · [Registro da jornada](docs/17-jornada.md) · [Roteiro do vídeo](docs/20-video-cp5-roteiro.md) · [Slides](docs/20-video-cp5-slides.html) |
-| CP6 | [Contrato da API](docs/21-api-contrato.md) · [Manual de uso](docs/22-manual-de-uso.md) · [Instalação](docs/23-instalacao.md) · [Checklist do CP6](docs/24-checklist-entrega-cp6.md) |
+| CP6 | [Contrato da API](docs/21-api-contrato.md) · [Manual de uso](docs/22-manual-de-uso.md) · [Instalação](docs/23-instalacao.md) · [Checklist do CP6](docs/24-checklist-entrega-cp6.md) · [Roteiro do vídeo](docs/25-video-cp6-roteiro.md) · [Slides](docs/25-video-cp6-slides.html) |
+| Ação humana | [**O que só pessoa faz**](docs/entrega/README.md) — vídeo, Trello e Teams, com o insumo de cada um pronto e o caminho dito |
 
 ---
 
@@ -313,7 +324,7 @@ Responsabilidades detalhadas e matriz RACI dos artefatos:
 | Documentação viva: status real dos 43 RF, regras rastreadas até o arquivo | ✅ |
 | Roteiro do vídeo de 2 min e deck do CP5 | ✅ |
 | Registro da jornada CP4 → CP5, com os defeitos que a verificação encontrou | ✅ [`docs/17`](docs/17-jornada.md) |
-| Site publicado no GitHub Pages | ⚠️ depende de ativar o Pages — [instruções](docs/18-ambiente-de-teste.md#o-que-depende-de-uma-ação-do-dono-do-repositório) |
+| Site publicado no GitHub Pages | ✅ **200 em seis endereços**, medido em 2026-09-10 — [status por rota](docs/18-ambiente-de-teste.md#1-acesso-online) |
 
 Tarefa por tarefa: [`docs/13-roadmap-cp5-cp6.md`](docs/13-roadmap-cp5-cp6.md).
 Critério por critério, com evidência: [`docs/19-checklist-entrega-cp5.md`](docs/19-checklist-entrega-cp5.md).
