@@ -125,7 +125,7 @@ Os 43 requisitos funcionais e 22 não funcionais estão em
 | Estado | **Zustand** (sessão/UI) + **TanStack Query** (dados) | Dado de servidor tem cache, invalidação e estado de carregamento; estado de UI não. Misturar os dois é a via rápida para cache desatualizado |
 | Formulário | **Zod + React Hook Form** | O schema **chama** as funções de domínio em vez de reimplementar a regra: validação de tela e regra de servidor não podem divergir |
 | Domínio | **12 módulos de funções puras** em `app/src/domain/` | Sem React, sem rede, sem mock. É o que permite as mesmas regras rodarem no cliente e no servidor, e testarem em milissegundos |
-| Teste | **Vitest + Testing Library + Playwright** | 1.012 testes de unidade e integração em 60 arquivos — 308 no domínio compartilhado, 525 no app, 83 na API e 96 de integração contra PostgreSQL —, mais os casos E2E executados contra o build de produção |
+| Teste | **Vitest + Testing Library + Playwright** | 704 testes de unidade e integração em 46 arquivos — 308 no domínio compartilhado, 217 no app, 83 unitários na API e 96 de integração contra PostgreSQL —, mais 9 casos E2E executados contra o build de produção |
 | CI/CD | **GitHub Actions + GitHub Pages** | Lint, escala de espaçamento, formatação, cobertura, build e orçamento de pacote em todo push e PR |
 
 Arquitetura completa, com C4 e o contrato da API planejada:
@@ -174,7 +174,7 @@ npm run dev            # servidor de desenvolvimento
 npm run demo           # build + preview, para demonstrar e instalar como PWA
 npm run build          # build de produção dos 3 workspaces (tsc -b + vite build).
                        # Exige `npm run prisma:generate -w campus-api` antes: em árvore
-                       # limpa, sem ele, a compilação da API reprova com 182 erros TS2339
+                       # limpa, sem ele, a compilação da API reprova com 182 erros de tipo
 npm run preview        # serve o build
 npm run lint           # ESLint, zero aviso tolerado
 npm run format:check   # Prettier

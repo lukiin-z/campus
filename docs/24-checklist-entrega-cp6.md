@@ -380,7 +380,7 @@ lista de bloqueadores que perde o histórico não deixa aprender nada.
 - [x] 🔧 ~~**Consertar o build** — 6 erros `TS2304` em `app/src/services/index.ts`~~ →
       **fechado.** Os seis tipos estão no bloco `import type`; `npm run build` passa nos três
       workspaces **desde que `npm run prisma:generate -w campus-api` tenha rodado antes** —
-      sem ele, reprova com 182 erros `TS2339` em árvore limpa (bloqueador logo abaixo)
+      sem ele, reprova com 182 erros de tipo em árvore limpa (bloqueador logo abaixo)
 - [x] 🔧 ~~`npm run format` (`app/src/main.tsx`)~~ → **fechado.** `format:check` limpo
 - [x] 🔧 ~~`npx playwright install chromium && npm run test:e2e`~~ → **fechado.** **9 de 9
       verdes**, 6 no mock e 3 contra a stack real, e o `ci.yml` instala o Chromium em job
@@ -539,7 +539,7 @@ Pendências declaradas
   O build passa nos tres workspaces SOB UMA CONDICAO, e ela e o unico ponto que ainda exige
   atencao de quem instala: o cliente do Prisma nao e versionado e o npm bloqueia o preinstall
   que o geraria (npm warn allow-scripts). Em arvore limpa, `npm ci && npm run build` reprova
-  com 182 erros TS2339 na API; com `npm run prisma:generate -w campus-api` antes, passa. Nao
+  com 182 erros de tipo na API; com `npm run prisma:generate -w campus-api` antes, passa. Nao
   e defeito de codigo, e um passo de instalacao, e ele esta na secao 7, no CONTRIBUTING e no
   ci.yml. Vale registrar POR QUE nem o lint nem os testes pegam essa classe de falha: nenhum
   dos dois faz verificacao de tipo — o Vitest transpila com esbuild, que remove anotacao de
