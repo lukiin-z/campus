@@ -21,7 +21,7 @@ o CP6 impõe: **o critério de peso mais alto agora é "funcionalidade com dados
 | # | Critério | Peso | Artefato que atende | Evidência verificável |
 |---|---|---|---|---|
 | 1 | **Funcionalidade completa** — recursos principais com dados reais | **30%** | [`api/`](../api) + [`app/`](../app) sobre PostgreSQL | **43 operações** no contrato ([`api/openapi.yaml`](../api/openapi.yaml)) e **43 rotas implementadas** nos controladores — conferir com `grep -rhcE "@(Get\|Post\|Patch\|Delete)\(" api/src/*/*.controller.ts`. Dado persistido em **14 tabelas** com **22 restrições** declaradas e exercitadas por [`verificar-restricoes.sql`](../api/prisma/verificar-restricoes.sql). **525 testes** no app (`npm run test -w campus-app`), **308** no pacote (`npm run test:dominio`), **83** unitários e **96 de integração contra PostgreSQL** na API — **713 sem contar duas vezes**, ver a seção 3. Mais **9 casos E2E executados** (6 no mock, 3 contra a stack real) |
-| 2 | **Qualidade técnica** — organização, boas práticas, sem erro crítico | **20%** | Monorepo de 3 workspaces, 5 verificadores próprios, 5 jobs de CI | `npm run lint` — **0 erro, 0 aviso** nos dois workspaces (`--max-warnings 0`). `node scripts/check-contrato.mjs` — a fronteira de `@campus/shared` é **executável**: 28 arquivos, 68 imports analisados, e a mensagem de erro diz o motivo. Cobertura **97,11%** de linhas no app e **91,93%** no pacote. Arquitetura e trade-offs em [`08-arquitetura.md`](08-arquitetura.md), decisões em [`adr/`](adr/README.md) — **8 ADRs** com alternativas recusadas e como reverter. ~~**Ressalva: o `build` reprova neste momento**~~ — **corrigido.** Em 2026-09-10 o `build` passa nos três workspaces (seção 3.1); os seis imports entraram. "Sem erro crítico" é verdade **desde que** `prisma generate` tenha rodado (seção 3.2) |
+| 2 | **Qualidade técnica** — organização, boas práticas, sem erro crítico | **20%** | Monorepo de 3 workspaces, 5 verificadores próprios, 5 jobs de CI | `npm run lint` — **0 erro, 0 aviso** nos dois workspaces (`--max-warnings 0`). `node scripts/check-contrato.mjs` — a fronteira de `@campus/shared` é **executável**: 30 arquivos, 73 imports analisados, e a mensagem de erro diz o motivo. Cobertura **97,11%** de linhas no app e **91,93%** no pacote. Arquitetura e trade-offs em [`08-arquitetura.md`](08-arquitetura.md), decisões em [`adr/`](adr/README.md) — **8 ADRs** com alternativas recusadas e como reverter. ~~**Ressalva: o `build` reprova neste momento**~~ — **corrigido.** Em 2026-09-10 o `build` passa nos três workspaces (seção 3.1); os seis imports entraram. "Sem erro crítico" é verdade **desde que** `prisma generate` tenha rodado (seção 3.2) |
 | 3 | **Instalabilidade** — pacote instalável funcionando fora do ambiente do grupo | **20%** | [`docker-compose.yml`](../docker-compose.yml), [`Dockerfile.api`](../Dockerfile.api), [`Dockerfile.web`](../Dockerfile.web), [`23-instalacao.md`](23-instalacao.md) | **Um comando**: `docker compose up`. Três serviços em cadeia, com `depends_on: service_healthy` e `pg_isready` como *healthcheck* — não `depends_on` solto, que espera o container iniciar e não o banco aceitar conexão. A API aplica `prisma migrate deploy`, roda o seed e sobe. App em `:8080`, API em `:3000/api`. PWA instalável (RNF-006) — o manifest é verificado no CI |
 | 4 | **Documentação final** — completa, atualizada, coerente | **15%** | [`docs/README.md`](README.md) — **25 documentos**, 8 ADRs, 21 diagramas | `node scripts/validate-docs.mjs` verifica **todo link relativo, toda âncora, todo bloco Mermaid e todo SVG** de 54 arquivos, e reprova marcador de trabalho inacabado. Novos no CP6: [`21-api-contrato.md`](21-api-contrato.md), [`22-manual-de-uso.md`](22-manual-de-uso.md), [`23-instalacao.md`](23-instalacao.md), este checklist e [`25-video-cp6-roteiro.md`](25-video-cp6-roteiro.md). Cada documento revisado abre com **histórico de revisões** datado |
 | 5 | **Evolução do projeto** — coerência entre CP4 → CP5 → CP6 | **15%** | [`17-jornada.md`](17-jornada.md) | Linha do tempo por tag com **decisão, commit e defeito encontrado por verificação**. A evolução é rastreável nos artefatos, não narrada: as **30 rotas do CP5 continuam todas no contrato do CP6** (nenhuma renomeada), o domínio **migrou** para `packages/shared` em vez de ser copiado ([ADR-0008](adr/0008-monorepo-com-dominio-compartilhado.md)), e a serialização de RN-004 saiu da fila do mock para o `SELECT ... FOR UPDATE` — comparada linha a linha em [`05-modelagem/04-diagrama-sequencia.md` §3.1](05-modelagem/04-diagrama-sequencia.md#31-a-mesma-inscrição-contra-a-api-real) |
@@ -536,19 +536,25 @@ O que separa o CP6 do CP5, em uma frase
   entre processos. A comparacao esta tabelada em docs/05-modelagem/03-modelo-dados-er.md.
 
 Pendências declaradas
-  O build reprova neste momento, e a correcao e mecanica: seis tipos usados e nao importados
-  em app/src/services/index.ts. Os tipos existem no pacote compartilhado; falta a linha de
-  import. Vale registrar POR QUE nem o lint nem os 460 casos de teste pegaram isso: nenhum
+  O build passa nos tres workspaces SOB UMA CONDICAO, e ela e o unico ponto que ainda exige
+  atencao de quem instala: o cliente do Prisma nao e versionado e o npm bloqueia o preinstall
+  que o geraria (npm warn allow-scripts). Em arvore limpa, `npm ci && npm run build` reprova
+  com 182 erros TS2339 na API; com `npm run prisma:generate -w campus-api` antes, passa. Nao
+  e defeito de codigo, e um passo de instalacao, e ele esta na secao 7, no CONTRIBUTING e no
+  ci.yml. Vale registrar POR QUE nem o lint nem os testes pegam essa classe de falha: nenhum
   dos dois faz verificacao de tipo — o Vitest transpila com esbuild, que remove anotacao de
   tipo sem checar. O unico passo que roda tsc e o build, e o CI o roda.
-  A suite de integracao da API existe — 10 arquivos, 77 casos, com a concorrencia entre
-  processos coberta — e NAO foi executada nesta apuracao: exige o servico db-teste do compose
-  de pe. Enquanto isso nao acontecer, a garantia de "uma confirmacao para a ultima vaga"
-  esta provada contra o mock, cuja fila e de um processo, e escrita mas nao exercitada contra
-  o banco. O comando esta no checklist.
-  O docker compose foi escrito e nao executado em maquina limpa.
-  Um arquivo esta fora do padrao do Prettier (app/src/main.tsx).
-  O passo prisma validate do CI deve falhar: o ci.yml nao define DATABASE_URL em job nenhum.
+  check:rotas tem a mesma forma: ele SOBE a aplicacao, entao exige DATABASE_URL, JWT_SECRET e
+  WEBHOOK_SECRET. Sem elas reprova por ambiente, nao por rota; com os placeholders do ci.yml,
+  os 38 caminhos do contrato batem com os 38 registrados.
+  A suite de integracao da API FOI executada: 11 arquivos, 96 casos, 96 verdes contra
+  PostgreSQL, com a concorrencia entre processos coberta. A garantia de "uma confirmacao para
+  a ultima vaga" deixou de estar provada so contra o mock.
+  O docker compose sobe os tres servicos em cadeia NESTA maquina e COM cache de imagem: db e
+  api saudaveis pelo healthcheck, front em 8080 respondendo 200, /api/health 200 com
+  banco ok, e um GET autenticado em /api/eventos devolvendo 24 eventos do PostgreSQL. Zero
+  linha de erro no log dos tres. Em maquina SEM cache de imagem continua NAO verificado — e
+  a unica pendencia de medicao que sobra.
   Tres divergencias entre o contrato e a implementacao estao registradas em
   docs/21-api-contrato.md: uma rota que o YAML declara como GET e a API implementa como POST
   (a API esta certa), um status 201 que deveria ser 200 no webhook, e o tipo ResultadoLogin
@@ -570,7 +576,7 @@ Trello e o texto de submissão do Teams, com o que já está pronto e o que falt
 | # | Ação | Por que depende de pessoa | Risco se não for feito |
 |---|---|---|---|
 | 1 | **Gravar o vídeo de 3 minutos** | Precisa de 6 pessoas falando e de tela compartilhada, com a stack subindo ao vivo | O vídeo é a única evidência de que o produto **roda**; sem ele, os 30% de funcionalidade dependem de o avaliador subir o compose. **Roteiro e deck prontos** — [`entrega/README.md` §1](entrega/README.md#1-gravar-os-vídeos) |
-| 2 | **Rodar `docker compose up` em máquina limpa** | Precisa de uma máquina sem cache de imagem — não é reproduzível na do grupo | O critério de instalabilidade vale 20% e é o único que **só** se prova fora do ambiente do grupo |
+| 2 | **Rodar `docker compose up` em máquina limpa** | Precisa de uma máquina sem cache de imagem — não é reproduzível na do grupo. **O que já foi medido em 2026-09-10, e não fecha o item:** na máquina do grupo, **com** cache, `docker compose up -d` sobe `db`, `api` e `web` em cadeia por `service_healthy`; front em `:8080` responde **200**, `/api/health` responde **200** com `banco: ok`, e um `GET /api/eventos` autenticado devolve **24 eventos** do PostgreSQL, com **zero** linha de erro no log dos três. Isso prova o **compose**; não prova o **build a frio** | O critério de instalabilidade vale 20% e é o único que **só** se prova fora do ambiente do grupo |
 | 3 | **Decidir as três correções de contrato** | São decisões de contrato: mudar o YAML ou mudar o código. Ninguém decide sozinho | Contrato e implementação divergentes em três pontos, no checkpoint em que o contrato é a entrega |
 | 4 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4 e no CP5; repetir pela terceira vez é pior por ser repetido. **Insumo pronto e conferido** em [`entrega/README.md` §2](entrega/README.md#2-criar-e-usar-o-quadro-do-trello) |
 | ~~5~~ | ~~**Escrever o teste de integração de concorrência**~~ | ✅ **Fechado.** `concorrencia.int.test.ts` existe e foi **executado** em 2026-09-10, dentro dos 96 de 96 da suíte de integração contra PostgreSQL 16 | — |

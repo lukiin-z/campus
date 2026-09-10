@@ -162,6 +162,14 @@ npm run prisma:generate -w campus-api
 npm run lint -w campus-api
 npm run test -w campus-api
 npm run build -w campus-api
+
+# `check:rotas` SOBE a aplicação para comparar rota registrada com rota do
+# contrato, e a validação de ambiente derruba o processo sem estas três (é o
+# que se quer em produção). Nenhuma é segredo: são placeholders, os mesmos do
+# ci.yml, e nenhum banco é necessário — o Prisma entra como objeto inerte.
+DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder \
+JWT_SECRET=placeholder-de-ci-com-32-caracteres \
+WEBHOOK_SECRET=placeholder-de-ci-16 \
 npm run check:rotas
 
 # Ponta a ponta, contra o build de produção
