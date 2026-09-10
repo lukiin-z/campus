@@ -621,14 +621,23 @@ npm run check:size
 # E2E contra o build de produção
 npm run test:e2e
 
-# Banco: as restrições recusam dado impossível
+# Banco: as restrições recusam dado impossível.
+# Vai pelo `docker compose exec` e não por um `psql` do host: o cliente do
+# PostgreSQL não é pré-requisito deste projeto (não está em `23-instalacao.md`),
+# e a imagem já o traz. `PGPASSWORD` é obrigatório porque o serviço sobe com
+# `POSTGRES_HOST_AUTH_METHOD: scram-sha-256`; o valor é o padrão de
+# desenvolvimento declarado no próprio `docker-compose.yml`, não um segredo.
 docker compose up -d db
-psql -h localhost -U campus -d campus -v ON_ERROR_STOP=0 \
-  -f api/prisma/verificar-restricoes.sql
+docker compose exec -T -e PGPASSWORD=campus_dev_local db \
+  psql -U campus -d campus -v ON_ERROR_STOP=0 -f - \
+  < api/prisma/verificar-restricoes.sql
 
-# Integração: o que só um banco prova — FOR UPDATE, CHECK, transação que reverte
+# Integração: o que só um banco prova — FOR UPDATE, CHECK, transação que reverte.
+# NÃO chame `prisma migrate deploy` aqui: o `globalSetup` de
+# `api/vitest.int.config.ts` sobe o `db-teste` e aplica a migration sozinho.
+# A chamada manual era redundante E reprovava com `P1012` (`Environment variable
+# not found: DATABASE_URL`), porque nada exporta a variável nesta sequência.
 docker compose --profile teste up -d db-teste
-cd api && npx prisma migrate deploy && cd ..
 npm run test:int -w campus-api
 
 # O produto inteiro, em um comando

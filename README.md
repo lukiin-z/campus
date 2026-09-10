@@ -139,8 +139,8 @@ Pré-requisito: **Node 22.17.0** (o `.nvmrc` fixa a versão).
 
 ```bash
 git clone https://github.com/lukiin-z/campus.git
-cd campus/app
-npm ci
+cd campus
+npm ci                 # na RAIZ: há um só package-lock.json para os 3 workspaces
 npm run dev
 ```
 

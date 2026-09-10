@@ -249,9 +249,14 @@ node scripts/validate-docs.mjs
 # Diagramas: valida a sintaxe de todos os blocos Mermaid renderizando cada um
 node scripts/render-diagrams.mjs --check
 
-# Aplicação
-cd app
+# Aplicação. O `npm ci` vai na RAIZ: há um só `package-lock.json`, e a toolchain
+# (vite, vitest, typescript, eslint, prettier) é declarada só lá. De dentro de
+# `app/` o `npm ci` retorna exit 0 e instala 165 pacotes em vez de 479 — prettier
+# e vitest ficam de fora, e `format:check`, `test:coverage` e `build` reprovam.
+# Medido em 2026-09-10.
 npm ci
+
+cd app
 npm run lint
 npm run check:scale
 npm run format:check
