@@ -26,12 +26,13 @@ O site é publicado pelo GitHub Actions a cada push em `main`
 ([`deploy-pages.yml`](../.github/workflows/deploy-pages.yml)). Seis endereços saem do
 mesmo deploy, e a coluna de status é o que `curl` devolveu em **2026-09-10**:
 
-> 🚨 **Remedido em 2026-09-11: cinco destes seis responderam 404.** A origem do Pages está
-> em `build_type: legacy` (`Deploy from a branch`, `main /`), então o Jekyll publica o
-> `README.md` renderizado em vez do artefato do app — que o `deploy-pages.yml` monta
-> corretamente, com os cinco diretórios dentro. Correção: `Settings → Pages → Source:
-> GitHub Actions`, ou `gh api -X PUT repos/lukiin-z/campus/pages -f build_type=workflow`.
-> A coluna abaixo é a medição de **2026-09-10**, quando o artefato ganhava a corrida.
+> ⚠️ **Remedido em 2026-09-11: os seis continuam 200, mas por sorteio.** A origem do Pages
+> está em `build_type: legacy` (`Deploy from a branch`, `main /`), então o Jekyll — que
+> renderiza o `README.md` — e o artefato do app correm a cada push, e quem publica por
+> último fica no ar. Às 15:25 o Jekyll ganhou e os cinco subcaminhos responderam **404**;
+> às 15:33 o artefato ganhou e voltaram a **200**. Correção definitiva:
+> `Settings → Pages → Source: GitHub Actions`, ou
+> `gh api -X PUT repos/lukiin-z/campus/pages -f build_type=workflow`.
 
 | Endereço | O que é | Status medido em 2026-09-10 |
 |---|---|---|
