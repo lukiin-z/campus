@@ -632,12 +632,26 @@ Declarar o limite vale mais que fingir que ele não existe.
 
 ## 6. Divergências abertas entre o contrato e o resto
 
-Nenhuma destas cinco foi corrigida por este documento, porque as cinco são **código ou
-contrato**, e este documento é leitura. Estão aqui para decisão de quem responde por eles.
+> **Estado em 2026-09-11: as três primeiras estão FECHADAS.** A regra aplicada foi "o
+> OpenAPI é o contrato publicado, alinhe o código ao YAML", com a exceção de que, se
+> alinhar o código quebrasse teste existente ou comportamento do E2E, então o YAML é que
+> estava errado. Conferidas uma a uma abaixo, com o que foi medido. **A 4 e a 5 continuam
+> abertas.** Nada foi apagado: o texto original de cada uma segue, e o veredito vem depois.
+>
+> | # | Lado que mudou | Estado |
+> |---|---|---|
+> | 1 — `GET`/`POST` no código de convite | **YAML** (exceção: dois testes de integração e o cliente do app já usavam `POST`) | fechada |
+> | 2 — `201` no webhook | **YAML** (exceção: sete asserções de teste já esperavam `200`) | fechada |
+> | 3 — `ResultadoLogin` atrasado | **Código** (a regra, sem exceção) | fechada |
+> | 4 — `429` ausente em duas rotas | — | **aberta** |
+> | 5 — `excluido_em` fora do schema | — | **aberta** |
 
-**As duas primeiras têm o mesmo veredito, e ele é incomum: o código está certo e o contrato
-está errado.** A implementação foi conferida, e nos dois casos ela já faz a coisa correta,
-com o motivo escrito no próprio controlador. É o `openapi.yaml` que precisa mudar.
+As cinco são **código ou contrato**, e este documento é leitura — por isso o registro de
+cada uma continua aqui, com o veredito ao lado.
+
+**As duas primeiras tiveram o mesmo veredito, e ele é incomum: o código estava certo e o
+contrato errado.** A implementação foi conferida, e nos dois casos ela já fazia a coisa
+correta, com o motivo escrito no próprio controlador. Foi o `openapi.yaml` que mudou.
 
 **1. `GET /admin/turmas/{id}/codigo` muda estado — e a API implementa como `POST`.** Um
 `GET` que "gera um código novo e desativa o anterior" não é seguro nem idempotente:
@@ -651,8 +665,14 @@ pedir. O controlador acertou:
 ```
 
 E o comentário acima da rota dá exatamente essa razão. **Correção: uma linha no
-`openapi.yaml`** — trocar `get:` por `post:` naquele caminho. Enquanto isso não acontecer, um
-cliente gerado a partir do YAML chama o método errado e recebe `404`.
+`openapi.yaml`** — trocar `get:` por `post:` naquele caminho.
+
+> ✅ **Fechada.** `api/openapi.yaml` declara **`post:`** com `'200'` em
+> `/admin/turmas/{id}/codigo`, e o controlador é `@Post` + `@HttpCode(200)`. As duas pontas
+> concordam. O lado que mudou foi o **YAML**, pela exceção: alinhar o código ao `GET`
+> quebraria `api/test/checkin-feed.int.test.ts` (duas chamadas `.post(...)`) e o cliente em
+> `app/src/services/api/index.ts:450`, que também usa `POST` — além de devolver a uma
+> operação que muda estado um método que *prefetch* de navegador dispara sozinho.
 
 **2. Todo `POST` do contrato declara `201` — inclusive os que não criam nada.** Oito
 operações devolvem um recurso **modificado**, não criado, e `200` seria o código certo:
@@ -673,6 +693,16 @@ no controlador é a melhor justificativa do arquivo:
 Um gateway que valide a resposta contra o contrato veria `200` onde o YAML promete `201`.
 As outras sete são coerentes entre contrato e código (as duas dizem `201`), e ali a
 pergunta é de projeto: `200` seria mais correto nas duas pontas.
+
+> ✅ **Fechada — só para `/pagamentos/webhook`.** O YAML declara **`'200'`** na resposta de
+> sucesso e o controlador tem `@HttpCode(200)`. O lado que mudou foi o **YAML**, pela
+> exceção: alinhar o código ao `201` quebraria as asserções `.expect(200)` de
+> `api/test/pagamento.int.test.ts` e `api/test/expiracao.int.test.ts`, e prometeria um
+> recurso novo que a notificação não cria (RN-014).
+>
+> **As outras sete continuam `201` nas duas pontas** e ficam como estão: não são
+> divergência entre contrato e código, são uma escolha de projeto — mudá-las alteraria o
+> status de sete operações às vésperas da entrega, sem nenhuma delas estar inconsistente.
 
 **3. `ResultadoLogin` do pacote compartilhado está atrasado — e a API já contornou.**
 `packages/shared/src/types.ts` declara `{ token, sessao }`, a forma do CP5. O contrato
@@ -697,8 +727,19 @@ impedir — "duas cópias de um tipo é o jeito mais rápido de o front aceitar 
 banco recusa" —, acontecendo antes de o pacote ser atualizado.
 
 A correção é a que a ADR prescreve: atualizar `ResultadoLogin` no pacote e fazer a API
-importá-lo, apagando `ResultadoLoginApi`. É de baixo risco: o app já lê os dois tokens por
-`app/src/services/sessao.ts`, então o tipo é o único lugar que ficou atrás.
+importá-lo, apagando `ResultadoLoginApi`.
+
+> ✅ **Fechada.** O lado que mudou foi o **código**, que é a regra sem exceção — ninguém
+> tocou no YAML. `ResultadoLoginApi` **não existe mais**: `api/src/auth/tipos.ts` abre com o
+> registro de que ele foi removido, e `auth.controller.ts` e `auth.service.ts` importam
+> `TokensDeSessao` de `@campus/shared`. O tipo do pacote tem exatamente a forma do schema
+> `ResultadoLogin` do contrato — `accessToken`, `refreshToken`, `expiraEm`, `sessao`.
+>
+> **Sobrou uma sutileza de nome, e ela é deliberada:** `ResultadoLogin` continua existindo
+> em `packages/shared` com a forma `{ token, sessao }`, que é **outra coisa** — o que a
+> camada de dados do app entrega às telas, não o corpo HTTP. Duas formas reais com dois
+> nomes é o oposto da duplicação que a ADR-0008 proíbe; o que ela proíbe é o mesmo corpo
+> descrito duas vezes, e isso acabou.
 
 **4. `429` falta em `POST /publicacoes` e `POST /publicacoes/{id}/comentarios`.** O limite
 de taxa está configurado (`RATE_LIMIT_TENTATIVAS` em `api/src/config/ambiente.ts`) e a

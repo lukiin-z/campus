@@ -572,11 +572,13 @@ Pendências declaradas
   banco ok, e um GET autenticado em /api/eventos devolvendo 24 eventos do PostgreSQL. Zero
   linha de erro no log dos tres. Em maquina SEM cache de imagem continua NAO verificado — e
   a unica pendencia de medicao que sobra.
-  Tres divergencias entre o contrato e a implementacao estao registradas em
-  docs/21-api-contrato.md: uma rota que o YAML declara como GET e a API implementa como POST
-  (a API esta certa), um status 201 que deveria ser 200 no webhook, e o tipo ResultadoLogin
-  do pacote compartilhado atrasado em relacao ao contrato — a API teve de declarar um tipo
-  local para nao usar o desatualizado. Nenhuma quebra o produto; as tres estao nomeadas.
+  As tres divergencias entre o contrato e a implementacao que o CP6 declarava estao
+  FECHADAS em 2026-09-11, e o registro de cada uma ficou em docs/21-api-contrato.md §6:
+  a rota do codigo de convite (o YAML dizia GET, a API implementa POST — o YAML mudou),
+  o status do webhook de pagamento (o YAML dizia 201, a API responde 200 — o YAML mudou)
+  e o tipo ResultadoLogin (o codigo mudou: ResultadoLoginApi foi removido e a API importa
+  TokensDeSessao do pacote). Seguem abertas outras duas, menores e nomeadas: 429 ausente
+  em duas rotas de escrita do feed, e excluido_em fora do schema.
   Tudo isso esta em docs/24-checklist-entrega-cp6.md com o comando que reproduz.
 ```
 
@@ -594,7 +596,7 @@ Trello e o texto de submissão do Teams, com o que já está pronto e o que falt
 |---|---|---|---|
 | 1 | **Gravar o vídeo de 3 minutos** | Precisa de 6 pessoas falando e de tela compartilhada, com a stack subindo ao vivo | O vídeo é a única evidência de que o produto **roda**; sem ele, os 30% de funcionalidade dependem de o avaliador subir o compose. **Roteiro e deck prontos** — [`entrega/README.md` §1](entrega/README.md#1-gravar-os-vídeos) |
 | 2 | **Rodar `docker compose up` em máquina limpa** | Precisa de uma máquina sem cache de imagem — não é reproduzível na do grupo. **O que já foi medido em 2026-09-10, e não fecha o item:** na máquina do grupo, **com** cache, `docker compose up -d` sobe `db`, `api` e `web` em cadeia por `service_healthy`; front em `:8080` responde **200**, `/api/health` responde **200** com `banco: ok`, e um `GET /api/eventos` autenticado devolve **24 eventos** do PostgreSQL, com **zero** linha de erro no log dos três. Isso prova o **compose**; não prova o **build a frio** | O critério de instalabilidade vale 20% e é o único que **só** se prova fora do ambiente do grupo |
-| 3 | **Decidir as três correções de contrato** | São decisões de contrato: mudar o YAML ou mudar o código. Ninguém decide sozinho | Contrato e implementação divergentes em três pontos, no checkpoint em que o contrato é a entrega |
+| ~~3~~ | ~~**Decidir as três correções de contrato**~~ | ✅ **Fechado em 2026-09-11.** Regra aplicada: o OpenAPI é o contrato publicado, alinhe o código ao YAML — exceto quando alinhar o código quebraria teste existente, e aí o YAML é que estava errado. Duas caíram na exceção (o YAML mudou) e uma na regra (o código mudou). Veredito e medição de cada uma em [`21-api-contrato.md` §6](21-api-contrato.md#6-divergências-abertas-entre-o-contrato-e-o-resto) | — |
 | 4 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4 e no CP5; repetir pela terceira vez é pior por ser repetido. **Insumo pronto e conferido** em [`entrega/README.md` §2](entrega/README.md#2-criar-e-usar-o-quadro-do-trello) |
 | ~~5~~ | ~~**Escrever o teste de integração de concorrência**~~ | ✅ **Fechado.** `concorrencia.int.test.ts` existe e foi **executado** em 2026-09-10, dentro dos 96 de 96 da suíte de integração contra PostgreSQL 16 | — |
 | 6 | **Validação com 5 alunos reais (RNF-005)** | Precisa de 5 pessoas e de 15 minutos cada | RNF-001 e RNF-005 seguem "não medido" pelo terceiro checkpoint |
