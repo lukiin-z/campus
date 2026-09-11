@@ -212,3 +212,17 @@ não um segundo consumidor.
 | As regras continuam certas | 243 testes no pacote, com limite de cobertura de RNF-015 (91,93% de linhas, 88,88% de funções) |
 | A interface do front não mudou | 377 testes do app passando com a implementação de mock — é a prova de RNF-016 |
 | Uma cópia de cada ferramenta | Verificação **fraca**: hoje é `npm ls vite` na mão. Um `npm ls --depth=1` no CI fecharia isso, e é candidato a verificador próprio |
+
+> **Atualização de 2026-09-10 — os números da tabela acima envelheceram, e ficam como
+> estavam.** Uma ADR registra o que foi medido **quando a decisão foi tomada**; reescrever o
+> número apaga a única coisa que ela prova, que é a evolução. Os valores de hoje, medidos
+> com `npm run test:dominio`, `npm run test:coverage` e `node scripts/check-contrato.mjs`:
+>
+> | Linha da tabela | Valor na decisão | Medido em 2026-09-10 |
+> |---|---|---|
+> | Testes do pacote | 243 | **308** |
+> | Cobertura de linhas do pacote | 91,93% | **99,32%** |
+> | Cobertura de funções do pacote | 88,88% | **97,97%** |
+> | `check-contrato.mjs` | 28 arquivos, 68 imports | **30 arquivos, 73 imports** |
+>
+> A decisão e o veredito não mudam: todos subiram, e a fronteira continua preservada.

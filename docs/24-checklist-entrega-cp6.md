@@ -611,8 +611,13 @@ Trello e o texto de submissão do Teams, com o que já está pronto e o que falt
 # Documentação: links, âncoras, blocos Mermaid e SVGs
 node scripts/validate-docs.mjs
 
-# Diagramas: valida a sintaxe de todos os blocos renderizando cada um
-npm run diagrams
+# Diagramas: valida a sintaxe de todos os blocos renderizando cada um.
+# `-- --check` de proposito: sem ele, `npm run diagrams` REGRAVA os SVGs
+# versionados em docs/05-modelagem/exports/ e quem so queria conferir termina
+# com a arvore suja -- o `npx --yes @mermaid-js/mermaid-cli` puxa a versao mais
+# nova e a geometria dos paths muda sem nada ter mudado no diagrama.
+# Medido em 2026-09-11: com `--check`, exit 0, 25/25 blocos, 0 arquivo alterado.
+npm run diagrams -- --check
 
 # Fronteira do pacote compartilhado
 node scripts/check-contrato.mjs
