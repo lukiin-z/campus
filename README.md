@@ -16,8 +16,83 @@
 
 ---
 
+## Identificação
+
+**Disciplina:** Engenharia de Software · **Curso:** Engenharia de Computação, 3º ano
+**Instituição:** FIAP · **Professor:** Hercules Ramos · **Turma:** ⟨TURMA⟩
+
+| Integrante | RM | Papel no projeto |
+|---|---|---|
+| Ana Luiza Dourado | RM558793 | UX/UI Designer |
+| João Viviani Baldini | RM558596 | Product Owner |
+| Lucas Baraldi | RM555407 | Tech Lead / Arquiteto |
+| Lucas Zolla | RM557952 | Analista de Requisitos |
+| Ronaldo Veloso Filho | RM556445 | Modelagem / Analista UML |
+| Vitor Pantarotto | RM554961 | Scrum Master / QA |
+
+---
+
+## Ver funcionando agora
+
+### 🔗 **[https://lukiin-z.github.io/campus/](https://lukiin-z.github.io/campus/)**
+
+O app roda no navegador, sem instalar nada. Quatro cartões de demonstração na tela de
+login entram como **aluno**, **organizador**, **admin de curso** ou **admin de
+faculdade** — a senha de todos é `campus123`.
+
+Roteiro de 5 minutos por fluxo, usuários do seed e limitações reais:
+[`docs/18-ambiente-de-teste.md`](docs/18-ambiente-de-teste.md).
+
+---
+
+## O que foi entregue em cada checkpoint
+
+| CP | O que foi entregue | Evidência |
+|---|---|---|
+| **CP4**<br>concepção | Documentação (43 RF, 22 RNF, 25 regras), 12 diagramas UML, identidade visual e design system, pitch, quadro do Trello, base do app React | [Checklist com evidência por critério](docs/16-checklist-entrega-cp4.md) · [Deck](https://lukiin-z.github.io/campus/slides/) · [Styleguide](https://lukiin-z.github.io/campus/styleguide/) · [Protótipo original](https://lukiin-z.github.io/campus/prototipo/) · Vídeo: ⟨VIDEO_CP4⟩ · Trello: ⟨TRELLO⟩ |
+| **CP5**<br>protótipo | 12 rotas navegáveis com dados mockados: login, onboarding, inscrição, fila de espera, pagamento simulado, ingresso, check-in, feed e notificações | [Checklist com evidência por critério](docs/19-checklist-entrega-cp5.md) · [Deck](https://lukiin-z.github.io/campus/slides-cp5/) · [Ambiente de teste](docs/18-ambiente-de-teste.md) · Vídeo: ⟨VIDEO_CP5⟩ · Trello: ⟨TRELLO⟩ |
+| **CP6**<br>entrega final | API NestJS sobre PostgreSQL, 43 operações, capacidade garantida por `SELECT … FOR UPDATE`, 22 restrições no banco, stack em um comando com `docker compose up` | [Checklist com evidência por critério](docs/24-checklist-entrega-cp6.md) · [Deck](https://lukiin-z.github.io/campus/slides-cp6/) · [Contrato da API](docs/21-api-contrato.md) · [Manual de uso](docs/22-manual-de-uso.md) · [Instalação](docs/23-instalacao.md) · Vídeo: ⟨VIDEO_CP6⟩ · Trello: ⟨TRELLO⟩ |
+
+Os três checklists trazem, critério por critério, **o comando que reproduz cada número** —
+não "está pronto", mas o que abrir, contar ou rodar. O pacote de entrega com o texto de
+submissão dos três está em [`docs/entrega/README.md`](docs/entrega/README.md).
+
+---
+
+## Rodar em dois comandos
+
+Pré-requisito: **Node 22.17.0** (o `.nvmrc` fixa a versão).
+
+```bash
+git clone https://github.com/lukiin-z/campus.git
+cd campus
+npm ci                 # na RAIZ. Um só package-lock.json serve os 3 workspaces
+npm run dev            # http://localhost:5173
+```
+
+> ⚠️ **`npm ci` vai na raiz, nunca dentro de `app/` ou `api/`.** De dentro do workspace ele
+> retorna **exit 0** e mesmo assim deixa a árvore quebrada: instala 165 pacotes em vez de
+> 479, porque `prettier`, `vitest` e o resto da toolchain são declarados só na raiz. Medido
+> em clone limpo em 2026-09-10 — depois disso, `build`, `test:coverage` e `format:check`
+> reprovam.
+
+**O produto inteiro — front, API e PostgreSQL — em um comando:**
+
+```bash
+docker compose up      # front em :8080, API em :3000/api
+```
+
+Roteiro completo de instalação, com os três caminhos e a solução de cada erro conhecido:
+[`docs/23-instalacao.md`](docs/23-instalacao.md).
+
+---
+
 ## Sumário
 
+- [Identificação](#identificação)
+- [Ver funcionando agora](#ver-funcionando-agora)
+- [O que foi entregue em cada checkpoint](#o-que-foi-entregue-em-cada-checkpoint)
+- [Rodar em dois comandos](#rodar-em-dois-comandos)
 - [O problema](#o-problema)
 - [Como ver funcionando](#como-ver-funcionando)
 - [Funcionalidades](#funcionalidades)
@@ -293,8 +368,8 @@ arquivo dele importar React, Prisma ou NestJS.
 Responsabilidades detalhadas e matriz RACI dos artefatos:
 [`docs/10-equipe-e-papeis.md`](docs/10-equipe-e-papeis.md).
 
-**Disciplina:** Engenharia de Software · **Curso:** Engenharia de Computação (3º ano) ·
-**Instituição:** FIAP · **Professor:** Hercules Ramos
+Identificação da disciplina, do professor e da turma: [no topo desta
+página](#identificação).
 
 ---
 
@@ -331,10 +406,21 @@ Responsabilidades detalhadas e matriz RACI dos artefatos:
 Tarefa por tarefa: [`docs/13-roadmap-cp5-cp6.md`](docs/13-roadmap-cp5-cp6.md).
 Critério por critério, com evidência: [`docs/19-checklist-entrega-cp5.md`](docs/19-checklist-entrega-cp5.md).
 
-### CP6 — persistência, integração e entrega final 🔜
+### CP6 — persistência, integração e entrega final ✅
 
-API real substituindo o mock, pagamento em sandbox, check-in por leitura de QR,
-notificações, moderação, PWA instalável e manual de uso.
+| Entrega | Estado |
+|---|---|
+| API NestJS sobre PostgreSQL: 43 operações no contrato, 43 rotas implementadas | ✅ |
+| Capacidade sem estouro com `SELECT … FOR UPDATE`, e `CHECK` no banco como rede | ✅ |
+| 14 tabelas, 20 `CHECK`, 2 índices únicos parciais — **22 restrições exercitadas** contra PostgreSQL real | ✅ |
+| Stack inteira em um comando: `docker compose up`, três serviços em cadeia por `service_healthy` | ✅ medido **com** cache de imagem; **sem** cache segue não verificado |
+| Contrato executável (`api/openapi.yaml`), com a doc derivando dele | ✅ [`docs/21`](docs/21-api-contrato.md) |
+| Manual de uso e roteiro de instalação | ✅ [`docs/22`](docs/22-manual-de-uso.md) · [`docs/23`](docs/23-instalacao.md) |
+| Roteiro do vídeo de 3 min e deck do CP6 | ✅ |
+| 8 ADRs, com alternativa recusada e como reverter | ✅ [`docs/adr/`](docs/adr/README.md) |
+
+Critério por critério, com o comando que reproduz cada número:
+[`docs/24-checklist-entrega-cp6.md`](docs/24-checklist-entrega-cp6.md).
 
 ---
 
