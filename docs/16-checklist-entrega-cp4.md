@@ -184,61 +184,17 @@ Texto pronto na seção 5.
 
 ## 5. O que entregar no Teams
 
-Preencha os dois links marcados com `⟨…⟩` e envie.
+O texto de submissão do CP4 **mora em um lugar só**, e não é aqui:
+**[`docs/entrega/README.md` §2](entrega/README.md#2-texto-de-submissão--cp4)**.
 
-```
-Checkpoint 4 — Campus (app de eventos universitários)
-Engenharia de Software · Engenharia de Computação, 3º ano · Prof. Hercules Ramos
+Esta seção guardava uma segunda cópia dele. Duas cópias do mesmo texto divergem — foi o que
+aconteceu: a daqui ficou com números de uma apuração anterior enquanto a seção 3 desta
+própria página já trazia outros. A partir de 2026-09-11 existe **uma** versão, com os links
+já preenchidos e os marcadores `⟨…⟩` que faltam nomeados um a um.
 
-Equipe
-  Ana Luiza Dourado      RM558793  UX/UI Designer
-  João Viviani Baldini   RM558596  Product Owner
-  Lucas Baraldi          RM555407  Tech Lead / Arquiteto
-  Lucas Zolla            RM557952  Analista de Requisitos
-  Ronaldo Veloso Filho   RM556445  Modelagem / Analista UML
-  Vitor Pantarotto       RM554961  Scrum Master / QA
-
-Entregas
-  Repositório .......... https://github.com/lukiin-z/campus
-  Documentação ......... https://github.com/lukiin-z/campus/blob/main/docs/README.md
-  App rodando .......... https://lukiin-z.github.io/campus/
-  Styleguide da marca .. https://lukiin-z.github.io/campus/styleguide/
-  Protótipo original ... https://lukiin-z.github.io/campus/prototipo/
-  Figma ................ https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp
-  Trello ............... ⟨colar o link do quadro⟩
-  Vídeo (2 min) ........ ⟨colar o link não listado⟩
-
-Onde encontrar cada critério
-  Documentação e requisitos (25%) .. docs/01 a docs/04 e docs/14
-                                     43 RF com critério de aceite, 22 RNF com métrica,
-                                     25 regras de negócio, 12 requisitos recusados
-  Modelagem UML (20%) .............. docs/05-modelagem/
-                                     12 diagramas Mermaid em 7 tipos, 16 exports em SVG,
-                                     especificação textual de UC-001 a UC-005
-  Identidade visual (20%) .......... docs/06-marca/ e o styleguide
-                                     6 SVGs à mão, 3 escalas de 10 passos e o contraste
-                                     WCAG AA de 28 pares, calculado
-  Pitch (15%) ...................... docs/07-pitch.md
-                                     pitch de 1 min cronometrado e comparativo honesto
-                                     com 4 alternativas
-  Trello (10%) ..................... docs/09-trello/
-                                     7 listas, 32 cards em 3 sprints, 3 formas de importar
-  GitHub (10%) ..................... README, CONTRIBUTING, CI verde e Pages publicado
-
-Base técnica que adianta o CP5
-  App React com TypeScript strict, 156 testes passando, 66% de cobertura no domínio,
-  e a camada de dados desacoplada: trocar o mock pela API real no CP6 muda só quem
-  responde ao HTTP, sem tocar em nenhuma tela.
-
-Pendências declaradas
-  O teste E2E do Playwright está escrito e configurado, mas não executado (o navegador
-  do Playwright não foi instalado). As 8 telas do Figma não foram montadas: a cota de
-  chamadas do plano Starter esgotou durante a construção do arquivo — o substituto são
-  as 4 telas de referência do styleguide e o próprio app funcionando. Os dois casos
-  estão registrados em docs/06-marca/guia-figma.md e docs/13-roadmap-cp5-cp6.md.
-```
-
----
+O [pacote de entrega](entrega/README.md) também traz a ordem de execução, o passo a passo do
+Trello (inclusive o que fazer **depois** de importar, que é o que fecha o critério) e o link
+direto dos três roteiros de vídeo.
 
 ## 6. Conferência final, para rodar antes de enviar
 

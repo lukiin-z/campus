@@ -253,94 +253,17 @@ feitos por qualquer integrante; os marcados com 👤 dependem de pessoa e não d
 
 ## 5. O que entregar no Teams
 
-Preencha os dois links marcados com `⟨…⟩` e envie. **Antes de enviar**, confirme que os
-números da seção "Estado das verificações" abaixo continuam verdadeiros — se o CI foi
-consertado, atualize-os; se não foi, deixe-os como estão. Número errado a favor do grupo é
-pior que número honesto contra.
+O texto de submissão do CP5 **mora em um lugar só**, e não é aqui:
+**[`docs/entrega/README.md` §3](entrega/README.md#3-texto-de-submissão--cp5)**.
 
-```
-Checkpoint 5 — Campus (app de eventos universitários)
-Engenharia de Software · Engenharia de Computação, 3º ano · Prof. Hercules Ramos
+Esta seção guardava uma segunda cópia dele. Duas cópias do mesmo texto divergem — foi o que
+aconteceu: a daqui ficou com números de uma apuração anterior enquanto a seção 3 desta
+própria página já trazia outros. A partir de 2026-09-11 existe **uma** versão, com os links
+já preenchidos e os marcadores `⟨…⟩` que faltam nomeados um a um.
 
-Equipe
-  Ana Luiza Dourado      RM558793  UX/UI Designer
-  João Viviani Baldini   RM558596  Product Owner
-  Lucas Baraldi          RM555407  Tech Lead / Arquiteto
-  Lucas Zolla            RM557952  Analista de Requisitos
-  Ronaldo Veloso Filho   RM556445  Modelagem / Analista UML
-  Vitor Pantarotto       RM554961  Scrum Master / QA
-
-Entregas
-  Repositório .......... https://github.com/lukiin-z/campus
-  App rodando .......... https://lukiin-z.github.io/campus/
-  Ambiente de teste .... https://github.com/lukiin-z/campus/blob/main/docs/18-ambiente-de-teste.md
-  Documentação ......... https://github.com/lukiin-z/campus/blob/main/docs/README.md
-  Styleguide da marca .. https://lukiin-z.github.io/campus/styleguide/
-  Figma ................ https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp
-  Trello ............... ⟨colar o link do quadro⟩
-  Vídeo (2 min) ........ ⟨colar o link não listado⟩
-
-Onde encontrar cada critério
-  Funcionalidade do protótipo (30%) .. app/ e docs/02-requisitos.md §1.1
-                                       25 dos 43 RF completos e 3 parciais, com o
-                                       endpoint, a função de domínio e o teste de cada um.
-                                       293 testes e 6 casos E2E passando, incluindo 50
-                                       inscricoes concorrentes na ultima vaga que
-                                       confirmam exatamente uma
-  Ambiente de teste (20%) ............ docs/18-ambiente-de-teste.md
-                                       link público, 3 comandos para rodar local,
-                                       usuários de teste do seed e roteiro por fluxo
-  Documentação atualizada (20%) ...... docs/02, docs/03, docs/04 e docs/17-jornada.md
-                                       histórico de revisões em cada documento; 43 RF com
-                                       status lido do código; 22 RNF com valor medido ou
-                                       "não medido"; 29 regras de negócio rastreadas até
-                                       arquivo, função e teste
-  Diagramas UML atualizados (15%) .... docs/05-modelagem/
-                                       diagramas conferidos contra o código do CP5,
-                                       validados por scripts/render-diagrams.mjs
-  Qualidade da demo (15%) ............ docs/20-video-cp5-roteiro.md e os slides
-                                       roteiro de 2 min cronometrado, escalação dos 6,
-                                       preparo da demo e plano B por fluxo
-
-Como o CP5 foi construído
-  O contrato veio primeiro: os endpoints da API simulada, as interfaces dos repositórios e
-  as funções de domínio foram definidos antes das telas, o que permitiu construir as telas
-  em paralelo sem conflito. Nenhuma tela conhece a origem dos dados — é regra de lint, não
-  de boa vontade, e é o que faz a troca do mock pela API real no CP6 mudar só quem responde
-  ao HTTP. O registro dessa evolução está em docs/17-jornada.md.
-
-O que mudou de escopo, e por quê
-  Sete requisitos que estavam no CP6 entraram no CP5 (pagamento simulado, check-in, escrita
-  no feed e central de notificações) porque a demonstração ao vivo precisa deles. Três que
-  estavam no CP5 foram para o CP6 (cadastro de conta, edição de perfil e publicação de
-  rascunho): são operações de escrita que não aparecem na demonstração, e ficaram por
-  último. A troca está declarada item por item em docs/03-escopo.md §8.1.
-
-Pendências declaradas
-  CORRIGIDO EM 2026-09-10: este parágrafo dizia que o E2E do Playwright continuava
-  "escrito e não executado". Estava errado e contradizia a secao 3 desta mesma pagina,
-  que ja registrava 6 de 6 verdes. O E2E foi executado, reprovou 6 de 6 na primeira vez,
-  as tres causas foram corrigidas, e ele entrou no ci.yml em job proprio -- ou seja, a
-  execucao nao depende mais da maquina de ninguem. Ver docs/17-jornada.md, linha do
-  item 12.
-  Duas coberturas seguem finas, e estão nomeadas: domain/permissions.ts tem 12 funções
-  exportadas e nenhuma coberta por teste, e domain/eventSchema.ts está em 0% — o limite
-  global de 60% passa (79,03% de linhas, 63,38% de funções), mas esses dois módulos não
-  têm prova própria. Vale registrar que o limite REPROVOU de verdade no meio da sprint,
-  com 54,54%: as telas entraram antes dos testes, o build falhou, e os testes vieram
-  depois. Tudo está em docs/19-checklist-entrega-cp5.md com o número medido e a correção.
-
-O que a conferência de documentação encontrou
-  Conferir os 43 requisitos e as 29 regras de negócio contra o código expôs três coisas
-  que já foram corrigidas: um defeito de ORDEM no check-in, que fazia a segunda leitura do
-  mesmo QR responder "não confirmada" em vez de "ingresso já utilizado às 20h14" — o
-  requisito estava certo e o código foi corrigido, com teste de regressão; quatro arquivos
-  citados pela documentação do CP4 que nunca existiram; e uma contradição ativa sobre quem
-  pode publicar no feed, em que dois endpoints aplicam critérios diferentes da regra
-  escrita. Os três achados estão em docs/02-requisitos.md e docs/04-regras-de-negocio.md.
-```
-
----
+O [pacote de entrega](entrega/README.md) também traz a ordem de execução, o passo a passo do
+Trello (inclusive o que fazer **depois** de importar, que é o que fecha o critério) e o link
+direto dos três roteiros de vídeo.
 
 ## 6. O que ainda depende de ação humana
 

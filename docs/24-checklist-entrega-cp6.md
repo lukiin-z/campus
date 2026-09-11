@@ -204,7 +204,7 @@ suíte de integração, o E2E completo e as 22 restrições são medidos **junto
 | Contrato × rotas servidas | `npm run check:rotas` | ✅ **38 caminhos declarados no `openapi.yaml`, 38 registrados pela aplicação.** Exige `DATABASE_URL`, `JWT_SECRET` e `WEBHOOK_SECRET`; sem elas o script recusa com a lista dos nomes que faltam, e os placeholders estão no `ci.yml` |
 | **Restrições do banco** | `psql -f api/prisma/verificar-restricoes.sql` | ✅ **22 `ok`, 0 falha**, contra PostgreSQL 16 no container. Rodado por `docker exec` porque não há `psql` no host — o `-v ON_ERROR_STOP=0` é proposital: os blocos esperam recusa |
 | **E2E** | `npm run test:e2e` | ✅ **9 de 9 verdes em 1,1 min**, 6 workers. `mock-mobile-chromium`: 6 casos. `api-mobile-chromium`: 3 casos contra a API real com PostgreSQL — login e alcance, inscrição → cobrança → pagamento → ingresso, e evento lotado → fila com posição |
-| `docker compose up` em máquina **sem cache** | `docker compose up` | ⚪ **Não verificado.** As imagens já estão em cache nesta máquina, então rodar aqui **não** mede o que o critério de instalabilidade pede. Continua dependendo de outra máquina — [`entrega/README.md` §4](entrega/README.md#4-o-que-depende-de-pessoa-mas-não-é-entregável) |
+| `docker compose up` em máquina **sem cache** | `docker compose up` | ⚪ **Não verificado.** As imagens já estão em cache nesta máquina, então rodar aqui **não** mede o que o critério de instalabilidade pede. Continua dependendo de outra máquina — [`entrega/README.md` §4](entrega/README.md#8-o-que-depende-de-pessoa-mas-não-é-entregável) |
 
 **Total de testes automatizados executados nesta passagem: 1.021 execuções, 713 casos
 distintos.** A subtração é a mesma da [seção abaixo](#o-que-o-total-de-testes-soma-e-por-que-não-é-1-021):
@@ -353,7 +353,7 @@ fonte mock — o que hoje não existe.
 | **`docker compose up` em máquina limpa** | ⚪ Escrito e não executado | ⚪ **Continua não verificado, e não é verificável aqui:** as imagens estão em cache nesta máquina, então rodar mediria a máquina e não o critério. É o item que **precisa de outra máquina** |
 | Latência com tráfego real (RNF-008) | ⚪ Não há carga | ⚪ **Não verificado.** Falta medir `p95` contra a API com dado de volume |
 | Os 6 breakpoints de RNF-018 | ⚪ Não há teste de layout | ⚪ **Não verificado.** O E2E prova **um** (390×844) |
-| Validação com 5 alunos reais (RNF-005) | ⚪ Depende de pessoas | ⚪ **Não verificado.** 5 pessoas, 15 min cada — [`entrega/README.md` §4](entrega/README.md#4-o-que-depende-de-pessoa-mas-não-é-entregável) |
+| Validação com 5 alunos reais (RNF-005) | ⚪ Depende de pessoas | ⚪ **Não verificado.** 5 pessoas, 15 min cada — [`entrega/README.md` §4](entrega/README.md#8-o-que-depende-de-pessoa-mas-não-é-entregável) |
 
 **Três continuam não verificados, e nenhum dos três se resolve com um comando nesta
 máquina.** É uma lista menor e mais honesta que a de 02/09: antes havia sete itens, dos quais
@@ -483,106 +483,17 @@ lista de bloqueadores que perde o histórico não deixa aprender nada.
 
 ## 5. O que entregar no Teams
 
-Preencha os links marcados com `⟨…⟩` e envie. **Antes de enviar**, confirme que os números
-da seção 3 continuam verdadeiros — se a formatação foi corrigida e o teste de integração
-escrito, atualize-os; se não foram, deixe-os como estão. Número errado a favor do grupo é
-pior que número honesto contra.
+O texto de submissão do CP6 **mora em um lugar só**, e não é aqui:
+**[`docs/entrega/README.md` §4](entrega/README.md#4-texto-de-submissão--cp6)**.
 
-```
-Checkpoint 6 — Campus (app de eventos universitários)
-Engenharia de Software · Engenharia de Computação, 3º ano · Prof. Hercules Ramos
+Esta seção guardava uma segunda cópia dele. Duas cópias do mesmo texto divergem — foi o que
+aconteceu: a daqui ficou com números de uma apuração anterior enquanto a seção 3 desta
+própria página já trazia outros. A partir de 2026-09-11 existe **uma** versão, com os links
+já preenchidos e os marcadores `⟨…⟩` que faltam nomeados um a um.
 
-Equipe
-  Ana Luiza Dourado      RM558793  UX/UI Designer
-  João Viviani Baldini   RM558596  Product Owner
-  Lucas Baraldi          RM555407  Tech Lead / Arquiteto
-  Lucas Zolla            RM557952  Analista de Requisitos
-  Ronaldo Veloso Filho   RM556445  Modelagem / Analista UML
-  Vitor Pantarotto       RM554961  Scrum Master / QA
-
-Entregas
-  Repositorio .......... https://github.com/lukiin-z/campus
-  Rodar em 1 comando ... docker compose up   (roteiro: docs/23-instalacao.md)
-  App sem backend ...... https://lukiin-z.github.io/campus/
-  Manual de uso ........ https://github.com/lukiin-z/campus/blob/main/docs/22-manual-de-uso.md
-  Contrato da API ...... https://github.com/lukiin-z/campus/blob/main/docs/21-api-contrato.md
-  Documentacao ......... https://github.com/lukiin-z/campus/blob/main/docs/README.md
-  Styleguide da marca .. https://lukiin-z.github.io/campus/styleguide/
-  Figma ................ https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp
-  Trello ............... ⟨colar o link do quadro⟩
-  Video (3 min) ........ ⟨colar o link nao listado⟩
-
-Onde encontrar cada critério
-  Funcionalidade completa (30%) ...... api/ e app/, sobre PostgreSQL
-                                       43 operacoes no contrato e 43 rotas implementadas.
-                                       14 tabelas, 20 CHECK, 2 indices unicos parciais.
-                                       22 restricoes verificadas contra PostgreSQL real.
-                                       460 testes sem repeticao e 6 casos E2E.
-  Qualidade tecnica (20%) ............ 0 erro e 0 aviso de lint nos dois workspaces.
-                                       Fronteira de arquitetura EXECUTAVEL: 3 verificadores.
-                                       Cobertura 96,68% no app e 99,32% no pacote.
-                                       8 ADRs com alternativa recusada e como reverter.
-  Instalabilidade (20%) .............. docker compose up, tres servicos em cadeia com
-                                       healthcheck de verdade (pg_isready, nao depends_on
-                                       solto). Migration e seed automaticos. PWA instalavel.
-                                       Roteiro em docs/23-instalacao.md.
-  Documentacao final (15%) ........... 25 documentos, 8 ADRs, 21 diagramas UML.
-                                       Contrato com fonte unica: api/openapi.yaml, com
-                                       docs/21-api-contrato.md como leitura derivada.
-                                       validate-docs.mjs verifica link, ancora, bloco
-                                       Mermaid e SVG de 52 arquivos.
-  Evolucao do projeto (15%) .......... docs/17-jornada.md
-                                       As 30 rotas do CP5 seguem TODAS no contrato do CP6,
-                                       nenhuma renomeada. O dominio foi MOVIDO para um
-                                       pacote, nao copiado. A serializacao de RN-004 saiu
-                                       da fila do mock para SELECT ... FOR UPDATE.
-
-Como o CP6 foi construído
-  O contrato veio primeiro, como no CP5, e desta vez ele e executavel: api/openapi.yaml, com
-  38 caminhos e 43 operacoes, escrito antes dos modulos. A doc do contrato DERIVA do YAML e
-  diz isso na primeira linha — porque entre o CP4 e o CP5 uma tabela de endpoints escrita a
-  mao divergiu do codigo, e a licao foi parar de ter duas fontes em vez de conferir com mais
-  cuidado. As regras de negocio foram PORTADAS, nao reescritas: 13 modulos sairam de
-  app/src/domain/ e viraram o pacote @campus/shared, com a fronteira verificada por script.
-  planPromotion existe uma vez, e e a mesma que decide na tela e na API.
-
-O que separa o CP6 do CP5, em uma frase
-  A garantia de "capacidade nunca excedida" deixou de ser uma fila de promessas dentro de um
-  navegador e passou a ser SELECT ... FOR UPDATE numa linha do PostgreSQL, com um CHECK
-  embaixo como rede. As duas produzem o mesmo comportamento observavel — e so a segunda vale
-  entre processos. A comparacao esta tabelada em docs/05-modelagem/03-modelo-dados-er.md.
-
-Pendências declaradas
-  O build passa nos tres workspaces SOB UMA CONDICAO, e ela e o unico ponto que ainda exige
-  atencao de quem instala: o cliente do Prisma nao e versionado e o npm bloqueia o preinstall
-  que o geraria (npm warn allow-scripts). Em arvore limpa, `npm ci && npm run build` reprova
-  com 182 erros de tipo na API; com `npm run prisma:generate -w campus-api` antes, passa. Nao
-  e defeito de codigo, e um passo de instalacao, e ele esta na secao 7, no CONTRIBUTING e no
-  ci.yml. Vale registrar POR QUE nem o lint nem os testes pegam essa classe de falha: nenhum
-  dos dois faz verificacao de tipo — o Vitest transpila com esbuild, que remove anotacao de
-  tipo sem checar. O unico passo que roda tsc e o build, e o CI o roda.
-  check:rotas tem a mesma forma: ele SOBE a aplicacao, entao exige DATABASE_URL, JWT_SECRET e
-  WEBHOOK_SECRET. Sem elas reprova por ambiente, nao por rota; com os placeholders do ci.yml,
-  os 38 caminhos do contrato batem com os 38 registrados.
-  A suite de integracao da API FOI executada: 11 arquivos, 96 casos, 96 verdes contra
-  PostgreSQL, com a concorrencia entre processos coberta. A garantia de "uma confirmacao para
-  a ultima vaga" deixou de estar provada so contra o mock.
-  O docker compose sobe os tres servicos em cadeia NESTA maquina e COM cache de imagem: db e
-  api saudaveis pelo healthcheck, front em 8080 respondendo 200, /api/health 200 com
-  banco ok, e um GET autenticado em /api/eventos devolvendo 24 eventos do PostgreSQL. Zero
-  linha de erro no log dos tres. Em maquina SEM cache de imagem continua NAO verificado — e
-  a unica pendencia de medicao que sobra.
-  As tres divergencias entre o contrato e a implementacao que o CP6 declarava estao
-  FECHADAS em 2026-09-11, e o registro de cada uma ficou em docs/21-api-contrato.md §6:
-  a rota do codigo de convite (o YAML dizia GET, a API implementa POST — o YAML mudou),
-  o status do webhook de pagamento (o YAML dizia 201, a API responde 200 — o YAML mudou)
-  e o tipo ResultadoLogin (o codigo mudou: ResultadoLoginApi foi removido e a API importa
-  TokensDeSessao do pacote). Seguem abertas outras duas, menores e nomeadas: 429 ausente
-  em duas rotas de escrita do feed, e excluido_em fora do schema.
-  Tudo isso esta em docs/24-checklist-entrega-cp6.md com o comando que reproduz.
-```
-
----
+O [pacote de entrega](entrega/README.md) também traz a ordem de execução, o passo a passo do
+Trello (inclusive o que fazer **depois** de importar, que é o que fecha o critério) e o link
+direto dos três roteiros de vídeo.
 
 ## 6. O que ainda depende de ação humana
 
@@ -594,10 +505,10 @@ Trello e o texto de submissão do Teams, com o que já está pronto e o que falt
 
 | # | Ação | Por que depende de pessoa | Risco se não for feito |
 |---|---|---|---|
-| 1 | **Gravar o vídeo de 3 minutos** | Precisa de 6 pessoas falando e de tela compartilhada, com a stack subindo ao vivo | O vídeo é a única evidência de que o produto **roda**; sem ele, os 30% de funcionalidade dependem de o avaliador subir o compose. **Roteiro e deck prontos** — [`entrega/README.md` §1](entrega/README.md#1-gravar-os-vídeos) |
+| 1 | **Gravar o vídeo de 3 minutos** | Precisa de 6 pessoas falando e de tela compartilhada, com a stack subindo ao vivo | O vídeo é a única evidência de que o produto **roda**; sem ele, os 30% de funcionalidade dependem de o avaliador subir o compose. **Roteiro e deck prontos** — [`entrega/README.md` §6](entrega/README.md#6-gravar-os-três-vídeos) |
 | 2 | **Rodar `docker compose up` em máquina limpa** | Precisa de uma máquina sem cache de imagem — não é reproduzível na do grupo. **O que já foi medido em 2026-09-10, e não fecha o item:** na máquina do grupo, **com** cache, `docker compose up -d` sobe `db`, `api` e `web` em cadeia por `service_healthy`; front em `:8080` responde **200**, `/api/health` responde **200** com `banco: ok`, e um `GET /api/eventos` autenticado devolve **24 eventos** do PostgreSQL, com **zero** linha de erro no log dos três. Isso prova o **compose**; não prova o **build a frio** | O critério de instalabilidade vale 20% e é o único que **só** se prova fora do ambiente do grupo |
 | ~~3~~ | ~~**Decidir as três correções de contrato**~~ | ✅ **Fechado em 2026-09-11.** Regra aplicada: o OpenAPI é o contrato publicado, alinhe o código ao YAML — exceto quando alinhar o código quebraria teste existente, e aí o YAML é que estava errado. Duas caíram na exceção (o YAML mudou) e uma na regra (o código mudou). Veredito e medição de cada uma em [`21-api-contrato.md` §6](21-api-contrato.md#6-divergências-abertas-entre-o-contrato-e-o-resto) | — |
-| 4 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4 e no CP5; repetir pela terceira vez é pior por ser repetido. **Insumo pronto e conferido** em [`entrega/README.md` §2](entrega/README.md#2-criar-e-usar-o-quadro-do-trello) |
+| 4 | **Criar e usar o quadro do Trello** | O critério fala em uso real: mover cards, comentar link de PR | Já era pendência no CP4 e no CP5; repetir pela terceira vez é pior por ser repetido. **Insumo pronto e conferido** em [`entrega/README.md` §5](entrega/README.md#5-criar-e-usar-o-quadro-do-trello) |
 | ~~5~~ | ~~**Escrever o teste de integração de concorrência**~~ | ✅ **Fechado.** `concorrencia.int.test.ts` existe e foi **executado** em 2026-09-10, dentro dos 96 de 96 da suíte de integração contra PostgreSQL 16 | — |
 | 6 | **Validação com 5 alunos reais (RNF-005)** | Precisa de 5 pessoas e de 15 minutos cada | RNF-001 e RNF-005 seguem "não medido" pelo terceiro checkpoint |
 | 7 | **Verificar os 6 breakpoints de RNF-018** | Não há teste de layout; é olhar tela | Quebra de layout na correção |
