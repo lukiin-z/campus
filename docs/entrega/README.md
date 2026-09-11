@@ -375,6 +375,7 @@ medidas**, e nenhuma se resolve por comando.
 
 | Item | Por que depende de pessoa | Onde está declarado |
 |---|---|---|
+| 🚨 **Religar o GitHub Pages no modo `GitHub Actions`** | É configuração do repositório, e **bloqueia a entrega**: em 2026-09-11 o site publicado serve o `README.md` renderizado pelo Jekyll, e `/styleguide/`, `/prototipo/` e os três decks respondem **404**. O artefato do deploy está correto — o que está errado é a origem. `Settings → Pages → Source: GitHub Actions`, ou `gh api -X PUT repos/lukiin-z/campus/pages -f build_type=workflow`, e depois refazer o deploy | [`README.md`](../../README.md#ver-funcionando-agora) |
 | Validação com 5 alunos reais (RNF-005, RNF-001) | 5 pessoas, 15 min cada | [`02-requisitos.md`](../02-requisitos.md) |
 | Os 6 breakpoints de RNF-018 | Não há teste de layout; é olhar tela. O E2E prova um (390×844) | [`02-requisitos.md`](../02-requisitos.md) |
 | `docker compose up` em máquina **sem cache de imagem** | Precisa de outra máquina; na do grupo a imagem já está em cache | [`24-checklist-entrega-cp6.md` §3](../24-checklist-entrega-cp6.md#3-estado-real-das-verificações) |

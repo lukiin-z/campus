@@ -26,7 +26,14 @@ O site é publicado pelo GitHub Actions a cada push em `main`
 ([`deploy-pages.yml`](../.github/workflows/deploy-pages.yml)). Seis endereços saem do
 mesmo deploy, e a coluna de status é o que `curl` devolveu em **2026-09-10**:
 
-| Endereço | O que é | Status medido |
+> 🚨 **Remedido em 2026-09-11: cinco destes seis responderam 404.** A origem do Pages está
+> em `build_type: legacy` (`Deploy from a branch`, `main /`), então o Jekyll publica o
+> `README.md` renderizado em vez do artefato do app — que o `deploy-pages.yml` monta
+> corretamente, com os cinco diretórios dentro. Correção: `Settings → Pages → Source:
+> GitHub Actions`, ou `gh api -X PUT repos/lukiin-z/campus/pages -f build_type=workflow`.
+> A coluna abaixo é a medição de **2026-09-10**, quando o artefato ganhava a corrida.
+
+| Endereço | O que é | Status medido em 2026-09-10 |
 |---|---|---|
 | `https://lukiin-z.github.io/campus/` | O app React, com dados mockados. É o entregável principal | **200** `text/html` |
 | `https://lukiin-z.github.io/campus/styleguide/` | A marca inteira em uma página, com contraste medido | **200** `text/html` |

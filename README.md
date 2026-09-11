@@ -36,6 +36,18 @@
 
 ### 🔗 **[https://lukiin-z.github.io/campus/](https://lukiin-z.github.io/campus/)**
 
+> 🚨 **O site está servindo a página errada desde 2026-09-11, e a correção é de uma linha.**
+> A origem do GitHub Pages está em **`build_type: legacy`** (`Deploy from a branch`, `main /`),
+> então o Jekyll renderiza o `README.md` e publica **isso** — enquanto o artefato do app,
+> montado corretamente pelo [`deploy-pages.yml`](.github/workflows/deploy-pages.yml), perde a
+> corrida. Medido: `/` responde **200** mas com `<title>campus</title>` e **sem** `id="root"`;
+> `/styleguide/`, `/prototipo/`, `/slides/`, `/slides-cp5/` e `/slides-cp6/` respondem **404**.
+> O artefato do deploy **contém** os cinco — conferido na listagem do `tar` do run.
+>
+> **Correção (dono do repositório):** `Settings → Pages → Source: GitHub Actions`, ou
+> `gh api -X PUT repos/lukiin-z/campus/pages -f build_type=workflow`. Depois, refaça o
+> deploy e remeça. Até lá, para avaliar o app rode local — [dois comandos abaixo](#rodar-em-dois-comandos).
+
 O app roda no navegador, sem instalar nada. Quatro cartões de demonstração na tela de
 login entram como **aluno**, **organizador**, **admin de curso** ou **admin de
 faculdade** — a senha de todos é `campus123`.
@@ -135,15 +147,15 @@ Detalhamento, personas e jornada: [`docs/01-problema-e-personas.md`](docs/01-pro
 
 ## Como ver funcionando
 
-| Link | O que é | Status medido em 2026-09-10 |
-|---|---|---|
-| **[App](https://lukiin-z.github.io/campus/)** | O app React rodando, com dados mockados | **200** |
-| **[Styleguide](https://lukiin-z.github.io/campus/styleguide/)** | A marca inteira em uma página: logo, paleta com contraste medido, tipografia, todos os componentes em todos os estados | **200** |
-| **[Protótipo original](https://lukiin-z.github.io/campus/prototipo/)** | O protótipo estático que originou a identidade visual, preservado | **200** |
-| **[Slides do vídeo (CP4)](https://lukiin-z.github.io/campus/slides/)** | Deck de apoio da apresentação, navegável por setas | **200** |
-| **[Slides do vídeo (CP5)](https://lukiin-z.github.io/campus/slides-cp5/)** | Deck de apoio da apresentação do CP5 | **200** |
-| **[Slides do vídeo (CP6)](https://lukiin-z.github.io/campus/slides-cp6/)** | Deck de apoio da apresentação do CP6 | **200** |
-| **[Arquivo do Figma](https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp)** | Design system com 64 tokens, 11 estilos de texto e 9 componentes com 34 variants | **403** sem sessão — exige login no Figma |
+| Link | O que é | 2026-09-10 | 2026-09-11 |
+|---|---|---|---|
+| **[App](https://lukiin-z.github.io/campus/)** | O app React rodando, com dados mockados | **200** | ⚠️ **200, mas servindo o README renderizado** — ver o aviso acima |
+| **[Styleguide](https://lukiin-z.github.io/campus/styleguide/)** | A marca inteira em uma página: logo, paleta com contraste medido, tipografia, todos os componentes em todos os estados | **200** | 🚨 **404** |
+| **[Protótipo original](https://lukiin-z.github.io/campus/prototipo/)** | O protótipo estático que originou a identidade visual, preservado | **200** | 🚨 **404** |
+| **[Slides do vídeo (CP4)](https://lukiin-z.github.io/campus/slides/)** | Deck de apoio da apresentação, navegável por setas | **200** | 🚨 **404** |
+| **[Slides do vídeo (CP5)](https://lukiin-z.github.io/campus/slides-cp5/)** | Deck de apoio da apresentação do CP5 | **200** | 🚨 **404** |
+| **[Slides do vídeo (CP6)](https://lukiin-z.github.io/campus/slides-cp6/)** | Deck de apoio da apresentação do CP6 | **200** | 🚨 **404** |
+| **[Arquivo do Figma](https://www.figma.com/design/LRohAtBOH6gyskqkA9cRKp)** | Design system com 64 tokens, 11 estilos de texto e 9 componentes com 34 variants | **403** sem sessão | **403** sem sessão — exige login no Figma |
 
 > **Os seis primeiros links estão no ar.** Até 2026-09-10 este parágrafo dizia que o
 > GitHub Pages ainda não havia sido ligado e que os endereços retornavam 404. A medição por
